@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { 
+    box-sizing: border-box; 
+  }
+  
+  html, body, #root { 
+    height: 100%; 
+    margin: 0; 
+    padding: 0; 
+  }
+  
+  body {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer components {
+  .hide-scrollbar::-webkit-scrollbar { 
+    display: none; 
+  }
+  
+  .hide-scrollbar { 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+  }
+  
+  .card-hover { 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+  }
+  
+  .card-hover:hover { 
+    transform: translateY(-8px); 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
+  }
+  
+  .gradient-text {
+    background: linear-gradient(135deg, #ee7711 0%, #f19332 50%, #df5d07 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@layer utilities {
+  .animate-fadeIn { 
+    animation: fadeIn 0.6s ease-out forwards; 
+  }
+  
+  .animate-slideIn { 
+    animation: slideIn 0.5s ease-out forwards; 
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+}
