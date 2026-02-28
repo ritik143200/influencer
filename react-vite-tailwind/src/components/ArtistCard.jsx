@@ -14,9 +14,33 @@ const ArtistCard = ({ artist, config, fullWidth = false }) => {
                      artist.name || 
                      'Artist Name';
   const artistSpecialty = artist.subcategory || artist.specialty || artist.skills?.[0] || 'Professional Artist';
-  const artistRating = artist.rating?.average || artist.rating || 0;
-  const artistReviews = artist.rating?.count || artist.reviews || 0;
-  const artistPrice = artist.budget ? `₹${artist.budget.toLocaleString()}` : artist.price || 'Price on request';
+  const artistRating = typeof artist.rating?.average === 'number' ? artist.rating.average : 
+                      typeof artist.rating === 'number' ? artist.rating : 
+                      0;
+  const artistReviews = typeof artist.rating?.count === 'number' ? artist.rating.count : 
+                      typeof artist.reviews === 'number' ? artist.reviews : 
+                      0;
+  const artistPrice = artist.budgetMin && artist.budgetMax 
+    ? `₹${artist.budgetMin.toLocaleString()} - ₹${artist.budgetMax.toLocaleString()}`
+    : artist.budgetMin && !artist.budgetMax
+      ? `Starting from ₹${artist.budgetMin.toLocaleString()}`
+      : artist.budgetMax && !artist.budgetMin
+        ? `Upto ₹${artist.budgetMax.toLocaleString()}`
+        : artist.budget 
+          ? `₹${artist.budget.toLocaleString()}` 
+          : artist.price || 'Price on request';
+  
+  console.log('💰 Artist budget data:', {
+    budget: artist.budget,
+    budgetMin: artist.budgetMin,
+    budgetMax: artist.budgetMax,
+    price: artist.price,
+    artistPrice: artistPrice,
+    budgetType: artist.budgetMin && artist.budgetMax ? 'Range' : 
+                artist.budgetMin && !artist.budgetMax ? 'Min Only' : 
+                artist.budgetMax && !artist.budgetMin ? 'Max Only' : 
+                artist.budget ? 'Single' : 'None'
+  });
   
   // Improved image handling
   const artistImage = artist.profileImage || artist.image || '👤';

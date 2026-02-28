@@ -529,6 +529,23 @@ const CategoryPage = ({ config }) => {
           const artistsData = result.artists || [];
           setArtists(artistsData);
           console.log('✅ Artists fetched successfully:', artistsData.length, 'artists');
+          
+          // Log budget data for debugging
+          if (artistsData.length > 0) {
+            console.log('💰 Sample artist budget data:');
+            artistsData.slice(0, 3).forEach((artist, index) => {
+              console.log(`  ${index + 1}. ${artist.fullName || artist.name}:`, {
+                budget: artist.budget,
+                budgetMin: artist.budgetMin,
+                budgetMax: artist.budgetMax,
+                price: artist.price,
+                hasBudget: !!artist.budget,
+                hasBudgetMin: !!artist.budgetMin,
+                hasBudgetMax: !!artist.budgetMax,
+                allFields: Object.keys(artist)
+              });
+            });
+          }
         } else {
           throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
         }
