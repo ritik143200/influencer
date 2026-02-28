@@ -175,7 +175,7 @@ const artistRating = typeof artist.rating?.average === 'number' ? artist.rating.
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
                       <span className="text-yellow-500">⭐</span>
-                      <span className="font-bold text-gray-900">{artistRating.toFixed(1)}</span>
+                      <span className="font-bold text-gray-900">{numericRating.toFixed(1)}</span>
                     </div>
                     <span className="text-gray-500">({artistReviews} reviews)</span>
                   </div>
@@ -313,7 +313,7 @@ const artistRating = typeof artist.rating?.average === 'number' ? artist.rating.
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1">
             <span className="text-yellow-500 text-sm">⭐</span>
-            <span className="font-bold text-sm">{artistRating.toFixed(1)}</span>
+            <span className="font-bold text-sm">{numericRating.toFixed(1)}</span>
             <span className="text-gray-400 text-xs">({artistReviews})</span>
           </div>
           <span className="text-lg font-bold text-brand-600">{artistPrice}</span>

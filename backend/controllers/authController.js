@@ -212,7 +212,7 @@ const resetPassword = async (req, res) => {
     }
 
     // Set new password
-    if (userType === 'artist' ) {
+    if (userType === 'artist') {
       const salt = await bcrypt.genSalt(10);
       userRecord.password = await bcrypt.hash(password, salt);
     } else {

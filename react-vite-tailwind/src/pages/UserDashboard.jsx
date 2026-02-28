@@ -14,7 +14,7 @@ const UserDashboard = ({ config }) => {
     if (storedUser) {
       setUserData(JSON.parse(storedUser));
     }
-    
+
     // Load mock data
     setBookings([
       {
@@ -132,11 +132,10 @@ const UserDashboard = ({ config }) => {
                   <div className="text-sm font-medium text-gray-900">₹{booking.amount.toLocaleString()}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    booking.status === 'confirmed' 
-                      ? 'bg-green-100 text-green-800' 
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${booking.status === 'confirmed'
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
-                  }`}>
+                    }`}>
                     {booking.status}
                   </span>
                 </td>
@@ -191,7 +190,7 @@ const UserDashboard = ({ config }) => {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <button 
+                <button
                   onClick={handleLogout}
                   className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
                 >
@@ -212,11 +211,10 @@ const UserDashboard = ({ config }) => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                      activeTab === tab
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab
                         ? 'border-brand-500 text-brand-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
+                      }`}
                   >
                     {tab.charAt(0).toUpperCase() + tab.slice(1)}
                   </button>
