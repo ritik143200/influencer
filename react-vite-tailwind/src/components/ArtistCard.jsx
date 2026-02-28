@@ -227,8 +227,15 @@ const ArtistCard = ({ artist, config, fullWidth = false }) => {
 
   // Original card layout (grid)
   return (
+<<<<<<< Updated upstream
     <div 
       onClick={() => navigate('artist', { artist })}
+=======
+    <div
+      onClick={() => {
+        navigate('artist', { artist });
+      }}
+>>>>>>> Stashed changes
       className="flex-shrink-0 w-64 lg:w-72 bg-white rounded-2xl overflow-hidden shadow-lg card-hover cursor-pointer"
     >
       <div className="relative" style={{ aspectRatio: '1/1.54' }}>
