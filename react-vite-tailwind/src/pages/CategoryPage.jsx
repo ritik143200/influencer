@@ -549,15 +549,31 @@ const CategoryPage = ({ config }) => {
   useEffect(() => {
     let allArtists = [...artists];
     
+    console.log('🔄 Filtering triggered with:');
+    console.log('   - Total artists:', allArtists.length);
+    console.log('   - Selected category:', selectedCategoryData?.name);
+    console.log('   - Filters:', filters);
+    
     // Calculate relevance score for each artist based on ALL filters
     const scoredArtists = allArtists.map(artist => {
       let score = 0;
       let matchDetails = [];
 
       // Category Matching - Highest Priority (15 points exact)
-      if (selectedCategoryData && artist.category && selectedCategoryData.name && artist.category.toLowerCase() === selectedCategoryData.name.toLowerCase()) {
-        score += 15;
-        matchDetails.push('Exact category match');
+      if (selectedCategoryData && selectedCategoryData.name && artist.category) {
+        const selectedCategoryName = selectedCategoryData.name.toLowerCase().trim();
+        const artistCategoryName = artist.category.toLowerCase().trim();
+        
+        // Exact match
+        if (artistCategoryName === selectedCategoryName) {
+          score += 15;
+          matchDetails.push('Exact category match');
+        }
+        // Partial match (contains)
+        else if (artistCategoryName.includes(selectedCategoryName) || selectedCategoryName.includes(artistCategoryName)) {
+          score += 10;
+          matchDetails.push('Partial category match');
+        }
       }
 
       // Subcategory Matching - Higher Priority (12 points exact, 8 points skills)
@@ -722,7 +738,7 @@ const CategoryPage = ({ config }) => {
     }
     
     // Log scoring details for debugging
-    if (filters.location || filters.skill || filters.subcategory !== 'all' || filters.minBudget || filters.maxBudget) {
+    if (filters.location || filters.skill || filters.subcategory !== 'all' || filters.minBudget || filters.maxBudget || selectedCategoryData) {
       console.log('🎯 Filter Results - Top 5 Artists:');
       scoredArtists.slice(0, 5).forEach((artist, index) => {
         console.log(`${index + 1}. ${artist.fullName} - Score: ${artist.relevanceScore} - ${artist.matchDetails.join(', ')}`);
@@ -730,7 +746,7 @@ const CategoryPage = ({ config }) => {
     }
     
     setDisplayArtists(scoredArtists);
-  }, [artists, filters]);
+  }, [artists, filters, selectedCategoryData]);
 
   if (loading) {
     return (
@@ -790,11 +806,18 @@ const CategoryPage = ({ config }) => {
 
   // Category selection handler
   const handleCategorySelect = (categoryKey) => {
+    console.log('🎯 Category selected:', categoryKey);
+    
     if (allCategoriesData[categoryKey]) {
-      setSelectedCategoryData(allCategoriesData[categoryKey]);
+      const categoryData = allCategoriesData[categoryKey];
+      console.log('📝 Category data:', categoryData.name);
+      
+      setSelectedCategoryData(categoryData);
       setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey); // Toggle dropdown
       setSelectedSubcategory('All Subcategories');
       setFilters(prev => ({ ...prev, subcategory: 'all' }));
+      
+      console.log('✅ Category selection completed:', categoryData.name);
     }
   };
 
