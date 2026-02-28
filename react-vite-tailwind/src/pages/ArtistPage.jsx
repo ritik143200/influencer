@@ -8,18 +8,18 @@ const ArtistPage = ({ config }) => {
   // Handle both backend and mock data structures
   const artistName = artist.fullName || artist.name || `${artist.firstName || ''} ${artist.lastName || ''}`.trim() || 'Artist Name';
   const artistSpecialty = artist.subcategory || artist.specialty || artist.skills?.[0] || 'Professional Artist';
-  const artistRating = artist.rating?.average || artist.rating || 0;
+  const artistRating = Number(artist.rating?.average || artist.rating || 0);
   const artistReviews = artist.rating?.count || artist.reviews || 0;
   const artistPrice = artist.budget ? `₹${artist.budget.toLocaleString()}` : artist.price || 'Price on request';
   const artistImage = artist.profileImage || artist.image || '👤';
   const artistLocation = artist.location || 'Location not specified';
   const artistBio = artist.bio || `${artistName} is a highly skilled ${artistSpecialty} professional with years of experience in the industry.`;
-  const isVerified = artist.verificationStatus === 'verified' || artist.verified;
+    const isVerified = artist.verificationStatus === 'verified' || artist.verified;
 
   return (
     <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button 
+        <button
           onClick={() => navigate('home')}
           className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
         >
@@ -62,7 +62,7 @@ const ArtistPage = ({ config }) => {
                 <div className="text-3xl font-bold" style={{ color: config.primary_action }}>
                   {artistPrice}
                 </div>
-                <button 
+                <button
                   className="mt-3 px-8 py-3 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105"
                   style={{ backgroundColor: config.primary_action }}
                 >
