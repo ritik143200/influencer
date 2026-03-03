@@ -1,151 +1,97 @@
 import { useRouter } from '../contexts/RouterContext';
-import { artists } from '../data/mockData';
 import { useState, useEffect } from 'react';
 import ArtistInquiry from '../components/ArtistInquiry';
 
 const ArtistPage = ({ config }) => {
   const { params, navigate } = useRouter();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const [artistData, setArtistData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
 
-  // Get artist from params or mock data
-  let artist = params.artist || artists[0];
-  
-  // Extract artist ID from URL params if available
-  const artistId = params.artistId || artist._id || artist.id;
-  
-  console.log('🎨 ArtistPage rendered with:');
-  console.log('📋 Params:', params);
-  console.log('🆔 ArtistId:', artistId);
-  console.log('👤 Artist object:', artist);
-  
-  // If we have artistId but no artist object, find artist by ID
-  if (!params.artist && artistId) {
-    // Handle both mock data IDs (numbers) and MongoDB IDs (strings)
-    artist = artists.find(a => 
-      a._id === artistId || 
-      a.id === artistId || 
-      a.id === parseInt(artistId) ||
-      String(a.id) === String(artistId)
-    );
-    
-    // If no artist found with the given ID, it means it's a MongoDB ID
-    // In that case, we need to fetch from backend or use the first artist as fallback
-    if (!artist) {
-      console.log('⚠️ No artist found with ID:', artistId);
-      console.log('🔄 Using fallback artist (first in list)');
-      artist = artists[0]; // Fallback to first artist
-    } else {
-      console.log('✅ Found artist by ID:', artist);
-    }
-  }
+  const normalizeArtist = (fetchedArtist) => ({
+    id: fetchedArtist._id || fetchedArtist.id,
+    name: fetchedArtist.fullName || fetchedArtist.name || `${fetchedArtist.firstName || ''} ${fetchedArtist.lastName || ''}`.trim() || 'Artist Name',
+    specialty: fetchedArtist.subcategory || fetchedArtist.specialty || fetchedArtist.skills?.[0] || 'Professional Artist',
+    category: fetchedArtist.category || 'Entertainment',
+    rating: Number(fetchedArtist.rating?.average || fetchedArtist.rating || 0),
+    reviews: fetchedArtist.rating?.count || fetchedArtist.reviews || 0,
+    budget: fetchedArtist.budgetMin && fetchedArtist.budgetMax
+      ? `₹${fetchedArtist.budgetMin.toLocaleString()} - ₹${fetchedArtist.budgetMax.toLocaleString()}`
+      : fetchedArtist.budgetMin && !fetchedArtist.budgetMax
+        ? `Starting from ₹${fetchedArtist.budgetMin.toLocaleString()}`
+        : fetchedArtist.budgetMax && !fetchedArtist.budgetMin
+          ? `Upto ₹${fetchedArtist.budgetMax.toLocaleString()}`
+          : fetchedArtist.budget
+            ? `₹${fetchedArtist.budget.toLocaleString()}`
+            : fetchedArtist.price || 'Price on request',
+    location: fetchedArtist.location || 'Location not specified',
+    bio: fetchedArtist.bio || fetchedArtist.description || 'No bio available for this artist.',
+    experience: fetchedArtist.experience || 'Experience not specified',
+    showsHosted: fetchedArtist.showsHosted || fetchedArtist.events || 0,
+    happyClients: fetchedArtist.happyClients || fetchedArtist.clients || 0,
+    responseTime: fetchedArtist.responseTime || 'Response time not specified',
+    skills: fetchedArtist.skills || fetchedArtist.services || [],
+    languages: fetchedArtist.languages || ['English'],
+    portfolio: fetchedArtist.portfolio || [],
+    socialLinks: fetchedArtist.socialLinks || {
+      instagram: '#',
+      facebook: '#',
+      twitter: '#',
+      website: '#'
+    },
+    verified: fetchedArtist.verified || false,
+    trending: fetchedArtist.trending || false,
+    image: fetchedArtist.profileImage || fetchedArtist.image || ''
+  });
 
-  // Simulate fetching artist data from MongoDB
   useEffect(() => {
+    const artistId = params.artistId || params.artist?._id || params.artist?.id;
+    const controller = new AbortController();
+
     const fetchArtistData = async () => {
       setLoading(true);
       try {
-        // Simulate API call to MongoDB
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        let fetchedArtist;
-        
-        // If we have a MongoDB ID (24-character hex string), simulate fetching from MongoDB
-        if (artistId && artistId.length === 24 && /^[0-9a-fA-F]{24}$/.test(artistId)) {
-          console.log('🔗 Fetching artist from MongoDB with ID:', artistId);
-          
-          // Simulate MongoDB artist data
-          fetchedArtist = {
-            _id: artistId,
-            fullName: 'Kavita Reddy',
-            name: 'Kavita Reddy',
-            firstName: 'Kavita',
-            lastName: 'Reddy',
-            category: 'Makeup Artists',
-            specialty: 'Bridal • Makeup Artists',
-            location: 'Bangalore',
-            bio: 'Professional makeup artist with 8+ years of experience in bridal makeup, specializing in traditional and contemporary looks. Certified by top makeup academies and trained in the latest techniques.',
-            rating: { average: 4.8, count: 156 },
-            reviews: 156,
-            budget: 25000,
-            budgetMin: 25000,
-            budgetMax: 50000,
-            experience: '8+ Years',
-            showsHosted: 450,
-            happyClients: 380,
-            responseTime: '2 Hours',
-            skills: ['Bridal Makeup', 'HD Makeup', 'Airbrush Makeup', 'Traditional Makeup', 'Party Makeup', 'Fashion Makeup'],
-            languages: ['Hindi', 'English', 'Kannada', 'Tamil'],
-            portfolio: [
-              { id: 1, title: 'Bridal Look 1', image: 'https://picsum.photos/seed/bridal1/400/300.jpg' },
-              { id: 2, title: 'Bridal Look 2', image: 'https://picsum.photos/seed/bridal2/400/300.jpg' },
-              { id: 3, title: 'Party Makeup', image: 'https://picsum.photos/seed/party1/400/300.jpg' },
-              { id: 4, title: 'Fashion Look', image: 'https://picsum.photos/seed/fashion1/400/300.jpg' },
-              { id: 5, title: 'Traditional Look', image: 'https://picsum.photos/seed/traditional1/400/300.jpg' },
-              { id: 6, title: 'Contemporary Look', image: 'https://picsum.photos/seed/contemporary1/400/300.jpg' }
-            ],
-            socialLinks: {
-              instagram: 'https://instagram.com/kavitareddy',
-              facebook: 'https://facebook.com/kavitareddy',
-              twitter: 'https://twitter.com/kavitareddy',
-              website: 'https://kavitareddy.com'
-            },
-            verified: true,
-            trending: true
-          };
-          
-          console.log('✅ MongoDB artist data fetched:', fetchedArtist);
-        } else {
-          // Handle both backend and mock data structures
-          fetchedArtist = artist;
-          console.log('📋 Using mock/artist data:', fetchedArtist);
+        if (!artistId) {
+          throw new Error('Artist ID is missing');
         }
-        const processedArtist = {
-          id: fetchedArtist._id || fetchedArtist.id,
-          name: fetchedArtist.fullName || fetchedArtist.name || `${fetchedArtist.firstName || ''} ${fetchedArtist.lastName || ''}`.trim() || 'Artist Name',
-          specialty: fetchedArtist.subcategory || fetchedArtist.specialty || fetchedArtist.skills?.[0] || 'Professional Artist',
-          category: fetchedArtist.category || 'Entertainment',
-          rating: Number(fetchedArtist.rating?.average || fetchedArtist.rating || 0),
-          reviews: fetchedArtist.rating?.count || fetchedArtist.reviews || 0,
-          budget: fetchedArtist.budgetMin && fetchedArtist.budgetMax 
-            ? `₹${fetchedArtist.budgetMin.toLocaleString()} - ₹${fetchedArtist.budgetMax.toLocaleString()}` 
-            : fetchedArtist.budgetMin && !fetchedArtist.budgetMax
-              ? `Starting from ₹${fetchedArtist.budgetMin.toLocaleString()}` 
-              : fetchedArtist.budgetMax && !fetchedArtist.budgetMin
-                ? `Upto ₹${fetchedArtist.budgetMax.toLocaleString()}` 
-                : fetchedArtist.budget 
-                  ? `₹${fetchedArtist.budget.toLocaleString()}` 
-                  : fetchedArtist.price || 'Price on request',
-          location: fetchedArtist.location || 'Location not specified',
-          bio: fetchedArtist.bio || fetchedArtist.description || 'No bio available for this artist.',
-          experience: fetchedArtist.experience || 'Experience not specified',
-          showsHosted: fetchedArtist.showsHosted || fetchedArtist.events || 0,
-          happyClients: fetchedArtist.happyClients || fetchedArtist.clients || 0,
-          responseTime: fetchedArtist.responseTime || 'Response time not specified',
-          skills: fetchedArtist.skills || fetchedArtist.services || [],
-          languages: fetchedArtist.languages || ['English'],
-          portfolio: fetchedArtist.portfolio || [],
-          socialLinks: fetchedArtist.socialLinks || {
-            instagram: '#',
-            facebook: '#',
-            twitter: '#',
-            website: '#'
+
+        const response = await fetch(`${API_BASE_URL}/api/artists/${encodeURIComponent(String(artistId))}`, {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
           },
-          verified: fetchedArtist.verified || false,
-          trending: fetchedArtist.trending || false
-        };
-        
-        setArtistData(processedArtist);
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        const fetchedArtist = result.artist || result.data;
+
+        if (fetchedArtist) {
+          setArtistData(normalizeArtist(fetchedArtist));
+          return;
+        }
+
+        throw new Error('Artist data not found in response');
       } catch (error) {
-        console.error('Error fetching artist data:', error);
+        if (error?.name !== 'AbortError') {
+          console.error('Error fetching artist data:', error);
+        }
+        setArtistData(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchArtistData();
-  }, [artist]);
+
+    return () => {
+      controller.abort();
+    };
+  }, [params.artist, params.artistId, API_BASE_URL]);
 
   if (loading) {
     return (

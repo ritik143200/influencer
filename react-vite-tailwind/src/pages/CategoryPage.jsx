@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from '../contexts/RouterContext';
-import { artists } from '../data/mockData';
+import { artists as mockArtists } from '../data/mockData';
 import ArtistCard from '../components/ArtistCard';
 
 // Categories data - Same as Artist Registration Page
@@ -473,6 +473,7 @@ const allCategoriesData = {
 
 const CategoryPage = ({ config }) => {
   const { params, navigate } = useRouter();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const searchQuery = params.search;
   const subcategory = params.subcategory;
   
@@ -492,6 +493,7 @@ const CategoryPage = ({ config }) => {
   const [selectedCategoryData, setSelectedCategoryData] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState('All Subcategories');
   const [expandedCategory, setExpandedCategory] = useState(null); // Track which category dropdown is open
+  const hasFetchedRef = useRef(false);
   
   // Display artists state
   const [displayArtists, setDisplayArtists] = useState([]);
@@ -503,16 +505,21 @@ const CategoryPage = ({ config }) => {
 
   // Fetch artists from MongoDB
   useEffect(() => {
+    if (hasFetchedRef.current) {
+      return;
+    }
+    hasFetchedRef.current = true;
+
     const fetchArtists = async () => {
       try {
         setLoading(true);
         setError(null);
         
         console.log('🔄 Fetching artists from backend...');
-        console.log('🌐 API URL: http://localhost:5001/api/artists');
+        console.log(`🌐 API URL: ${API_BASE_URL}/api/artists`);
         
         // Fetch from backend API
-        const response = await fetch('http://localhost:5001/api/artists', {
+        const response = await fetch(`${API_BASE_URL}/api/artists`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -552,15 +559,16 @@ const CategoryPage = ({ config }) => {
         
       } catch (err) {
         console.error('❌ Error fetching artists:', err);
-        setError(err.message);
-        setArtists([]);
+        console.log('🔄 Backend unavailable, using mock artists fallback');
+        setArtists(mockArtists || []);
+        setError(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchArtists();
-  }, []);
+  }, [API_BASE_URL]);
 
   // Dynamic Filter-Based Artist Evaluation and Sorting
   useEffect(() => {
@@ -852,7 +860,7 @@ const CategoryPage = ({ config }) => {
   console.log('🎨 Category color:', category?.color);
 
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config?.background_color || '#f9fafb' }}>
+    <div className="pt-20 sm:pt-24 pb-10 sm:pb-16 min-h-full" style={{ backgroundColor: config?.background_color || '#f9fafb' }}>
       <style>{`
         .scrollbar-hide {
           -ms-overflow-style: none;
@@ -869,10 +877,10 @@ const CategoryPage = ({ config }) => {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div className="flex">
+      <div className="flex flex-col md:block">
         {/* Left Sidebar - Filters - Fixed Position */}
-        <div className="fixed left-0 top-24 w-80 bg-white shadow-lg border-r border-gray-200 z-30" style={{ height: 'calc(100vh - 6rem)' }}>
-          <div className="p-4 h-full overflow-y-auto">
+        <div className="w-full md:fixed md:left-0 md:top-24 md:w-80 bg-white shadow-sm md:shadow-lg border-b md:border-b-0 md:border-r border-gray-200 z-30 md:z-30 md:h-[calc(100vh-6rem)]">
+          <div className="p-4 md:h-full md:overflow-y-auto">
             {/* Filter Header */}
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
@@ -1017,7 +1025,7 @@ const CategoryPage = ({ config }) => {
               <div>
                 <h4 className="text-sm font-medium text-gray-900 mb-3">Budget Range</h4>
                 <p className="text-xs text-gray-500 mb-2">Per event</p>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
                     <input
@@ -1028,7 +1036,7 @@ const CategoryPage = ({ config }) => {
                       className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
-                  <span className="text-gray-400">—</span>
+                  <span className="text-gray-400 text-center">—</span>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
                     <input
@@ -1065,32 +1073,32 @@ const CategoryPage = ({ config }) => {
         </div>
 
         {/* Main Content Area - With Left Margin for Fixed Sidebar */}
-        <div className="flex-1 ml-80">
+        <div className="w-full md:ml-80">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-5 sm:mb-6 mt-4 md:mt-0">
               <button 
                 onClick={() => navigate && navigate('home')}
-                className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category?.color || 'from-blue-500 to-purple-600'} flex items-center justify-center text-3xl shadow-lg`}>
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${category?.color || 'from-blue-500 to-purple-600'} flex items-center justify-center text-2xl sm:text-3xl shadow-lg`}>
                 {category?.icon || '🎭'}
               </div>
               <div className="flex-1">
-                <h1 className="text-3xl font-bold" style={{ color: config?.text_color || '#111827' }}>{pageTitle}</h1>
-                <p className="text-gray-500">{pageDescription}</p>
+                <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: config?.text_color || '#111827' }}>{pageTitle}</h1>
+                <p className="text-sm sm:text-base text-gray-500">{pageDescription}</p>
               </div>
             </div>
 
             {/* Results Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-              <div className="flex items-center justify-between">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{pageTitle}</h2>
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">{pageTitle}</h2>
                   <div className="flex items-center gap-2 text-sm text-gray-600">
                     <span>Showing {displayArtists.length} of {artists.length} artists</span>
                     {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all' || filters.skill) && (
@@ -1101,13 +1109,13 @@ const CategoryPage = ({ config }) => {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="text-sm text-gray-500">
                     Sort by:
                     <select 
                       value={filters.sortBy || 'relevance'}
                       onChange={(e) => updateFilter('sortBy', e.target.value)}
-                      className="ml-2 text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="ml-2 w-full sm:w-auto text-sm border border-gray-300 rounded-md px-3 py-2 sm:py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="relevance">Relevance</option>
                       <option value="price-low">Price: Low to High</option>
@@ -1183,11 +1191,11 @@ const CategoryPage = ({ config }) => {
 
             {/* Artists Grid - Row Wise Full Width */}
             {displayArtists.length > 0 ? (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full min-w-0">
                 {displayArtists.map((artist, index) => (
                   <div 
                     key={artist._id || artist.id || index}
-                    className="animate-fadeIn w-full"
+                    className="w-full min-w-0"
                   >
                     {ArtistCard && <ArtistCard artist={artist} config={config || {}} fullWidth={true} />}
                   </div>
