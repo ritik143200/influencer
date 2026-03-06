@@ -2,6 +2,7 @@ services:
   # Backend Web Service
   - type: web
     name: artisthub-api
+    runtime: node
     region: oregon # Free tier regions typically include oregon, frankfurt, singapore, ohio
     rootDir: backend
     buildCommand: npm install
