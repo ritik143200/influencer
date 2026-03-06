@@ -115,6 +115,13 @@ const CategorySection = ({ category, config }) => {
   }, [API_BASE_URL, category.name]);
 
   if (!loading && categoryArtists.length === 0) return null;
+    if (!loading && categoryArtists.length === 0) {
+      return (
+        <div className="w-full text-center text-gray-400 py-8">
+          No artists found in this category.
+        </div>
+      );
+    }
 
   const artistCount = loading ? category.count || 0 : categoryArtists.length;
 
