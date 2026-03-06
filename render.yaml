@@ -2,7 +2,7 @@ services:
   # Backend Web Service
   - type: web
     name: artisthub-api
-    runtime: node
+    env: node
     region: oregon # Free tier regions typically include oregon, frankfurt, singapore, ohio
     rootDir: backend
     buildCommand: npm install
@@ -23,9 +23,8 @@ services:
         sync: false
 
   # Frontend Static Site
-  - type: web
+  - type: static_site
     name: artisthub-frontend
-    env: static
     rootDir: react-vite-tailwind
     buildCommand: npm install && npm run build
     staticPublishPath: dist
