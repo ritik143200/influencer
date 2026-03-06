@@ -1,153 +1,117 @@
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
-import { artists } from '../data/mockData';
 import { useState, useEffect } from 'react';
 import ArtistInquiry from '../components/ArtistInquiry';
 
 const ArtistPage = ({ config }) => {
   const { params, navigate } = useRouter();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const { isAuthenticated } = useAuth();
   const [artistData, setArtistData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
 
-  // Get artist from params or mock data
-  let artist = params.artist || artists[0];
+  const normalizeArtist = (fetchedArtist) => ({
+    id: fetchedArtist._id || fetchedArtist.id,
+    name: fetchedArtist.fullName || fetchedArtist.name || `${fetchedArtist.firstName || ''} ${fetchedArtist.lastName || ''}`.trim() || 'Artist Name',
+    specialty: fetchedArtist.subcategory || fetchedArtist.specialty || fetchedArtist.skills?.[0] || 'Professional Artist',
+    category: fetchedArtist.category || 'Entertainment',
+    rating: Number(fetchedArtist.rating?.average || fetchedArtist.rating || 0),
+    reviews: fetchedArtist.rating?.count || fetchedArtist.reviews || 0,
+    budget: fetchedArtist.budgetMin && fetchedArtist.budgetMax
+      ? `₹${fetchedArtist.budgetMin.toLocaleString()} - ₹${fetchedArtist.budgetMax.toLocaleString()}`
+      : fetchedArtist.budgetMin && !fetchedArtist.budgetMax
+        ? `Starting from ₹${fetchedArtist.budgetMin.toLocaleString()}`
+        : fetchedArtist.budgetMax && !fetchedArtist.budgetMin
+          ? `Upto ₹${fetchedArtist.budgetMax.toLocaleString()}`
+          : fetchedArtist.budget
+            ? `₹${fetchedArtist.budget.toLocaleString()}`
+            : fetchedArtist.price || 'Price on request',
+    location: fetchedArtist.location || 'Location not specified',
+    bio: fetchedArtist.bio || fetchedArtist.description || 'No bio available for this artist.',
+    experience: fetchedArtist.experience || 'Experience not specified',
+    showsHosted: fetchedArtist.showsHosted || fetchedArtist.events || 0,
+    happyClients: fetchedArtist.happyClients || fetchedArtist.clients || 0,
+    responseTime: fetchedArtist.responseTime || 'Response time not specified',
+    skills: fetchedArtist.skills || fetchedArtist.services || [],
+    languages: fetchedArtist.languages || ['English'],
+    portfolio: fetchedArtist.portfolio || [],
+    socialLinks: fetchedArtist.socialLinks || {
+      instagram: '#',
+      facebook: '#',
+      twitter: '#',
+      website: '#'
+    },
+    verified: fetchedArtist.verified || false,
+    trending: fetchedArtist.trending || false,
+    image: fetchedArtist.profileImage || fetchedArtist.image || ''
+  });
 
-  // Extract artist ID from URL params if available
-  const artistId = params.artistId || artist._id || artist.id;
-
-  console.log('🎨 ArtistPage rendered with:');
-  console.log('📋 Params:', params);
-  console.log('🆔 ArtistId:', artistId);
-  console.log('👤 Artist object:', artist);
-
-  // If we have artistId but no artist object, find artist by ID
-  if (!params.artist && artistId) {
-    // Handle both mock data IDs (numbers) and MongoDB IDs (strings)
-    artist = artists.find(a =>
-      a._id === artistId ||
-      a.id === artistId ||
-      a.id === parseInt(artistId) ||
-      String(a.id) === String(artistId)
-    );
-
-    // If no artist found with the given ID, it means it's a MongoDB ID
-    // In that case, we need to fetch from backend or use the first artist as fallback
-    if (!artist) {
-      console.log('⚠️ No artist found with ID:', artistId);
-      console.log('🔄 Using fallback artist (first in list)');
-      artist = artists[0]; // Fallback to first artist
-    } else {
-      console.log('✅ Found artist by ID:', artist);
-    }
-  }
-
-  // Simulate fetching artist data from MongoDB
   useEffect(() => {
+    const artistId = params.artistId || params.artist?._id || params.artist?.id;
+    const normalizedArtistId = artistId !== undefined && artistId !== null ? String(artistId) : '';
+    const isMongoObjectId = /^[a-fA-F0-9]{24}$/.test(normalizedArtistId);
+    const controller = new AbortController();
+    const fallbackArtist = params.artist ? normalizeArtist(params.artist) : null;
+
     const fetchArtistData = async () => {
       setLoading(true);
       try {
-        // Simulate API call to MongoDB
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        let fetchedArtist;
-
-        // If we have a MongoDB ID (24-character hex string), simulate fetching from MongoDB
-        if (artistId && artistId.length === 24 && /^[0-9a-fA-F]{24}$/.test(artistId)) {
-          console.log('🔗 Fetching artist from MongoDB with ID:', artistId);
-
-          // Simulate MongoDB artist data
-          fetchedArtist = {
-            _id: artistId,
-            fullName: 'Kavita Reddy',
-            name: 'Kavita Reddy',
-            firstName: 'Kavita',
-            lastName: 'Reddy',
-            category: 'Makeup Artists',
-            specialty: 'Bridal • Makeup Artists',
-            location: 'Bangalore',
-            bio: 'Professional makeup artist with 8+ years of experience in bridal makeup, specializing in traditional and contemporary looks. Certified by top makeup academies and trained in the latest techniques.',
-            rating: { average: 4.8, count: 156 },
-            reviews: 156,
-            budget: 25000,
-            budgetMin: 25000,
-            budgetMax: 50000,
-            experience: '8+ Years',
-            showsHosted: 450,
-            happyClients: 380,
-            responseTime: '2 Hours',
-            skills: ['Bridal Makeup', 'HD Makeup', 'Airbrush Makeup', 'Traditional Makeup', 'Party Makeup', 'Fashion Makeup'],
-            languages: ['Hindi', 'English', 'Kannada', 'Tamil'],
-            portfolio: [
-              { id: 1, title: 'Bridal Look 1', image: 'https://picsum.photos/seed/bridal1/400/300.jpg' },
-              { id: 2, title: 'Bridal Look 2', image: 'https://picsum.photos/seed/bridal2/400/300.jpg' },
-              { id: 3, title: 'Party Makeup', image: 'https://picsum.photos/seed/party1/400/300.jpg' },
-              { id: 4, title: 'Fashion Look', image: 'https://picsum.photos/seed/fashion1/400/300.jpg' },
-              { id: 5, title: 'Traditional Look', image: 'https://picsum.photos/seed/traditional1/400/300.jpg' },
-              { id: 6, title: 'Contemporary Look', image: 'https://picsum.photos/seed/contemporary1/400/300.jpg' }
-            ],
-            socialLinks: {
-              instagram: 'https://instagram.com/kavitareddy',
-              facebook: 'https://facebook.com/kavitareddy',
-              twitter: 'https://twitter.com/kavitareddy',
-              website: 'https://kavitareddy.com'
-            },
-            verified: true,
-            trending: true
-          };
-
-          console.log('✅ MongoDB artist data fetched:', fetchedArtist);
-        } else {
-          // Handle both backend and mock data structures
-          fetchedArtist = artist;
-          console.log('📋 Using mock/artist data:', fetchedArtist);
+        if (!artistId && fallbackArtist) {
+          setArtistData(fallbackArtist);
+          return;
         }
-        const processedArtist = {
-          id: fetchedArtist._id || fetchedArtist.id,
-          name: fetchedArtist.fullName || fetchedArtist.name || `${fetchedArtist.firstName || ''} ${fetchedArtist.lastName || ''}`.trim() || 'Artist Name',
-          specialty: fetchedArtist.subcategory || fetchedArtist.specialty || fetchedArtist.skills?.[0] || 'Professional Artist',
-          category: fetchedArtist.category || 'Entertainment',
-          rating: Number(fetchedArtist.rating?.average || fetchedArtist.rating || 0),
-          reviews: fetchedArtist.rating?.count || fetchedArtist.reviews || 0,
-          budget: fetchedArtist.budgetMin && fetchedArtist.budgetMax
-            ? `₹${fetchedArtist.budgetMin.toLocaleString()} - ₹${fetchedArtist.budgetMax.toLocaleString()}`
-            : fetchedArtist.budgetMin && !fetchedArtist.budgetMax
-              ? `Starting from ₹${fetchedArtist.budgetMin.toLocaleString()}`
-              : fetchedArtist.budgetMax && !fetchedArtist.budgetMin
-                ? `Upto ₹${fetchedArtist.budgetMax.toLocaleString()}`
-                : fetchedArtist.budget
-                  ? `₹${fetchedArtist.budget.toLocaleString()}`
-                  : fetchedArtist.price || 'Price on request',
-          location: fetchedArtist.location || 'Location not specified',
-          bio: fetchedArtist.bio || fetchedArtist.description || 'No bio available for this artist.',
-          experience: fetchedArtist.experience || 'Experience not specified',
-          showsHosted: fetchedArtist.showsHosted || fetchedArtist.events || 0,
-          happyClients: fetchedArtist.happyClients || fetchedArtist.clients || 0,
-          responseTime: fetchedArtist.responseTime || 'Response time not specified',
-          skills: fetchedArtist.skills || fetchedArtist.services || [],
-          languages: fetchedArtist.languages || ['English'],
-          portfolio: fetchedArtist.portfolio || [],
-          socialLinks: fetchedArtist.socialLinks || {
-            instagram: '#',
-            facebook: '#',
-            twitter: '#',
-            website: '#'
-          },
-          verified: fetchedArtist.verified || false,
-          trending: fetchedArtist.trending || false
-        };
 
-        setArtistData(processedArtist);
+        if (!artistId) {
+          throw new Error('Artist ID is missing');
+        }
+
+        if (!isMongoObjectId && fallbackArtist) {
+          setArtistData(fallbackArtist);
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/api/artists/${encodeURIComponent(normalizedArtistId)}`, {
+          signal: controller.signal,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        const fetchedArtist = result.artist || result.data;
+
+        if (fetchedArtist) {
+          setArtistData(normalizeArtist(fetchedArtist));
+          return;
+        }
+
+        throw new Error('Artist data not found in response');
       } catch (error) {
-        console.error('Error fetching artist data:', error);
+        if (error?.name !== 'AbortError') {
+          console.error('Error fetching artist data:', error);
+        }
+
+        if (fallbackArtist) {
+          setArtistData(fallbackArtist);
+        } else {
+          setArtistData(null);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchArtistData();
-  }, [artist]);
+
+    return () => {
+      controller.abort();
+    };
+  }, [params.artist, params.artistId, API_BASE_URL]);
 
   if (loading) {
     return (
@@ -176,7 +140,21 @@ const ArtistPage = ({ config }) => {
     );
   }
 
-  const isImageURL = typeof artistData.image === 'string' && (artistData.image.startsWith('http') || artistData.image.startsWith('/api/') || artistData.image.startsWith('blob:'));
+  const isImageURL = typeof artistData.image === 'string' && (
+  artistData.image.startsWith('http') || 
+  artistData.image.startsWith('/api/') || 
+  artistData.image.startsWith('blob:') ||
+  artistData.image.startsWith('data:')
+);
+
+// Debug image handling
+console.log('🖼️ Artist Image Debug:', {
+  artistData,
+  image: artistData.image,
+  isImageURL,
+  imageType: typeof artistData.image,
+  imageStartsWith: artistData.image?.substring(0, 20)
+});
 
   return (
     <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
@@ -219,11 +197,30 @@ const ArtistPage = ({ config }) => {
                   style={{ backgroundColor: config.background_color }}
                 >
                   <div className="w-full h-full rounded-xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: config.card_background }}>
-                    {isImageURL ? (
-                      <img src={artistData.image} alt={artistData.name} className="w-full h-full object-cover" />
-                    ) : (
+                    {isImageURL && artistData.image ? (
+                      <img 
+                        src={artistData.image} 
+                        alt={artistData.name} 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('❌ Image failed to load:', artistData.image);
+                          e.target.style.display = 'none';
+                          e.target.nextElementSibling.style.display = 'flex';
+                        }}
+                        onLoad={() => {
+                          console.log('✅ Image loaded successfully:', artistData.image);
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className="w-full h-full flex items-center justify-center"
+                      style={{ 
+                        display: (isImageURL && artistData.image) ? 'none' : 'flex',
+                        backgroundColor: config.card_background 
+                      }}
+                    >
                       <span className="text-5xl">🎭</span>
-                    )}
+                    </div>
                   </div>
                 </div>
                 {artistData.verified && (
@@ -320,9 +317,9 @@ const ArtistPage = ({ config }) => {
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* About Section */}
-            <div
+            <div 
               className="rounded-2xl p-8 shadow-lg"
-              style={{
+              style={{ 
                 backgroundColor: config.card_background,
                 boxShadow: `0 10px 30px -10px ${config.primary_color}15`
               }}
@@ -370,9 +367,9 @@ const ArtistPage = ({ config }) => {
             </div>
 
             {/* Skills Section */}
-            <div
+            <div 
               className="rounded-2xl p-8 shadow-lg"
-              style={{
+              style={{ 
                 backgroundColor: config.card_background,
                 boxShadow: `0 10px 30px -10px ${config.primary_color}15`
               }}
@@ -388,17 +385,17 @@ const ArtistPage = ({ config }) => {
                   <span
                     key={index}
                     className="px-4 py-2 rounded-full text-sm font-semibold transition-all hover:shadow-md"
-                    style={{
+                    style={{ 
                       background: `linear-gradient(135deg, ${config.primary_color}10, ${config.secondary_color}10)`,
                       color: config.text_primary,
                       border: `1px solid ${config.primary_color}20`
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${config.primary_color}20, ${config.secondary_color}20)`;
+                      e.currentTarget.style.backgroundColor = config.primary_action + '10';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = `linear-gradient(135deg, ${config.primary_color}10, ${config.secondary_color}10)`;
+                      e.currentTarget.style.backgroundColor = config.surface_color;
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
@@ -409,9 +406,9 @@ const ArtistPage = ({ config }) => {
             </div>
 
             {/* Languages Section */}
-            <div
+            <div 
               className="rounded-2xl p-8 shadow-lg"
-              style={{
+              style={{ 
                 backgroundColor: config.card_background,
                 boxShadow: `0 10px 30px -10px ${config.primary_color}15`
               }}
@@ -427,17 +424,17 @@ const ArtistPage = ({ config }) => {
                   <span
                     key={index}
                     className="px-4 py-2 rounded-full text-sm font-semibold transition-all hover:shadow-md"
-                    style={{
+                    style={{ 
                       backgroundColor: `${config.secondary_color}10`,
                       color: config.secondary_color,
                       border: `1px solid ${config.secondary_color}20`
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = `${config.secondary_color}20`;
+                      e.currentTarget.style.backgroundColor = config.secondary_action + '10';
                       e.currentTarget.style.transform = 'translateY(-2px)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = `${config.secondary_color}10`;
+                      e.currentTarget.style.backgroundColor = config.surface_color;
                       e.currentTarget.style.transform = 'translateY(0)';
                     }}
                   >
@@ -448,9 +445,9 @@ const ArtistPage = ({ config }) => {
             </div>
 
             {/* Portfolio Section */}
-            <div
+            <div 
               className="rounded-2xl p-8 shadow-lg"
-              style={{
+              style={{ 
                 backgroundColor: config.card_background,
                 boxShadow: `0 10px 30px -10px ${config.primary_color}15`
               }}
@@ -500,15 +497,15 @@ const ArtistPage = ({ config }) => {
           {/* Right Column - Sidebar */}
           <div className="space-y-8">
             {/* Booking Card */}
-            <div
+            <div 
               className="rounded-2xl p-6 shadow-lg sticky top-24"
-              style={{
+              style={{ 
                 backgroundColor: config.card_background,
                 boxShadow: `0 10px 30px -10px ${config.primary_color}15`
               }}
             >
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold mb-2" style={{ color: config.text_primary }}>{artistData.budget}</div>
+                <div className="text-3xl font-bold mb-2" style={{ color: config.primary_action }}>{artistData.budget}</div>
                 <div className="text-sm" style={{ color: config.text_muted }}>Starting price</div>
               </div>
 

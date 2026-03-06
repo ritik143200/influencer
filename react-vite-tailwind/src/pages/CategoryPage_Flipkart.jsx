@@ -1,18 +1,57 @@
-import { useState, useEffect, useRef } from 'react';
-import { artists } from '../data/mockData';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { useRouter } from '../contexts/RouterContext';
 import ArtistCard from '../components/ArtistCard';
 
-// Categories data
+// Categories data - Same as Artist Registration Page
 const allCategoriesData = {
   singers: {
     name: 'Singers',
     icon: '🎤',
     color: 'from-purple-500 to-pink-600',
     subcategories: {
-      classical: { name: 'Classical', icon: '🎵', items: ['Hindustani', 'Carnatic', 'Bhajan', 'Ghazal', 'Shabad'] },
-      bollywood: { name: 'Bollywood', icon: '🎬', items: ['Playback', 'Sufi', 'Romantic', 'Item Numbers', 'Folk'] },
-      western: { name: 'Western', icon: '🎸', items: ['Pop', 'Rock', 'Jazz', 'Blues', 'Country'] },
-      devotional: { name: 'Devotional', icon: '🙏', items: ['Bhajan', 'Kirtan', 'Aarti', 'Chalisa', 'Mantra'] }
+      western: { name: 'Western', icon: '🎸', items: ['Jazz', 'Blues', 'Opera', 'Pop', 'Country', 'Gospel'] },
+      bollywood: { name: 'Bollywood', icon: '🎬', items: ['Playback', 'Cover', 'Mashup'] },
+      folk: { name: 'Folk', icon: '🪘', items: ['Rajasthani', 'Punjabi', 'Bhojpuri', 'Malwi', 'Lavani', 'Baul', 'Tribal'] },
+      devotional: { name: 'Devotional', icon: '🙏', items: ['Bhajan', 'Kirtan', 'Gurbani', 'Aarti'] },
+      modern: { name: 'Modern', icon: '🎧', items: ['Indie', 'Rap', 'Hip-Hop', 'EDM Vocalists'] },
+      classical: { name: 'Classical', icon: '🎵', items: ['Hindustani', 'Carnatic', 'Ghazal', 'Sufi', 'Qawwali'] }
+    }
+  },
+  anchors: {
+    name: 'Anchors',
+    icon: '🎤',
+    color: 'from-blue-500 to-cyan-600',
+    subcategories: {
+      wedding: { name: 'Wedding Anchors', icon: '💒', items: ['Wedding Anchors', 'Event Anchors', 'Ceremony Anchors'] },
+      corporate: { name: 'Corporate Anchors', icon: '🏢', items: ['Corporate Anchors', 'Business Anchors', 'Conference Anchors'] },
+      government: { name: 'Government Event Anchors', icon: '🏛️', items: ['Government Anchors', 'Official Event Anchors', 'Public Service Anchors'] },
+      festival: { name: 'Festival / Public Anchors', icon: '🎉', items: ['Festival Anchors', 'Public Event Anchors', 'Community Anchors'] }
+    }
+  },
+  bands: {
+    name: 'Bands',
+    icon: '🎸',
+    color: 'from-indigo-500 to-purple-600',
+    subcategories: {
+      classical: { name: 'Classical', icon: '🎵', items: ['Hindustani', 'Carnatic', 'Ghazal', 'Sufi', 'Qawwali'] },
+      devotional: { name: 'Devotional', icon: '🙏', items: ['Bhajan', 'Kirtan', 'Gurbani', 'Aarti'] },
+      bollywood: { name: 'Bollywood Bands', icon: '🎬', items: ['Bollywood Bands', 'Film Bands', 'Music Bands'] },
+      folk: { name: 'Folk Bands', icon: '🪘', items: ['Folk Bands', 'Traditional Bands', 'Cultural Bands'] },
+      western: { name: 'Western Bands', icon: '🎸', items: ['Rock Bands', 'Pop Bands', 'Jazz Bands'] },
+      modern: { name: 'Modern Bands', icon: '🎧', items: ['Indie', 'Rap', 'Hip-Hop', 'EDM'] },
+      rock: { name: 'Rock / Metal / Fusion Bands', icon: '🎸', items: ['Rock Bands', 'Metal Bands', 'Fusion Bands'] },
+      wedding: { name: 'Wedding & College Bands', icon: '💒', items: ['Wedding Bands', 'College Bands', 'Event Bands'] },
+      acoustic: { name: 'Acoustic / EDM / Techno Groups', icon: '🎵', items: ['Acoustic Groups', 'EDM Groups', 'Techno Groups'] }
+    }
+  },
+  instrumentalists: {
+    name: 'Instrumentalists',
+    icon: '🎼',
+    color: 'from-green-500 to-emerald-600',
+    subcategories: {
+      indian_classical: { name: 'Indian Classical', icon: '🎵', items: ['Flute', 'Sitar', 'Tabla', 'Veena', 'Harmonium'] },
+      western: { name: 'Western', icon: '🎸', items: ['Guitar', 'Piano', 'Violin', 'Saxophone', 'Drums'] },
+      fusion: { name: 'Fusion', icon: '🎵', items: ['Handpan', 'Cajón', 'Loop Station', 'Beatboxing'] }
     }
   },
   dancers: {
@@ -21,29 +60,46 @@ const allCategoriesData = {
     color: 'from-pink-500 to-rose-600',
     subcategories: {
       classical: { name: 'Classical', icon: '🎭', items: ['Bharatanatyam', 'Kathak', 'Odissi', 'Kuchipudi', 'Manipuri'] },
-      bollywood: { name: 'Bollywood', icon: '🎬', items: ['Bollywood', 'Contemporary', 'Fusion', 'Item Numbers'] },
-      folk: { name: 'Folk', icon: '🪘', items: ['Bhangra', 'Garba', 'Ghoomar', 'Lavani', 'Bihu'] },
-      western: { name: 'Western', icon: '🎭', items: ['Hip-Hop', 'Contemporary', 'Jazz', 'Ballet', 'Salsa'] }
+      folk: { name: 'Folk', icon: '🪘', items: ['Bhangra', 'Garba', 'Ghoomar', 'Lavani', 'Baul'] },
+      western: { name: 'Western', icon: '💃', items: ['Salsa', 'Tango', 'Ballroom', 'Swing'] },
+      street: { name: 'Street', icon: '🕺', items: ['Hip-Hop', 'B-Boying', 'Krumping', 'Waacking'] },
+      contemporary: { name: 'Contemporary', icon: '🩰', items: ['Ballet', 'Jazz Fusion', 'Modern Dance'] },
+      specialty: { name: 'Specialty', icon: '🔥', items: ['Belly Dance', 'Aerial', 'Fire Dance', 'LED Dance'] }
     }
   },
-  musicians: {
-    name: 'Musicians',
-    icon: '🎵',
-    color: 'from-indigo-500 to-purple-600',
+  choreographers: {
+    name: 'Choreographers',
+    icon: '🕺',
+    color: 'from-purple-500 to-pink-600',
     subcategories: {
-      instrumental: { name: 'Instrumental', icon: '🎸', items: ['Guitar', 'Piano', 'Violin', 'Flute', 'Drums'] },
-      classical: { name: 'Classical', icon: '🎻', items: ['Sitar', 'Tabla', 'Harmonium', 'Sarod', 'Santoor'] },
-      western: { name: 'Western', icon: '🎺', items: ['Guitar', 'Piano', 'Drums', 'Bass', 'Saxophone'] }
+      bollywood: { name: 'Bollywood / Film', icon: '🎬', items: ['Film Choreographers', 'Bollywood Choreographers', 'Music Video'] },
+      wedding: { name: 'Wedding', icon: '💒', items: ['Wedding Choreographers', 'Sangeet Choreographers'] },
+      reality: { name: 'Reality Shows', icon: '📺', items: ['Reality Show Choreographers', 'TV Show Choreographers'] },
+      school: { name: 'School / College Events', icon: '🏫', items: ['School Choreographers', 'College Event Choreographers'] },
+      fitness: { name: 'Fitness Dance', icon: '💪', items: ['Zumba', 'BollyFit', 'Dance Fitness'] },
+      corporate: { name: 'Corporate Flashmob', icon: '🏢', items: ['Corporate Choreographers', 'Flashmob Organizers'] }
     }
   },
-  photographers: {
-    name: 'Photographers',
-    icon: '📸',
-    color: 'from-blue-500 to-cyan-600',
+  cultural_artists: {
+    name: 'Cultural Artists',
+    icon: '🎭',
+    color: 'from-orange-500 to-red-600',
     subcategories: {
-      wedding: { name: 'Wedding', icon: '💒', items: ['Traditional', 'Candid', 'Pre-Wedding', 'Destination', 'Cinematic'] },
-      portrait: { name: 'Portrait', icon: '👤', items: ['Professional', 'Family', 'Maternity', 'Newborn', 'Corporate'] },
-  commercial: { name: 'Commercial', icon: '📷', items: ['Product', 'Fashion', 'Food', 'Architecture', 'Event'] }
+      traditional: { name: 'Traditional', icon: '🪘', items: ['Lavani', 'Nautanki', 'Tamasha'] },
+      puppetry: { name: 'Puppetry', icon: '🎭', items: ['Glove Puppets', 'Shadow Puppets', 'String Puppets'] },
+      tribal: { name: 'Tribal Artists', icon: '👤', items: ['Baiga', 'Gond', 'Bhil', 'Tribal Art'] },
+      martial: { name: 'Martial Folk Arts', icon: '🥋', items: ['Martial Arts', 'Fighting Arts', 'Combat Sports'] }
+    }
+  },
+  carnival_artists: {
+    name: 'Carnival Artists',
+    icon: '🎪',
+    color: 'from-yellow-500 to-orange-600',
+    subcategories: {
+      performance: { name: 'Performance', icon: '🎭', items: ['Stilt Walkers', 'Jugglers', 'Fire Performers'] },
+      visual: { name: 'Visual', icon: '👤', items: ['Human Statues', 'Mime', 'Living Statues'] },
+      comedy: { name: 'Comedy', icon: '😄', items: ['Clowns', 'Balloon Artists', 'Comedy Acts'] },
+      acrobatic: { name: 'Acrobatic', icon: '🤸', items: ['Acrobats', 'Rope Walkers', 'Trapeze Artists'] }
     }
   },
   makeup_artists: {
@@ -51,28 +107,222 @@ const allCategoriesData = {
     icon: '💄',
     color: 'from-pink-500 to-rose-600',
     subcategories: {
-      bridal: { name: 'Bridal', icon: '👰', items: ['Traditional', 'Modern', 'HD', 'Airbrush', '3D'] },
-      fashion: { name: 'Fashion', icon: '✨', items: ['Editorial', 'Runway', 'Commercial', 'Creative', 'Avant-Garde'] },
-      special: { name: 'Special Effects', icon: '🎭', items: ['SFX', 'Prosthetic', 'Fantasy', 'Horror', 'Sci-Fi'] }
+      bridal: { name: 'Bridal', icon: '💒', items: ['Bridal Makeup', 'Wedding Makeup', 'Traditional Bridal'] },
+      fashion: { name: 'Fashion', icon: '👗', items: ['Fashion Makeup', 'Runway Makeup', 'Editorial Makeup'] },
+      celebrity: { name: 'Celebrity', icon: '⭐', items: ['Celebrity Makeup', 'Red Carpet Makeup', 'TV Makeup'] },
+      theatre: { name: 'Theatre / Film', icon: '🎬', items: ['Theatre Makeup', 'Film Makeup', 'Special Effects'] },
+      sfx: { name: 'SFX', icon: '🎭', items: ['Special Effects', 'Prosthetic Makeup', 'Creature Makeup'] },
+      hair: { name: 'Hair Stylists', icon: '💇', items: ['Hair Stylists', 'Hair Artists', 'Hair Designers'] }
     }
   },
-  decorators: {
-    name: 'Decorators',
-    icon: '🎨',
-    color: 'from-amber-500 to-orange-600',
-    subcategories: {
-      wedding: { name: 'Wedding', icon: '💒', items: ['Mandap', 'Reception', 'Sangeet', 'Mehendi', 'Engagement'] },
-      event: { name: 'Event', icon: '🎉', items: ['Corporate', 'Birthday', 'Anniversary', 'Theme', 'Festival'] },
-  home: { name: 'Home', icon: '🏠', items: ['Living Room', 'Bedroom', 'Kitchen', 'Office', 'Garden'] }
-    }
-  },
-  mehendi_artists: {
-    name: 'Mehendi Artists',
-    icon: '🌿',
+  fitness_artists: {
+    name: 'Fitness Artists',
+    icon: '🏋️',
     color: 'from-green-500 to-emerald-600',
     subcategories: {
-      traditional: { name: 'Traditional', icon: '🪷', items: ['Indian', 'Arabic', 'Rajasthani', 'Marwari', 'Pakistani'] },
-      modern: { name: 'Modern', icon: '✨', items: ['Contemporary', 'Fusion', 'Minimalist', 'Geometric', 'Abstract'] }
+      zumba: { name: 'Zumba', icon: '💃', items: ['Zumba', 'Dance Fitness', 'Aerobics'] },
+      yoga: { name: 'Yoga', icon: '🧘', items: ['Yoga', 'Meditation', 'Wellness'] },
+      martial: { name: 'Martial Arts', icon: '🥋', items: ['Martial Arts', 'Karate', 'Taekwondo'] },
+      pole: { name: 'Pole Fitness', icon: '🕺', items: ['Pole Dance', 'Pole Fitness', 'Aerial Fitness'] }
+    }
+  },
+  painters: {
+    name: 'Painters',
+    icon: '🎨',
+    color: 'from-blue-500 to-purple-600',
+    subcategories: {
+      traditional: { name: 'Traditional', icon: '🖼️', items: ['Oil', 'Watercolor', 'Acrylic'] },
+      style: { name: 'Style', icon: '🎨', items: ['Realism', 'Abstract', 'Hyperrealism'] },
+      modern: { name: 'Modern', icon: '🎨', items: ['Street', 'Graffiti', 'Digital', 'Mural'] }
+    }
+  },
+  sketch_artists: {
+    name: 'Sketch Artists',
+    icon: '✏️',
+    color: 'from-gray-500 to-gray-600',
+    subcategories: {
+      traditional: { name: 'Traditional', icon: '✏️', items: ['Pencil', 'Charcoal', 'Ink'] },
+      creative: { name: 'Creative', icon: '🎨', items: ['Caricature', 'Comic', 'Anime'] },
+      body: { name: 'Body Art', icon: '🎭', items: ['Tattoo Art', 'Body Painting', 'Henna'] },
+      digital: { name: 'Digital', icon: '💻', items: ['Digital Art', '3D Art', 'NFT Art'] }
+    }
+  },
+  rjs: {
+    name: 'RJs',
+    icon: '🎙️',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      fm: { name: 'FM RJs', icon: '📻', items: ['FM Radio', 'Music Radio', 'Entertainment Radio'] },
+      digital: { name: 'Digital RJs', icon: '💻', items: ['Online Radio', 'Podcast Radio', 'Digital Radio'] },
+      event: { name: 'Event RJs', icon: '🎤', items: ['Event RJs', 'Live Event Radio', 'Show RJs'] },
+      storytelling: { name: 'Storytelling RJs', icon: '📖', items: ['Storytelling', 'Narrative Radio', 'Audio Stories'] }
+    }
+  },
+  voice_artists: {
+    name: 'Voice Artists',
+    icon: '🎧',
+    color: 'from-indigo-500 to-purple-600',
+    subcategories: {
+      commercial: { name: 'Ads / Commercial', icon: '📺', items: ['Commercial Voice', 'Advertisement Voice', 'Jingle Voice'] },
+      dubbing: { name: 'Dubbing', icon: '🎬', items: ['Film Dubbing', 'OTT Dubbing', 'Animation Dubbing'] },
+      animation: { name: 'Animation Voices', icon: '🎭', items: ['Cartoon Voices', 'Animation Voice', 'Character Voice'] },
+      audiobook: { name: 'Audiobooks / Podcast', icon: '🎧', items: ['Audiobook Narration', 'Podcast Hosting', 'Voice Acting'] },
+      corporate: { name: 'IVR / Corporate', icon: '🏢', items: ['IVR Voice', 'Corporate Voice', 'Training Voice'] }
+    }
+  },
+  writers: {
+    name: 'Writers',
+    icon: '✍️',
+    color: 'from-blue-500 to-gray-600',
+    subcategories: {
+      poetry: { name: 'Poets', icon: '📜', items: ['Poets', 'Shayars', 'Poetry Writers'] },
+      storytelling: { name: 'Storytellers', icon: '📖', items: ['Storytellers', 'Fiction Writers', 'Narrative Writers'] },
+      script: { name: 'Script Writers', icon: '🎬', items: ['Script Writers', 'Screenplay Writers', 'Dialogue Writers'] },
+      lyric: { name: 'Lyricists', icon: '🎵', items: ['Lyricists', 'Song Writers', 'Music Writers'] },
+      content: { name: 'Content Writers', icon: '📝', items: ['Content Writers', 'Blog Writers', 'Copy Writers'] }
+    }
+  },
+  djs: {
+    name: 'DJs',
+    icon: '🎧',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      wedding: { name: 'Wedding DJs', icon: '💒', items: ['Wedding DJs', 'Event DJs', 'Party DJs'] },
+      club: { name: 'Club DJs', icon: '🎵', items: ['Club DJs', 'Nightclub DJs', 'Bar DJs'] },
+      edm: { name: 'EDM / Techno', icon: '🎧', items: ['EDM DJs', 'Techno DJs', 'Electronic DJs'] },
+      bollywood: { name: 'Bollywood DJs', icon: '🎬', items: ['Bollywood DJs', 'Desi DJs', 'Indian Music DJs'] },
+      fusion: { name: 'DJ + Instrument Fusion', icon: '🎸', items: ['Live DJ', 'DJ Musicians', 'Instrument Fusion'] }
+    }
+  },
+  wellness_artists: {
+    name: 'Wellness Artists',
+    icon: '🧘',
+    color: 'from-green-500 to-emerald-600',
+    subcategories: {
+      meditation: { name: 'Meditation', icon: '🧘', items: ['Meditation', 'Mantra', 'Mindfulness'] },
+      healing: { name: 'Sound Healing', icon: '🎵', items: ['Sound Healing', 'Music Therapy', 'Vibrational Healing'] },
+      reiki: { name: 'Reiki Healing', icon: '✋', items: ['Reiki', 'Energy Healing', 'Spiritual Healing'] },
+      spiritual: { name: 'Spiritual Storytelling', icon: '📖', items: ['Spiritual Storytelling', 'Motivational Speaking', 'Inspirational Talks'] }
+    }
+  },
+  fashion_artists: {
+    name: 'Fashion Artists',
+    icon: '👗',
+    color: 'from-pink-500 to-rose-600',
+    subcategories: {
+      design: { name: 'Fashion Designers', icon: '👗', items: ['Fashion Designers', 'Clothing Designers', 'Apparel Designers'] },
+      costume: { name: 'Costume Designers', icon: '🎭', items: ['Costume Designers', 'Theatre Costumes', 'Film Costumes'] },
+      styling: { name: 'Stylists', icon: '💇', items: ['Fashion Stylists', 'Personal Stylists', 'Wardrobe Stylists'] },
+      jewelry: { name: 'Jewellery Designers', icon: '💍', items: ['Jewellery Designers', 'Accessory Designers', 'Ornament Designers'] }
+    }
+  },
+  culinary_artists: {
+    name: 'Culinary Artists',
+    icon: '🍰',
+    color: 'from-orange-500 to-red-600',
+    subcategories: {
+      cake: { name: 'Cake Artists', icon: '🎂', items: ['Cake Artists', 'Cake Designers', 'Pastry Chefs'] },
+      chocolate: { name: 'Chocolate Artists', icon: '🍫', items: ['Chocolate Artists', 'Chocolatiers', 'Confectionery'] },
+      carving: { name: 'Food Carving', icon: '🔪', items: ['Food Carving', 'Fruit Carving', 'Ice Carving'] }
+    }
+  },
+  children_artists: {
+    name: 'Children Artists',
+    icon: '🧸',
+    color: 'from-yellow-500 to-orange-600',
+    subcategories: {
+      entertainment: { name: 'Kids Entertainers', icon: '🤡', items: ['Kids Entertainers', 'Children Shows', 'Kids Parties'] },
+      puppet: { name: 'Puppet Shows', icon: '🎭', items: ['Puppet Shows', 'Puppeteers', 'Marionette Shows'] },
+      magic: { name: 'Magic Shows', icon: '🎩', items: ['Magic Shows', 'Kids Magic', 'Family Magic'] },
+      storytelling: { name: 'Storytelling', icon: '📖', items: ['Storytelling', 'Kids Stories', 'Educational Stories'] },
+      diy: { name: 'DIY Workshops', icon: '🛠️', items: ['DIY Workshops', 'Craft Workshops', 'Kids Activities'] }
+    }
+  },
+  special_artists: {
+    name: 'Special Artists',
+    icon: '🌟',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      traditional: { name: 'Traditional', icon: '🎨', items: ['Rangoli', 'Mehendi', 'Henna Art'] },
+      sand: { name: 'Sand Art', icon: '🏖️', items: ['Sand Art', 'Sand Sculptures', 'Beach Art'] },
+      calligraphy: { name: 'Calligraphy', icon: '✍️', items: ['Calligraphy', 'Hand Lettering', 'Typography'] },
+      ice: { name: 'Ice Sculptors', icon: '🧊', items: ['Ice Sculptors', 'Ice Carving', 'Ice Art'] }
+    }
+  },
+  visual_tech_artists: {
+    name: 'Visual Tech Artists',
+    icon: '💡',
+    color: 'from-blue-500 to-purple-600',
+    subcategories: {
+      laser: { name: 'Laser Shows', icon: '🔴', items: ['Laser Shows', 'Light Shows', 'Visual Effects'] },
+      hologram: { name: 'Hologram Shows', icon: '👤', items: ['Hologram Shows', '3D Shows', 'Projection Shows'] },
+      led: { name: 'LED Performers', icon: '💡', items: ['LED Performers', 'Light Artists', 'Visual Artists'] },
+      mapping: { name: 'Video Mapping', icon: '📹', items: ['Video Mapping', 'Projection Mapping', 'Visual Mapping'] }
+    }
+  },
+  circus_artists: {
+    name: 'Circus Artists',
+    icon: '🎪',
+    color: 'from-red-500 to-orange-600',
+    subcategories: {
+      aerial: { name: 'Aerial', icon: '🎪', items: ['Trapeze', 'Aerial Silks', 'Aerial Hoop'] },
+      fire: { name: 'Fire', icon: '🔥', items: ['Fire Breathers', 'Fire Eaters', 'Fire Performers'] },
+      knife: { name: 'Knife', icon: '🔪', items: ['Knife Throwers', 'Knife Jugglers', 'Blade Artists'] },
+      contortion: { name: 'Contortionists', icon: '🤸', items: ['Contortionists', 'Flexibility Artists', 'Body Artists'] }
+    }
+  },
+  actors: {
+    name: 'Actors',
+    icon: '🎬',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      theatre: { name: 'Theatre', icon: '🎭', items: ['Theatre Actors', 'Stage Actors', 'Live Theatre'] },
+      film: { name: 'Film / TV', icon: '📺', items: ['Film Actors', 'TV Actors', 'Web Series'] },
+      voice: { name: 'Voice Acting', icon: '🎤', items: ['Voice Acting', 'Dubbing Artists', 'Animation Voice'] }
+    }
+  },
+  magicians: {
+    name: 'Magicians',
+    icon: '🎩',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      stage: { name: 'Stage Magic', icon: '🎭', items: ['Stage Magicians', 'Live Magic', 'Performance Magic'] },
+      illusion: { name: 'Illusionists', icon: '👁️', items: ['Illusionists', 'Mind Readers', 'Mentalists'] },
+      kids: { name: 'Kids Magicians', icon: '🤡', items: ['Kids Magicians', 'Family Magic', 'Children Magic'] }
+    }
+  },
+  digital_artists: {
+    name: 'Digital Artists',
+    icon: '💻',
+    color: 'from-blue-500 to-purple-600',
+    subcategories: {
+      nft: { name: 'NFT Artists', icon: '🎨', items: ['NFT Artists', 'Crypto Art', 'Digital Collectibles'] },
+      ar_vr: { name: 'AR/VR Artists', icon: '🥽', items: ['AR Artists', 'VR Artists', 'Mixed Reality'] },
+      drone: { name: 'Drone Shows', icon: '🚁', items: ['Drone Shows', 'Aerial Photography', 'Drone Art'] },
+      installation: { name: 'Installation Artists', icon: '🎨', items: ['Installation Artists', '3D Installations', 'Interactive Art'] }
+    }
+  },
+  musicians: {
+    name: 'Musicians',
+    icon: '🎸',
+    color: 'from-indigo-500 to-purple-600',
+    subcategories: {
+      classical: { name: 'Classical Musicians', icon: '🎵', items: ['Classical Guitar', 'Classical Piano', 'Classical Violin', 'Classical Flute'] },
+      modern: { name: 'Modern Musicians', icon: '🎸', items: ['Rock Guitar', 'Pop Piano', 'Jazz Saxophone', 'Electronic Keyboard'] },
+      traditional: { name: 'Traditional Musicians', icon: '🪘', items: ['Dholak', 'Tabla', 'Sitar', 'Flute', 'Harmonium'] },
+      session: { name: 'Session Musicians', icon: '🎵', items: ['Studio Musicians', 'Live Session Players', 'Recording Artists'] }
+    }
+  },
+  photographers: {
+    name: 'Photographers',
+    icon: '📷',
+    color: 'from-blue-500 to-cyan-600',
+    subcategories: {
+      wedding: { name: 'Wedding Photography', icon: '💒', items: ['Wedding Shoots', 'Pre-Wedding', 'Candid Wedding', 'Traditional Wedding'] },
+      fashion: { name: 'Fashion Photography', icon: '👗', items: ['Fashion Shoots', 'Portfolio', 'Magazine', 'Runway'] },
+      product: { name: 'Product Photography', icon: '📦', items: ['E-commerce', 'Product Catalogs', 'Food Photography', 'Still Life'] },
+      portrait: { name: 'Portrait Photography', icon: '👤', items: ['Studio Portraits', 'Outdoor Portraits', 'Corporate Headshots', 'Family Portraits'] },
+      event: { name: 'Event Photography', icon: '🎉', items: ['Corporate Events', 'Birthday Parties', 'Concerts', 'Festivals'] }
     }
   },
   videographers: {
@@ -80,14 +330,149 @@ const allCategoriesData = {
     icon: '🎥',
     color: 'from-red-500 to-pink-600',
     subcategories: {
-      wedding: { name: 'Wedding', icon: '💒', items: ['Cinematic', 'Traditional', 'Drone', 'Highlight', 'Documentary'] },
-      commercial: { name: 'Commercial', icon: '📹', items: ['Corporate', 'Advertisement', 'Product', 'Music Video', 'Documentary'] }
+      wedding: { name: 'Wedding Videography', icon: '💒', items: ['Wedding Films', 'Cinematic Wedding', 'Traditional Wedding', 'Highlight Reels'] },
+      corporate: { name: 'Corporate Videography', icon: '🏢', items: ['Corporate Films', 'Training Videos', 'Promotional Videos', 'Event Coverage'] },
+      music: { name: 'Music Videos', icon: '🎵', items: ['Music Video Production', 'Live Performance', 'Behind the Scenes', 'Teaser Videos'] },
+      documentary: { name: 'Documentary', icon: '📹', items: ['Documentary Films', 'Short Films', 'Travel Videos', 'Storytelling'] }
+    }
+  },
+  hair_stylists: {
+    name: 'Hair Stylists',
+    icon: '💇',
+    color: 'from-pink-500 to-rose-600',
+    subcategories: {
+      bridal: { name: 'Bridal Hair', icon: '💒', items: ['Bridal Hairstyles', 'Wedding Hair', 'Traditional Bridal', 'Modern Bridal'] },
+      fashion: { name: 'Fashion Hair', icon: '👗', items: ['Runway Hair', 'Fashion Shoots', 'Editorial Hair', 'Avant Garde'] },
+      salon: { name: 'Salon Services', icon: '💇', items: ['Haircuts', 'Hair Coloring', 'Hair Treatments', 'Hair Styling'] },
+      creative: { name: 'Creative Hair', icon: '🎨', items: ['Creative Color', 'Hair Art', 'Special Effects Hair', 'Fantasy Hair'] }
+    }
+  },
+  comedians: {
+    name: 'Comedians',
+    icon: '😄',
+    color: 'from-yellow-500 to-orange-600',
+    subcategories: {
+      standup: { name: 'Stand-up Comedy', icon: '🎤', items: ['Stand-up Comedy', 'Open Mic', 'Comedy Clubs', 'Comedy Specials'] },
+      sketch: { name: 'Sketch Comedy', icon: '📺', items: ['Sketch Shows', 'Comedy Series', 'Web Series', 'Short Films'] },
+      improv: { name: 'Improvisation', icon: '🎭', items: ['Improv Comedy', 'Improv Shows', 'Spontaneous Comedy', 'Interactive Comedy'] },
+      digital: { name: 'Digital Comedy', icon: '📱', items: ['Social Media Comedy', 'Memes', 'Short Videos', 'Online Content'] }
+    }
+  },
+  models: {
+    name: 'Models',
+    icon: '👤',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      fashion: { name: 'Fashion Modeling', icon: '👗', items: ['Runway Models', 'Fashion Shows', 'Magazine Covers', 'Fashion Campaigns'] },
+      commercial: { name: 'Commercial Modeling', icon: '📺', items: ['TV Commercials', 'Print Ads', 'Brand Ambassador', 'Product Modeling'] },
+      fitness: { name: 'Fitness Modeling', icon: '💪', items: ['Fitness Models', 'Athletic Wear', 'Gym Brands', 'Health Products'] },
+      plus_size: { name: 'Plus Size Modeling', icon: '🌟', items: ['Plus Size Fashion', 'Body Positivity', 'Inclusive Brands', 'Plus Size Campaigns'] }
+    }
+  },
+  fashion_designers: {
+    name: 'Fashion Designers',
+    icon: '👗',
+    color: 'from-pink-500 to-rose-600',
+    subcategories: {
+      bridal: { name: 'Bridal Wear', icon: '💒', items: ['Wedding Dresses', 'Bridal Collections', 'Traditional Bridal', 'Modern Bridal'] },
+      casual: { name: 'Casual Wear', icon: '👕', items: ['Daily Wear', 'Street Style', 'Casual Collections', 'Ready to Wear'] },
+      ethnic: { name: 'Ethnic Wear', icon: '🪘', items: ['Traditional Wear', 'Cultural Outfits', 'Fusion Wear', 'Regional Styles'] },
+      luxury: { name: 'Luxury Fashion', icon: '✨', items: ['Haute Couture', 'Luxury Brands', 'Designer Wear', 'High Fashion'] }
+    }
+  },
+  content_creators: {
+    name: 'Content Creators',
+    icon: '📱',
+    color: 'from-blue-500 to-purple-600',
+    subcategories: {
+      youtube: { name: 'YouTube Creators', icon: '📺', items: ['Vloggers', 'Educational Content', 'Entertainment', 'Tutorial Videos'] },
+      instagram: { name: 'Instagram Creators', icon: '📷', items: ['Reels Creators', 'Lifestyle Content', 'Travel Content', 'Food Content'] },
+      blog: { name: 'Bloggers', icon: '📝', items: ['Travel Bloggers', 'Food Bloggers', 'Fashion Bloggers', 'Tech Bloggers'] },
+      podcast: { name: 'Podcasters', icon: '🎙️', items: ['Interview Podcasts', 'Storytelling Podcasts', 'Educational Podcasts', 'Entertainment Podcasts'] }
+    }
+  },
+  influencers: {
+    name: 'Influencers',
+    icon: '🌟',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      fashion: { name: 'Fashion Influencers', icon: '👗', items: ['Fashion Bloggers', 'Style Influencers', 'Outfit Ideas', 'Fashion Trends'] },
+      lifestyle: { name: 'Lifestyle Influencers', icon: '🌟', items: ['Lifestyle Content', 'Daily Routine', 'Home Decor', 'Lifestyle Tips'] },
+      travel: { name: 'Travel Influencers', icon: '✈️', items: ['Travel Bloggers', 'Destination Guides', 'Travel Tips', 'Adventure Content'] },
+      fitness: { name: 'Fitness Influencers', icon: '💪', items: ['Workout Content', 'Fitness Tips', 'Nutrition', 'Wellness'] }
+    }
+  },
+  tattoo_artists: {
+    name: 'Tattoo Artists',
+    icon: '🎨',
+    color: 'from-gray-500 to-gray-600',
+    subcategories: {
+      traditional: { name: 'Traditional Tattoo', icon: '🎨', items: ['Traditional Tattoos', 'Old School', 'American Traditional', 'Tribal Tattoos'] },
+      modern: { name: 'Modern Tattoo', icon: '🎭', items: ['Modern Tattoos', 'Contemporary', 'Illustrative', 'Geometric'] },
+      realistic: { name: 'Realistic Tattoo', icon: '👤', items: ['Realistic Portraits', '3D Tattoos', 'Hyperrealistic', 'Black & Gray'] },
+      watercolor: { name: 'Watercolor Tattoo', icon: '🎨', items: ['Watercolor Tattoos', 'Brush Style', 'Colorful Tattoos', 'Artistic Tattoos'] }
+    }
+  },
+  graphic_designers: {
+    name: 'Graphic Designers',
+    icon: '🖼️',
+    color: 'from-blue-500 to-gray-600',
+    subcategories: {
+      branding: { name: 'Branding Design', icon: '🏷️', items: ['Logo Design', 'Brand Identity', 'Business Cards', 'Brand Guidelines'] },
+      web: { name: 'Web Design', icon: '💻', items: ['Website Design', 'UI/UX Design', 'Mobile Apps', 'Landing Pages'] },
+      print: { name: 'Print Design', icon: '📄', items: ['Brochures', 'Flyers', 'Posters', 'Magazine Layouts'] },
+      social: { name: 'Social Media Design', icon: '📱', items: ['Social Media Posts', 'Instagram Stories', 'Facebook Covers', 'Twitter Headers'] }
+    }
+  },
+  voice_over_artists: {
+    name: 'Voice Over Artists',
+    icon: '🎤',
+    color: 'from-purple-500 to-pink-600',
+    subcategories: {
+      commercial: { name: 'Commercial Voice', icon: '📺', items: ['TV Commercials', 'Radio Ads', 'Jingle Voice', 'Brand Voice'] },
+      animation: { name: 'Animation Voice', icon: '🎭', items: ['Cartoon Voices', 'Character Voices', 'Dubbing', 'Video Games'] },
+      narration: { name: 'Narration', icon: '📖', items: ['Documentary Narration', 'Audiobooks', 'E-learning', 'Training Videos'] },
+      corporate: { name: 'Corporate Voice', icon: '🏢', items: ['Corporate Videos', 'Training Modules', 'IVR Systems', 'Presentations'] }
+    }
+  },
+  poets: {
+    name: 'Poets',
+    icon: '📜',
+    color: 'from-blue-500 to-gray-600',
+    subcategories: {
+      traditional: { name: 'Traditional Poetry', icon: '📜', items: ['Classical Poetry', 'Shayari', 'Ghazals', 'Folk Poetry'] },
+      modern: { name: 'Modern Poetry', icon: '✍️', items: ['Modern Poetry', 'Spoken Word', 'Slam Poetry', 'Performance Poetry'] },
+      romantic: { name: 'Romantic Poetry', icon: '❤️', items: ['Love Poems', 'Romantic Shayari', 'Couplets', 'Romantic Verses'] },
+      motivational: { name: 'Motivational Poetry', icon: '🌟', items: ['Inspirational Poetry', 'Motivational Verses', 'Life Poetry', 'Uplifting Words'] }
+    }
+  },
+  standup_artists: {
+    name: 'Stand-up Artists',
+    icon: '🎤',
+    color: 'from-yellow-500 to-orange-600',
+    subcategories: {
+      observational: { name: 'Observational Comedy', icon: '👀', items: ['Observational Humor', 'Everyday Life', 'Social Commentary', 'Relatable Comedy'] },
+      satire: { name: 'Satire Comedy', icon: '😏', items: ['Satirical Comedy', 'Political Satire', 'Social Satire', 'Dark Humor'] },
+      clean: { name: 'Clean Comedy', icon: '😄', items: ['Family Friendly', 'Clean Humor', 'All Ages', 'Wholesome Comedy'] },
+      alternative: { name: 'Alternative Comedy', icon: '🎭', items: ['Alternative Comedy', 'Experimental', 'Improvisational', 'Niche Humor'] }
+    }
+  },
+  music_producers: {
+    name: 'Music Producers',
+    icon: '🎵',
+    color: 'from-indigo-500 to-purple-600',
+    subcategories: {
+      electronic: { name: 'Electronic Music', icon: '🎧', items: ['EDM Production', 'Techno', 'House Music', 'Trance', 'Dubstep'] },
+      hip_hop: { name: 'Hip-Hop Production', icon: '🎤', items: ['Hip-Hop Beats', 'Trap Music', 'R&B Production', 'Urban Music'] },
+      bollywood: { name: 'Bollywood Music', icon: '🎬', items: ['Bollywood Production', 'Film Music', 'Indian Pop', 'Fusion Music'] },
+      classical: { name: 'Classical Production', icon: '🎵', items: ['Classical Arrangement', 'Orchestral Production', 'Classical Recording', 'Traditional Music'] }
     }
   }
 };
 
 const CategoryPage = ({ config }) => {
   const { params, navigate } = useRouter();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
   const searchQuery = params.search;
   const subcategory = params.subcategory;
   
@@ -98,102 +483,344 @@ const CategoryPage = ({ config }) => {
     location: '',
     minBudget: '',
     maxBudget: '',
-    subcategory: 'all'
+    subcategory: 'all',
+    skill: '',
+    sortBy: 'relevance'
   });
   
   // Category data state
   const [selectedCategoryData, setSelectedCategoryData] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState('All Subcategories');
-  
-  // Initialize displayArtists with artists array
-  let displayArtists = artists || [];
-  let pageTitle = category?.name || 'Artists';
-  let pageDescription = category?.count ? `${category.count.toLocaleString()} artists available` : 'Browse artists';
+  const [expandedCategory, setExpandedCategory] = useState(null); // Track which category dropdown is open
+  const hasFetchedRef = useRef(false);
+
+  const ARTISTS_CACHE_KEY = 'artists_cache_v1';
+  const ARTISTS_PERSISTENT_CACHE_KEY = 'artists_cache_v1_persistent';
+  const CACHE_TTL_MS = 5 * 60 * 1000;
+  let pageTitle = 'Artists';
+  let pageDescription = 'Browse artists';
 
   // Fetch artists from MongoDB
   useEffect(() => {
+    if (hasFetchedRef.current) {
+      return;
+    }
+    hasFetchedRef.current = true;
+
     const fetchArtists = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        console.log('🔄 Fetching artists from backend...');
-        console.log('🌐 API URL: http://localhost:5001/api/artists');
-        
-        // Fetch from backend API
-        const response = await fetch('http://localhost:5001/api/artists', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        console.log('📡 Response status:', response.status);
-        
-        const result = await response.json();
-        
-        console.log('📡 Full API Response:', result);
-        
-        if (response.ok && result.success) {
-          const artistsData = result.artists || [];
-          setArtists(artistsData);
-          console.log('✅ Artists fetched successfully:', artistsData.length, 'artists');
-        } else {
-          throw new Error(result.message || `HTTP ${response.status}: ${response.statusText}`);
+
+        const cachedPayload = sessionStorage.getItem(ARTISTS_CACHE_KEY) || localStorage.getItem(ARTISTS_PERSISTENT_CACHE_KEY);
+        if (cachedPayload) {
+          try {
+            const parsed = JSON.parse(cachedPayload);
+            if (parsed?.timestamp && Array.isArray(parsed?.artists)) {
+              const isFresh = Date.now() - parsed.timestamp < CACHE_TTL_MS;
+              if (isFresh) {
+                setArtists(parsed.artists);
+                setLoading(false);
+                return;
+              }
+            }
+          } catch {
+            sessionStorage.removeItem(ARTISTS_CACHE_KEY);
+          }
         }
+
+        const normalizeBaseUrl = (value) => (typeof value === 'string' ? value.replace(/\/+$/, '') : '');
+
+        const baseCandidates = Array.from(new Set([
+          normalizeBaseUrl(window.location.origin),
+          normalizeBaseUrl('http://localhost:5001'),
+          normalizeBaseUrl('http://127.0.0.1:5001'),
+          normalizeBaseUrl('http://localhost:5000'),
+          normalizeBaseUrl('http://127.0.0.1:5000'),
+          normalizeBaseUrl(API_BASE_URL),
+        ].filter(Boolean)));
+
+        const endpoints = Array.from(new Set(baseCandidates.flatMap((base) => [
+          `${base}/api/artists`,
+          `${base}/api/artist`
+        ])));
+        let artistsData = null;
+        let lastError = null;
+
+        for (const endpoint of endpoints) {
+          const endpointController = new AbortController();
+          const endpointTimeoutId = setTimeout(() => endpointController.abort(), 7000);
+
+          try {
+            const response = await fetch(endpoint, {
+              method: 'GET',
+              signal: endpointController.signal,
+            });
+
+            if (!response.ok) {
+              lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+              clearTimeout(endpointTimeoutId);
+              continue;
+            }
+
+            let result;
+            try {
+              result = await response.json();
+            } catch {
+              result = null;
+            }
+
+            const payload = Array.isArray(result?.artists)
+              ? result.artists
+              : Array.isArray(result?.data)
+                ? result.data
+                : Array.isArray(result)
+                  ? result
+                  : null;
+
+            if (Array.isArray(payload)) {
+              artistsData = payload;
+              clearTimeout(endpointTimeoutId);
+              break;
+            }
+
+            lastError = new Error(result?.message || 'Invalid API response format');
+          } catch (endpointError) {
+            lastError = endpointError;
+          } finally {
+            clearTimeout(endpointTimeoutId);
+          }
+        }
+
+        if (!Array.isArray(artistsData)) {
+          throw lastError || new Error('Unable to fetch artists from available endpoints');
+        }
+
+        setArtists(artistsData);
+        const cachePayload = JSON.stringify({
+          timestamp: Date.now(),
+          artists: artistsData
+        });
+        sessionStorage.setItem(ARTISTS_CACHE_KEY, cachePayload);
+        localStorage.setItem(ARTISTS_PERSISTENT_CACHE_KEY, cachePayload);
         
       } catch (err) {
-        console.error('❌ Error fetching artists:', err);
-        setError(err.message);
-        
-        // Fallback to mock data if API fails
-        try {
-          console.log('🔄 Using mock data fallback...');
-          setArtists(artists || []);
-        } catch (mockErr) {
-          console.error('❌ Error loading mock data:', mockErr);
-          setArtists([]);
+        if (err?.name !== 'AbortError') {
+          console.error('Error fetching artists:', err);
         }
+        const staleCache = sessionStorage.getItem(ARTISTS_CACHE_KEY) || localStorage.getItem(ARTISTS_PERSISTENT_CACHE_KEY);
+        if (staleCache) {
+          try {
+            const parsed = JSON.parse(staleCache);
+            if (Array.isArray(parsed?.artists) && parsed.artists.length > 0) {
+              setArtists(parsed.artists);
+              setError(null);
+              return;
+            }
+          } catch {
+            sessionStorage.removeItem(ARTISTS_CACHE_KEY);
+            localStorage.removeItem(ARTISTS_PERSISTENT_CACHE_KEY);
+          }
+        }
+
+        setArtists([]);
+        setError('Unable to load artists. Please ensure backend server is running on port 5001 and try again.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchArtists();
-  }, []);
+  }, [API_BASE_URL]);
 
-  // Filter artists based on filters state
-  useEffect(() => {
-    let filtered = [...artists];
+  // Dynamic Filter-Based Artist Evaluation and Sorting
+  const displayArtists = useMemo(() => {
+    let allArtists = [...artists];
     
-    // Location filter
-    if (filters.location) {
-      filtered = filtered.filter(artist => 
-        artist.location?.toLowerCase().includes(filters.location.toLowerCase())
-      );
-    }
-    
-    // Budget range filter
-    if (filters.minBudget || filters.maxBudget) {
-      filtered = filtered.filter(artist => {
+    // Calculate relevance score for each artist based on ALL filters
+    const scoredArtists = allArtists.map(artist => {
+      let score = 0;
+      let matchDetails = [];
+
+      // Category Matching - Highest Priority (15 points exact)
+      if (selectedCategoryData && selectedCategoryData.name && artist.category) {
+        const selectedCategoryName = selectedCategoryData.name.toLowerCase().trim();
+        const artistCategoryName = artist.category.toLowerCase().trim();
+        
+        // Exact match
+        if (artistCategoryName === selectedCategoryName) {
+          score += 15;
+          matchDetails.push('Exact category match');
+        }
+        // Partial match (contains)
+        else if (artistCategoryName.includes(selectedCategoryName) || selectedCategoryName.includes(artistCategoryName)) {
+          score += 10;
+          matchDetails.push('Partial category match');
+        }
+      }
+
+      // Subcategory Matching - Higher Priority (12 points exact, 8 points skills)
+      if (filters.subcategory && filters.subcategory !== 'all') {
+        if (artist.subcategory === filters.subcategory) {
+          score += 12;
+          matchDetails.push('Exact subcategory match');
+        }
+        if (artist.skills?.includes(filters.subcategory)) {
+          score += 8;
+          matchDetails.push('Skills match');
+        }
+        if (artist.specialty === filters.subcategory) {
+          score += 8;
+          matchDetails.push('Specialty match');
+        }
+      }
+
+      // Location Matching - High Priority (10 points exact, 5 points partial)
+      if (filters.location) {
+        const searchLocation = filters.location.toLowerCase();
+        const artistLocation = artist.location?.toLowerCase() || '';
+
+        if (artistLocation === searchLocation) {
+          score += 10;
+          matchDetails.push('Exact location match');
+        } else if (artistLocation.includes(searchLocation)) {
+          score += 5;
+          matchDetails.push('Partial location match');
+        }
+      }
+
+      // Skills Matching - Medium Priority (7 points exact, 4 points partial)
+      if (filters.skill) {
+        const searchSkill = filters.skill.toLowerCase();
+
+        // Exact skill match
+        if (artist.skills?.some(skill => skill.toLowerCase() === searchSkill)) {
+          score += 7;
+          matchDetails.push('Exact skill match');
+        }
+        // Partial skill match
+        else if (artist.skills?.some(skill => skill.toLowerCase().includes(searchSkill))) {
+          score += 4;
+          matchDetails.push('Partial skill match');
+        }
+        // Specialty exact match
+        else if (artist.specialty?.toLowerCase() === searchSkill) {
+          score += 5;
+          matchDetails.push('Specialty match');
+        }
+        // Specialty partial match
+        else if (artist.specialty?.toLowerCase().includes(searchSkill)) {
+          score += 3;
+          matchDetails.push('Partial specialty match');
+        }
+        // Category exact match
+        else if (artist.category?.toLowerCase() === searchSkill) {
+          score += 4;
+          matchDetails.push('Category match');
+        }
+        // Category partial match
+        else if (artist.category?.toLowerCase().includes(searchSkill)) {
+          score += 2;
+          matchDetails.push('Partial category match');
+        }
+      }
+
+      // Budget Range Matching - Medium Priority (up to 5 points)
+      if (filters.minBudget || filters.maxBudget) {
         const artistPrice = artist.budget || 0;
         const minPrice = parseInt(filters.minBudget) || 0;
         const maxPrice = parseInt(filters.maxBudget) || Infinity;
-        
-        return artistPrice >= minPrice && artistPrice <= maxPrice;
+
+        if (artistPrice >= minPrice && artistPrice <= maxPrice) {
+          const rangeMid = (minPrice + maxPrice) / 2;
+          const deviation = Math.abs(artistPrice - rangeMid);
+          const budgetScore = Math.max(1, 5 - (deviation / 10000));
+          score += budgetScore;
+          matchDetails.push(`Budget match (${budgetScore.toFixed(1)} points)`);
+        }
+      }
+
+      // Quality Bonuses
+      if (artist.verificationStatus === 'verified') {
+        score += 2;
+        matchDetails.push('Verified artist');
+      }
+      if (artist.trending) {
+        score += 1;
+        matchDetails.push('Trending artist');
+      }
+
+      return {
+        ...artist,
+        relevanceScore: score,
+        matchDetails: matchDetails
+      };
+    });
+    
+    // If a category is selected, group and sort artists by category match first
+    if (selectedCategoryData && selectedCategoryData.name) {
+      const categoryName = selectedCategoryData.name.toLowerCase();
+      scoredArtists.sort((a, b) => {
+        const aCat = (a.category || '').toLowerCase() === categoryName ? 1 : 0;
+        const bCat = (b.category || '').toLowerCase() === categoryName ? 1 : 0;
+        if (bCat !== aCat) return bCat - aCat; // Group matching category at top
+        // Within group, sort by relevance, then rating, then completed events
+        if (b.relevanceScore !== a.relevanceScore) return b.relevanceScore - a.relevanceScore;
+        const ratingA = a.rating?.average || a.rating || 0;
+        const ratingB = b.rating?.average || b.rating || 0;
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        const eventsA = a.completedEvents || 0;
+        const eventsB = b.completedEvents || 0;
+        return eventsB - eventsA;
+      });
+    } else {
+      // Default: sort by relevance, then rating, then completed events
+      scoredArtists.sort((a, b) => {
+        if (b.relevanceScore !== a.relevanceScore) return b.relevanceScore - a.relevanceScore;
+        const ratingA = a.rating?.average || a.rating || 0;
+        const ratingB = b.rating?.average || b.rating || 0;
+        if (ratingB !== ratingA) return ratingB - ratingA;
+        const eventsA = a.completedEvents || 0;
+        const eventsB = b.completedEvents || 0;
+        return eventsB - eventsA;
       });
     }
     
-    // Subcategory filter
-    if (filters.subcategory && filters.subcategory !== 'all') {
-      filtered = filtered.filter(artist => 
-        artist.subcategory === filters.subcategory || 
-        artist.skills?.includes(filters.subcategory)
-      );
+    // Apply alternative sorting if specifically selected
+    if (filters.sortBy === 'price-low') {
+      scoredArtists.sort((a, b) => (a.budget || 0) - (b.budget || 0));
+    } else if (filters.sortBy === 'price-high') {
+      scoredArtists.sort((a, b) => (b.budget || 0) - (a.budget || 0));
+    } else if (filters.sortBy === 'rating') {
+      scoredArtists.sort((a, b) => {
+        const ratingA = a.rating?.average || a.rating || 0;
+        const ratingB = b.rating?.average || b.rating || 0;
+        
+        if (ratingA !== ratingB) {
+          return ratingB - ratingA;
+        }
+        
+        const reviewsA = a.rating?.count || a.reviews || 0;
+        const reviewsB = b.rating?.count || b.reviews || 0;
+        return reviewsB - reviewsA;
+      });
+    } else if (filters.sortBy === 'experience') {
+      scoredArtists.sort((a, b) => {
+        const experienceOrder = { '0-1': 0, '1-3': 1, '3-5': 2, '5-10': 3, '10+': 4 };
+        const expA = experienceOrder[a.experience] || 0;
+        const expB = experienceOrder[b.experience] || 0;
+        
+        if (expA !== expB) {
+          return expB - expA;
+        }
+        
+        const eventsA = a.completedEvents || 0;
+        const eventsB = b.completedEvents || 0;
+        return eventsB - eventsA;
+      });
     }
-    
-    displayArtists = filtered;
-  }, [artists, filters]);
+    return scoredArtists;
+  }, [artists, filters, selectedCategoryData]);
 
   if (loading) {
     return (
@@ -241,7 +868,9 @@ const CategoryPage = ({ config }) => {
       location: '',
       minBudget: '',
       maxBudget: '',
-      subcategory: 'all'
+      subcategory: 'all',
+      skill: '',
+      sortBy: 'relevance'
     });
   };
 
@@ -252,7 +881,12 @@ const CategoryPage = ({ config }) => {
   // Category selection handler
   const handleCategorySelect = (categoryKey) => {
     if (allCategoriesData[categoryKey]) {
-      setSelectedCategoryData(allCategoriesData[categoryKey]);
+      const categoryData = allCategoriesData[categoryKey];
+      
+      setSelectedCategoryData(categoryData);
+      setExpandedCategory(expandedCategory === categoryKey ? null : categoryKey); // Toggle dropdown
+      setSelectedSubcategory('All Subcategories');
+      setFilters(prev => ({ ...prev, subcategory: 'all' }));
     }
   };
 
@@ -260,219 +894,344 @@ const CategoryPage = ({ config }) => {
   const handleSubcategorySelect = (option) => {
     setSelectedSubcategory(option.label);
     setFilters(prev => ({ ...prev, subcategory: option.value }));
+    setExpandedCategory(null); // Close dropdown after selection
   };
 
   // Default category for demo
-  const category = allCategoriesData.dancers;
+  const category = allCategoriesData.dancers || allCategoriesData.singers;
 
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <button 
-            onClick={() => navigate('home')}
-            className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-3xl shadow-lg`}>
-            {category.icon}
-          </div>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold" style={{ color: config.text_color }}>{pageTitle}</h1>
-            <p className="text-gray-500">{pageDescription}</p>
-          </div>
-        </div>
+    <div className="pt-20 sm:pt-24 pb-10 sm:pb-16 min-h-full" style={{ backgroundColor: config?.background_color || '#f9fafb' }}>
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="flex flex-col md:block">
+        {/* Left Sidebar - Filters - Fixed Position */}
+        <div className="w-full md:fixed md:left-0 md:top-24 md:w-80 bg-white shadow-sm md:shadow-lg border-b md:border-b-0 md:border-r border-gray-200 z-30 md:z-30 md:h-[calc(100vh-6rem)]">
+          <div className="p-4 md:h-full md:overflow-y-auto">
+            {/* Filter Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+              {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all') && (
+                <button 
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
 
-        {/* Flipkart-Style Layout */}
-        <div className="flex gap-6">
-          {/* Left Sidebar - Filters */}
-          <div className="w-80 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-24">
-              {/* Filter Header */}
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
-                  {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all') && (
-                    <button 
-                      onClick={clearFilters}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Clear All
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-4 space-y-6">
-                {/* Category Selection */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Category</h4>
-                  <div className="space-y-2">
-                    {Object.entries(allCategoriesData).map(([key, cat]) => (
-                      <button
-                        key={key}
-                        onClick={() => handleCategorySelect(key)}
-                        className={`w-full text-left px-3 py-2 rounded-lg border transition-colors ${
-                          selectedCategoryData?.name === cat.name
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>{cat.icon}</span>
-                          <span className="text-sm font-medium">{cat.name}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Subcategory Selection */}
-                {selectedCategoryData?.subcategories && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">Select Style</h4>
-                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                      {Object.entries(selectedCategoryData.subcategories).map(([key, subcat]) => (
-                        <div key={key} className="border border-gray-200 rounded-lg overflow-hidden">
-                          <div className="p-3 bg-gray-50 border-b border-gray-200">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">{subcat.icon}</span>
-                              <span className="text-sm font-medium text-gray-900">{subcat.name}</span>
-                              <span className="text-xs text-gray-500">({subcat.items.length} styles)</span>
+            <div className="space-y-6">
+              {/* Horizontal Scrollable Categories */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Categories</h4>
+                <div className="relative">
+                  {/* Gradient indicators for scroll */}
+                  <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                  <div className="absolute right-0 top-0 bottom-0 w-2 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+                  
+                  {/* Horizontal scroll container */}
+                  <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
+                      {Object.entries(allCategoriesData).map(([key, cat]) => (
+                        <div key={key} className="flex-shrink-0">
+                          <button
+                            onClick={() => handleCategorySelect(key)}
+                            className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200 min-w-[80px] ${
+                              selectedCategoryData?.name === cat.name
+                                ? 'border-blue-500 bg-blue-50 shadow-md transform scale-105'
+                                : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                            }`}
+                          >
+                            <div className={`text-2xl mb-1 ${
+                              selectedCategoryData?.name === cat.name ? 'animate-bounce' : ''
+                            }`}>
+                              {cat.icon}
                             </div>
-                          </div>
-                          <div className="p-2">
-                            {subcat.items.map((item, index) => (
-                              <button
-                                key={index}
-                                onClick={() => handleSubcategorySelect({ 
-                                  label: item, 
-                                  value: item,
-                                  icon: subcat.icon 
-                                })}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
-                                  selectedSubcategory === item || filters.subcategory === item
-                                    ? 'bg-blue-100 text-blue-700 font-medium'
-                                    : 'text-gray-700 hover:bg-gray-100'
-                                }`}
-                              >
-                                {item}
-                              </button>
-                            ))}
-                          </div>
+                            <span className="text-xs font-medium text-center text-gray-700">
+                              {cat.name}
+                            </span>
+                          </button>
+                          
+                          {/* Expandable Subcategory Dropdown */}
+                          {expandedCategory === key && cat.subcategories && (
+                            <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
+                              <div className="max-h-60 overflow-y-auto">
+                                {Object.entries(cat.subcategories).map(([subKey, subcat]) => (
+                                  <div key={subKey} className="border-b border-gray-100 last:border-b-0">
+                                    <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm">{subcat.icon}</span>
+                                        <span className="text-sm font-medium text-gray-900">{subcat.name}</span>
+                                        <span className="text-xs text-gray-500">({subcat.items.length})</span>
+                                      </div>
+                                    </div>
+                                    <div className="p-1">
+                                      {subcat.items.map((item, index) => (
+                                        <button
+                                          key={index}
+                                          onClick={() => handleSubcategorySelect({ 
+                                            label: item, 
+                                            value: item,
+                                            icon: subcat.icon 
+                                          })}
+                                          className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+                                            selectedSubcategory === item || filters.subcategory === item
+                                              ? 'bg-blue-100 text-blue-700 font-medium'
+                                              : 'text-gray-700 hover:bg-gray-100'
+                                          }`}
+                                        >
+                                          {item}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
+              </div>
 
-                {/* Location Filter */}
+              {/* Selected Category Display */}
+              {selectedCategoryData && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Location</h4>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
+                  <h4 className="text-sm font-medium text-gray-900 mb-3">Selected Style</h4>
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{selectedCategoryData.icon}</span>
+                        <span className="text-sm font-medium text-blue-900">{selectedCategoryData.name}</span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedCategoryData(null);
+                          setExpandedCategory(null);
+                          setSelectedSubcategory('All Subcategories');
+                          setFilters(prev => ({ ...prev, subcategory: 'all' }));
+                        }}
+                        className="text-xs text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        Clear
+                      </button>
                     </div>
+                    {selectedSubcategory !== 'All Subcategories' && (
+                      <div className="mt-2 text-xs text-blue-700">
+                        Style: {selectedSubcategory}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Location Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Location</h4>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={filters.location}
+                    onChange={(e) => updateFilter('location', e.target.value)}
+                    placeholder="Search by city or area..."
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Budget Range */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Budget Range</h4>
+                <p className="text-xs text-gray-500 mb-2">Per event</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
                     <input
-                      type="text"
-                      value={filters.location}
-                      onChange={(e) => updateFilter('location', e.target.value)}
-                      placeholder="Search by city or area..."
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      type="number"
+                      value={filters.minBudget}
+                      onChange={(e) => updateFilter('minBudget', e.target.value)}
+                      placeholder="Min"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <span className="text-gray-400 text-center">—</span>
+                  <div className="flex-1 relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                    <input
+                      type="number"
+                      value={filters.maxBudget}
+                      onChange={(e) => updateFilter('maxBudget', e.target.value)}
+                      placeholder="Max"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* Budget Range */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Budget Range</h4>
-                  <p className="text-xs text-gray-500 mb-2">Per event</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
-                      <input
-                        type="number"
-                        value={filters.minBudget}
-                        onChange={(e) => updateFilter('minBudget', e.target.value)}
-                        placeholder="Min"
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <span className="text-gray-400">—</span>
-                    <div className="flex-1 relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">₹</span>
-                      <input
-                        type="number"
-                        value={filters.maxBudget}
-                        onChange={(e) => updateFilter('maxBudget', e.target.value)}
-                        placeholder="Max"
-                        className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
+              {/* Specific Skills */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 mb-3">Specific Skills</h4>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
                   </div>
-                </div>
-
-                {/* Specific Skills */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 mb-3">Specific Skills</h4>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      value={filters.skill || ''}
-                      onChange={(e) => updateFilter('skill', e.target.value)}
-                      placeholder="e.g., Classical, Bollywood..."
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
+                  <input
+                    type="text"
+                    value={filters.skill || ''}
+                    onChange={(e) => updateFilter('skill', e.target.value)}
+                    placeholder="e.g., Classical, Bollywood..."
+                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Main Content - Artists Grid */}
-          <div className="flex-1">
-            {/* Results Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900">{pageTitle}</h2>
-                  <p className="text-sm text-gray-600">{pageDescription}</p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">
-                    Showing {displayArtists.length} results
-                  </span>
-                  <select className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <option>Relevance</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                    <option>Rating: High to Low</option>
-                  </select>
-                </div>
+        {/* Main Content Area - With Left Margin for Fixed Sidebar */}
+        <div className="w-full min-w-0 md:ml-80 md:w-[calc(100%-20rem)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Header */}
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-5 sm:mb-6 mt-4 md:mt-0">
+              <button 
+                onClick={() => navigate && navigate('home')}
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${category?.color || 'from-blue-500 to-purple-600'} flex items-center justify-center text-2xl sm:text-3xl shadow-lg`}>
+                {category?.icon || '🎭'}
+              </div>
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: config?.text_color || '#111827' }}>{pageTitle}</h1>
+                <p className="text-sm sm:text-base text-gray-500">{pageDescription}</p>
               </div>
             </div>
 
-            {/* Artists Grid */}
+            {/* Results Header */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">{pageTitle}</h2>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span>Showing {displayArtists.length} of {artists.length} artists</span>
+                    {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all' || filters.skill) && (
+                      <>
+                        <span>•</span>
+                        <span className="text-blue-600 font-medium">Filters applied</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="text-sm text-gray-500">
+                    Sort by:
+                    <select 
+                      value={filters.sortBy || 'relevance'}
+                      onChange={(e) => updateFilter('sortBy', e.target.value)}
+                      className="ml-2 w-full sm:w-auto text-sm border border-gray-300 rounded-md px-3 py-2 sm:py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="relevance">Relevance</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="rating">Rating: High to Low</option>
+                      <option value="experience">Experience: High to Low</option>
+                    </select>
+                  </div>
+                  {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all' || filters.skill) && (
+                    <button 
+                      onClick={clearFilters}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Active Filters Display */}
+              {(filters.location || filters.minBudget || filters.maxBudget || filters.subcategory !== 'all' || filters.skill) && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium">Active filters:</span>
+                    {filters.location && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full flex items-center gap-1">
+                        📍 {filters.location}
+                        <button 
+                          onClick={() => updateFilter('location', '')}
+                          className="text-blue-500 hover:text-blue-700"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                    {(filters.minBudget || filters.maxBudget) && (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full flex items-center gap-1">
+                        💰 {filters.minBudget || '0'} - {filters.maxBudget || '∞'}
+                        <button 
+                          onClick={() => { updateFilter('minBudget', ''); updateFilter('maxBudget', ''); }}
+                          className="text-green-500 hover:text-green-700"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                    {filters.subcategory && filters.subcategory !== 'all' && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full flex items-center gap-1">
+                        🎭 {filters.subcategory}
+                        <button 
+                          onClick={() => updateFilter('subcategory', 'all')}
+                          className="text-purple-500 hover:text-purple-700"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                    {filters.skill && (
+                      <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full flex items-center gap-1">
+                        🎨 {filters.skill}
+                        <button 
+                          onClick={() => updateFilter('skill', '')}
+                          className="text-orange-500 hover:text-orange-700"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Artists Grid - Row Wise Full Width */}
             {displayArtists.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 w-full min-w-0 max-w-full overflow-x-hidden">
                 {displayArtists.map((artist, index) => (
                   <div 
                     key={artist._id || artist.id || index}
-                    className="animate-fadeIn"
+                    className="w-full min-w-0 max-w-full overflow-x-hidden"
                   >
-                    <ArtistCard artist={artist} config={config} />
+                    {ArtistCard && <ArtistCard artist={artist} config={config || {}} fullWidth={true} />}
                   </div>
                 ))}
               </div>
@@ -485,7 +1244,7 @@ const CategoryPage = ({ config }) => {
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No artists found</h3>
                 <p className="text-gray-600 mb-4">
-                  No artists found matching your criteria
+                  {loading ? 'Loading artists...' : 'No artists found matching your criteria'}
                 </p>
                 <button 
                   onClick={clearFilters}
