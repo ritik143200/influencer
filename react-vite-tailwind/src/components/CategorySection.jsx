@@ -7,7 +7,7 @@ const CategorySection = ({ category, config }) => {
   const { navigate } = useRouter();
   const [categoryArtists, setCategoryArtists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
   useEffect(() => {
     let isMounted = true;

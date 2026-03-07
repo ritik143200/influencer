@@ -20,7 +20,8 @@ const UserDashboard = ({ config }) => {
         const token = localStorage.getItem('userToken');
         if (!token) return;
 
-        const res = await fetch('http://localhost:5001/api/bookings/my', {
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+        const res = await fetch(`${API_BASE_URL}/api/bookings/my`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
