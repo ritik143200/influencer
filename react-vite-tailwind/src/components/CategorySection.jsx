@@ -114,14 +114,8 @@ const CategorySection = ({ category, config }) => {
     };
   }, [API_BASE_URL, category.name]);
 
-  if (!loading && categoryArtists.length === 0) return null;
-    if (!loading && categoryArtists.length === 0) {
-      return (
-        <div className="w-full text-center text-gray-400 py-8">
-          No artists found in this category.
-        </div>
-      );
-    }
+  // Always render the section. Show a message if no artists are found.
+  const showNoArtists = !loading && categoryArtists.length === 0;
 
   const artistCount = loading ? category.count || 0 : categoryArtists.length;
 
@@ -180,6 +174,11 @@ const CategorySection = ({ category, config }) => {
             </div>
           ))}
         </div>
+          {showNoArtists && (
+            <div className="w-full text-center text-gray-400 py-8">
+              This category data not found.
+            </div>
+          )}
       </div>
     </section>
   );
