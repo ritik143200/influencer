@@ -473,7 +473,7 @@ const allCategoriesData = {
 
 const CategoryPage = ({ config }) => {
   const { params, navigate } = useRouter();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
   const searchQuery = params.search;
   const subcategory = params.subcategory;
   
