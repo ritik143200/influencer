@@ -22,7 +22,8 @@ const ArtistDashboard = ({ config }) => {
 
     const fetchArtistData = async () => {
       try {
-        const bookingsRes = await fetch('http://localhost:5001/api/bookings/artist', {
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings/artist`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (bookingsRes.ok) {
@@ -72,7 +73,8 @@ const ArtistDashboard = ({ config }) => {
 
   const handleBookingAction = async (bookingId, action) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/bookings/artist/${bookingId}/${action}`, {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/api/bookings/artist/${bookingId}/${action}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
@@ -82,7 +84,8 @@ const ArtistDashboard = ({ config }) => {
 
       if (response.ok) {
         // Refresh bookings and earnings
-        const bookingsRes = await fetch('http://localhost:5001/api/bookings/artist', {
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const bookingsRes = await fetch(`${API_BASE_URL}/api/bookings/artist`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (bookingsRes.ok) {

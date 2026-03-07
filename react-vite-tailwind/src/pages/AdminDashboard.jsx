@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 const AdminDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { user } = useAuth();
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
@@ -60,22 +61,22 @@ const AdminDashboard = ({ config }) => {
           analyticsRes,
           notificationsRes
         ] = await Promise.all([
-          fetch('http://localhost:5001/api/admin/users', {
+          fetch(`${API_BASE_URL}/api/admin/users`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/artists', {
+          fetch(`${API_BASE_URL}/api/admin/artists`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/bookings', {
+          fetch(`${API_BASE_URL}/api/admin/bookings`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/inquiries', {
+          fetch(`${API_BASE_URL}/api/admin/inquiries`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/analytics', {
+          fetch(`${API_BASE_URL}/api/admin/analytics`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/notifications', {
+          fetch(`${API_BASE_URL}/api/admin/notifications`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           })
         ]);
@@ -159,10 +160,10 @@ const AdminDashboard = ({ config }) => {
     const interval = setInterval(async () => {
       try {
         const [analyticsRes, notificationsRes] = await Promise.all([
-          fetch('http://localhost:5001/api/admin/analytics', {
+          fetch(`${API_BASE_URL}/api/admin/analytics`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           }),
-          fetch('http://localhost:5001/api/admin/notifications', {
+          fetch(`${API_BASE_URL}/api/admin/notifications`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
           })
         ]);
@@ -190,14 +191,14 @@ const AdminDashboard = ({ config }) => {
 
       let response;
       if (action === 'delete') {
-        response = await fetch(`http://localhost:5001/api/admin/users/${userId}`, {
+        response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('userToken')}`
           }
         });
       } else {
-        response = await fetch(`http://localhost:5001/api/admin/users/${userId}/${action}`, {
+        response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/${action}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
@@ -208,7 +209,7 @@ const AdminDashboard = ({ config }) => {
 
       if (response.ok) {
         // Refresh users data
-        const usersRes = await fetch('http://localhost:5001/api/admin/users', {
+        const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (usersRes.ok) {
@@ -238,7 +239,7 @@ const AdminDashboard = ({ config }) => {
 
   const handleArtistAction = async (artistId, action) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/artists/${artistId}/${action}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/artists/${artistId}/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
@@ -248,7 +249,7 @@ const AdminDashboard = ({ config }) => {
 
       if (response.ok) {
         // Refresh artists data
-        const artistsRes = await fetch('http://localhost:5001/api/admin/artists', {
+        const artistsRes = await fetch(`${API_BASE_URL}/api/admin/artists`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (artistsRes.ok) {
@@ -262,7 +263,7 @@ const AdminDashboard = ({ config }) => {
 
   const handleBookingAction = async (bookingId, action) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/admin/bookings/${bookingId}/${action}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/bookings/${bookingId}/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
@@ -272,7 +273,7 @@ const AdminDashboard = ({ config }) => {
 
       if (response.ok) {
         // Refresh bookings data
-        const bookingsRes = await fetch('http://localhost:5001/api/admin/bookings', {
+        const bookingsRes = await fetch(`${API_BASE_URL}/api/admin/bookings`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (bookingsRes.ok) {
@@ -286,7 +287,7 @@ const AdminDashboard = ({ config }) => {
 
   const handleMarkNotificationRead = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/admin/notifications/${id}/read`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/notifications/${id}/read`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
       });
@@ -300,7 +301,7 @@ const AdminDashboard = ({ config }) => {
 
   const handleMarkAllNotificationsRead = async () => {
     try {
-      const res = await fetch(`http://localhost:5001/api/admin/notifications/read-all`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/notifications/read-all`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
       });
@@ -438,7 +439,7 @@ const AdminDashboard = ({ config }) => {
               // Refresh users data
               const fetchUsers = async () => {
                 try {
-                  const response = await fetch('http://localhost:5001/api/admin/users', {
+                  const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
                   });
                   if (response.ok) {
@@ -848,7 +849,7 @@ const AdminDashboard = ({ config }) => {
                 <button
                   onClick={async () => {
                     try {
-                      const bookingsRes = await fetch('http://localhost:5001/api/admin/bookings', {
+                      const bookingsRes = await fetch(`${API_BASE_URL}/api/admin/bookings`, {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
                       });
                       if (bookingsRes.ok) {
