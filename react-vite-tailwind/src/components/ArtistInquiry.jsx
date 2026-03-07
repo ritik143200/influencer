@@ -94,7 +94,8 @@ const ArtistInquiry = ({ isOpen, onClose, artist, config }) => {
         message: formData.message
       };
 
-      const response = await fetch('http://localhost:5001/api/bookings', {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/api/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

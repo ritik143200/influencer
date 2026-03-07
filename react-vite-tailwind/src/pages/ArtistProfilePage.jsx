@@ -13,7 +13,8 @@ const ArtistProfilePage = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await fetch(`http://localhost:5001/api/artists/${id}`);
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const response = await fetch(`${API_BASE_URL}/api/artists/${id}`);
         const result = await response.json();
         if (response.ok && result.success) {
           setArtist(result.artist);
