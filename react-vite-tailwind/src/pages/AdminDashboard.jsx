@@ -123,10 +123,21 @@ const AdminDashboard = ({ config }) => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Update the booking in local state without a full re-fetch
+        // Update the booking in local state
+        const updatedBooking = data.data;
         setBookings(prev => prev.map(b =>
-          (b._id === bookingId || b.id === bookingId) ? data.data : b
+          (b._id === bookingId || b.id === bookingId) ? updatedBooking : b
         ));
+        
+        // Emit custom event for real-time User Dashboard updates
+        window.dispatchEvent(new CustomEvent('bookingStatusUpdated', {
+          detail: {
+            bookingId,
+            newStatus: updatedBooking.status,
+            timestamp: new Date().toISOString()
+          }
+        }));
+        
         setSuccessMessage(`Booking ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
