@@ -21,6 +21,7 @@ const AdminDashboard = ({ config }) => {
   const [artists, setArtists] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
+  const [bookingFilter, setBookingFilter] = useState('all');
   // Booking UI states
   const [expandedBookingId, setExpandedBookingId] = useState(null);
   const [statusDropdownId, setStatusDropdownId] = useState(null);
@@ -164,6 +165,25 @@ const AdminDashboard = ({ config }) => {
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, isRead: true } : n)
     );
+  };
+
+  // Helper function to filter bookings based on status
+  const getFilteredBookings = () => {
+    if (bookingFilter === 'all') {
+      return bookings;
+    }
+    
+    const statusMap = {
+      'pending': 'pending',
+      'approved': 'adminApproved',
+      'confirmed': 'confirmed',
+      'completed': 'completed',
+      'rejected': 'rejected',
+      'artistRejected': 'artistRejected'
+    };
+    
+    const targetStatus = statusMap[bookingFilter];
+    return bookings.filter(booking => booking.status === targetStatus);
   };
 
   // Theme-consistent colors from landing page
@@ -437,14 +457,50 @@ const AdminDashboard = ({ config }) => {
     return (
       <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden" style={{ backgroundColor: getThemeColor('surface') }}>
         {/* Header */}
-        <div className={`bg-gradient-to-r ${getCategoryColors(3)} p-6 flex justify-between items-center`}>
-          <div>
-            <h3 className="text-xl font-bold text-white">Booking Management</h3>
-            <p className="text-white/80 text-sm mt-1">
-              {bookings.filter(b => b.status === 'pending').length} pending · {bookings.length} total
-            </p>
+        <div className={`bg-gradient-to-r ${getCategoryColors(3)} p-6`}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-bold text-white">Booking Management</h3>
+              <p className="text-white/80 text-sm mt-1">
+                {bookings.filter(b => b.status === 'pending').length} pending · {bookings.length} total
+              </p>
+            </div>
+            
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-white/80">Filter:</label>
+              <select 
+                value={bookingFilter}
+                onChange={(e) => setBookingFilter(e.target.value)}
+                className="px-3 py-2 text-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white backdrop-blur-sm"
+              >
+                <option value="all" className="text-gray-800">All Bookings</option>
+                <option value="pending" className="text-gray-800">⏳ Pending</option>
+                <option value="approved" className="text-gray-800">✓ Approved</option>
+                <option value="confirmed" className="text-gray-800">✓ Confirmed</option>
+                <option value="completed" className="text-gray-800">✓ Completed</option>
+                <option value="rejected" className="text-gray-800">✗ Rejected</option>
+                <option value="artistRejected" className="text-gray-800">✗ Artist Declined</option>
+              </select>
+            </div>
           </div>
-          <span className="px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium">
+          
+          {/* Filter Summary */}
+          {bookingFilter !== 'all' && (
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-sm text-white/80">
+                Showing <span className="font-semibold text-white">{getFilteredBookings().length}</span> {bookingFilter} bookings
+              </span>
+              <button 
+                onClick={() => setBookingFilter('all')}
+                className="text-xs text-white/80 hover:text-white font-medium"
+              >
+                Clear Filter
+              </button>
+            </div>
+          )}
+          
+          <span className="px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium inline-block mt-3">
             {bookings.filter(b => b.status === 'adminApproved').length} awaiting artist
           </span>
         </div>
@@ -473,18 +529,23 @@ const AdminDashboard = ({ config }) => {
               </tr>
             </thead>
             <tbody>
-              {bookings.length === 0 ? (
+              {getFilteredBookings().length === 0 ? (
                 <tr>
                   <td colSpan="8" className="px-6 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
-                      <p className="text-gray-400 font-medium">No bookings yet</p>
+                      <p className="text-gray-400 font-medium">
+                        {bookingFilter === 'all' 
+                          ? 'No bookings yet'
+                          : `No ${bookingFilter} bookings found. Try selecting a different filter.`
+                        }
+                      </p>
                     </div>
                   </td>
                 </tr>
-              ) : bookings.map((booking, idx) => {
+              ) : getFilteredBookings().map((booking, idx) => {
                 const bookingId = booking._id || booking.id;
                 const isExpanded = expandedBookingId === bookingId;
                 const showDropdown = statusDropdownId === bookingId;
