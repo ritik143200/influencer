@@ -320,7 +320,7 @@ console.log('🖼️ Artist Image Debug:', {
                       navigate('auth');
                       return;
                     }
-                    setShowInquiryModal(true);
+                    setShowInquiryModal({ source: 'book' });
                   }}
                   className="px-8 py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                   style={{
@@ -586,7 +586,7 @@ console.log('🖼️ Artist Image Debug:', {
 
               <div className="space-y-3">
                 <button 
-                  onClick={() => setShowInquiryModal(true)}
+                  onClick={() => setShowInquiryModal({ source: 'inquiry' })}
                   className="w-full py-3 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
                   style={{ 
                     backgroundColor: config.primary_action,
@@ -677,15 +677,9 @@ console.log('🖼️ Artist Image Debug:', {
       {/* Artist Inquiry Modal */}
       {showInquiryModal && (
         <ArtistInquiry
-          isOpen={showInquiryModal}
+          isOpen={!!showInquiryModal}
           onClose={() => setShowInquiryModal(false)}
-          artist={{
-            name: artistData.name,
-            specialty: artistData.specialty,
-            category: artistData.category,
-            location: artistData.location,
-            price: artistData.budget
-          }}
+          artist={artistData}
           config={config}
         />
       )}
