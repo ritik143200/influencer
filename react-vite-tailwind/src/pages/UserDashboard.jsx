@@ -7,6 +7,7 @@ const UserDashboard = ({ config }) => {
   const [bookings, setBookings] = useState([]);
   const [favoriteArtists, setFavoriteArtists] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
+  const [lastStatusUpdate, setLastStatusUpdate] = useState(null);
 
   useEffect(() => {
     // Load user data from localStorage
@@ -18,25 +19,118 @@ const UserDashboard = ({ config }) => {
     const fetchBookings = async () => {
       try {
         const token = localStorage.getItem('userToken');
-        if (!token) return;
-
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
-        const res = await fetch(`${API_BASE_URL}/api/bookings/my`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
+        if (!token) {
+          console.log('❌ No token found - user not logged in');
+          // Try to get user data to check login status
+          const userData = localStorage.getItem('userData');
+          if (userData) {
+            console.log('📝 User data found but no token - authentication issue');
           }
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          setBookings(data.data);
+          return;
         }
+
+        // Try multiple possible API base URLs
+        const possibleUrls = [
+          import.meta.env.VITE_API_BASE_URL,
+          'http://localhost:5001',
+          'http://127.0.0.1:5001',
+          'http://localhost:5000',
+          'http://127.0.0.1:5000'
+        ].filter(Boolean);
+
+        let bookingData = null;
+        let workingUrl = null;
+
+        for (const baseUrl of possibleUrls) {
+          try {
+            const endpoint = `${baseUrl}/api/bookings/my`;
+            console.log(`� Trying URL: ${endpoint}`);
+            
+            // Test health first
+            const healthCheck = await fetch(`${baseUrl}/api/health`, {
+              method: 'GET',
+              headers: { 'Accept': 'application/json' }
+            });
+            
+            if (healthCheck.ok) {
+              console.log(`✅ Health check passed for ${baseUrl}`);
+              
+              // Now try bookings endpoint
+              const res = await fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                }
+              });
+
+              console.log(`📡 Response from ${baseUrl}:`, res.status);
+              
+              if (res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                  bookingData = data.data;
+                  workingUrl = baseUrl;
+                  console.log(`✅ Success with ${baseUrl}:`, data.data.length, 'bookings');
+                  break;
+                }
+              } else {
+                const errorText = await res.text();
+                console.error(`❌ Error from ${baseUrl}:`, {
+                  status: res.status,
+                  body: errorText
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`❌ Failed with ${baseUrl}:`, error.message);
+          }
+        }
+
+        if (bookingData !== null) {
+          setBookings(bookingData);
+          console.log(`✅ Bookings loaded from ${workingUrl}:`, bookingData.length);
+        } else {
+          console.error('❌ All URLs failed - backend may be down or wrong configuration');
+        }
+        
       } catch (error) {
-        console.error("Error fetching bookings:", error);
+        console.error("❌ Critical error in fetchBookings:", error);
       }
     };
 
     fetchBookings();
+
+    // Listen for booking status updates from Admin Panel
+    const handleBookingStatusUpdate = (event) => {
+      const { bookingId, newStatus, timestamp } = event.detail;
+      
+      // Update local booking state with new status
+      setBookings(prev => prev.map(booking => 
+        (booking._id === bookingId || booking.id === bookingId) 
+          ? { ...booking, status: newStatus }
+          : booking
+      ));
+      
+      const statusStyle = getStatusStyle(newStatus);
+      setLastStatusUpdate({
+        bookingId,
+        newStatus: statusStyle.label,
+        timestamp: new Date(timestamp).toLocaleString()
+      });
+      
+      // Clear the status update message after 5 seconds
+      setTimeout(() => setLastStatusUpdate(null), 5000);
+    };
+
+    // Add event listener for booking updates
+    window.addEventListener('bookingStatusUpdated', handleBookingStatusUpdate);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      window.removeEventListener('bookingStatusUpdated', handleBookingStatusUpdate);
+    };
 
     setFavoriteArtists([
       { id: 1, name: 'Melody Band', category: 'Bands', rating: 4.8, image: '🎸' },
@@ -50,6 +144,16 @@ const UserDashboard = ({ config }) => {
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
     navigate('home');
+  };
+
+  // Helper function to get status styling (consistent with Admin Panel)
+  const getStatusStyle = (status) => {
+    if (status === 'adminApproved') return { bg: 'bg-purple-100', text: 'text-purple-800', label: '✓ Approved' };
+    if (status === 'rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Rejected' };
+    if (status === 'confirmed') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Confirmed' };
+    if (status === 'completed') return { bg: 'bg-blue-100', text: 'text-blue-800', label: '✓ Completed' };
+    if (status === 'artistRejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Artist Declined' };
+    return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pending' };
   };
 
   const renderUser = () => (
@@ -318,27 +422,8 @@ const UserDashboard = ({ config }) => {
                   <div className="text-sm font-medium text-gray-900">₹{booking.budget?.toLocaleString()}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${booking.status === 'confirmed'
-                      ? 'bg-green-100 text-green-800'
-                      : booking.status === 'completed'
-                        ? 'bg-blue-100 text-blue-800'
-                        : booking.status === 'adminApproved'
-                          ? 'bg-purple-100 text-purple-800'
-                          : ['rejected', 'artistRejected'].includes(booking.status)
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                    {booking.status === 'adminApproved'
-                      ? 'Pending Artist'
-                      : booking.status === 'artistRejected'
-                        ? 'Artist Declined'
-                        : booking.status === 'confirmed'
-                          ? 'Confirmed'
-                          : booking.status === 'completed'
-                            ? 'Completed'
-                            : booking.status === 'rejected'
-                              ? 'Rejected'
-                              : 'Pending'}
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(booking.status).bg} ${getStatusStyle(booking.status).text}`}>
+                    {getStatusStyle(booking.status).label}
                   </span>
                 </td>
               </tr>
@@ -384,6 +469,28 @@ const UserDashboard = ({ config }) => {
 
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>
+      {/* Status Update Notification */}
+      {lastStatusUpdate && (
+        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 min-w-[300px]">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900">Booking Status Updated</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Status changed to <span className="font-medium text-green-600">{lastStatusUpdate.newStatus}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{lastStatusUpdate.timestamp}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
         <div className="mb-8">
