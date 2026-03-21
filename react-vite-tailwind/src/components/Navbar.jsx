@@ -285,16 +285,8 @@ const Navbar = ({ config }) => {
               )}
             </div>
 
-            {/* Sign In Link */}
-            {!isAuthenticated ? (
-              <button 
-                onClick={() => navigate('auth')}
-                className="font-medium text-gray-700 hover:text-brand-600 transition-colors whitespace-nowrap"
-              >
-                Sign In
-              </button>
-            ) : (
-              /* Dashboard Menu */
+                          {/* Dashboard Menu - Only for authenticated users */}
+            {isAuthenticated && (
               <div className="relative dashboard-menu">
                 <button 
                   onClick={() => setShowDashboardMenu(!showDashboardMenu)}
@@ -389,10 +381,14 @@ const Navbar = ({ config }) => {
             {/* Artist Registration Link */}
             <button 
               onClick={() => navigate('artist-registration')}
-              className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap"
+              className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap flex items-center gap-2"
               style={{ backgroundColor: config.primary_action }}
             >
-              Artist Registration
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+              </span>
+              Artist/Influencer Registration
             </button>
           </div>
 
@@ -461,17 +457,7 @@ const Navbar = ({ config }) => {
               >
                 <span className="font-medium">FAQ</span>
               </button>
-              {!isAuthenticated ? (
-                <button
-                  onClick={() => {
-                    navigate('auth');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
-                >
-                  <span className="font-medium">Sign In</span>
-                </button>
-              ) : (
+                              {isAuthenticated && (
                 <>
                   <button
                     onClick={() => {
@@ -509,10 +495,14 @@ const Navbar = ({ config }) => {
                   navigate('artist-registration');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all"
+                className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
                 style={{ backgroundColor: config.primary_action }}
               >
-                Artist Registration
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                </span>
+                Artist/Influencer Registration
               </button>
             </div>
           </div>
