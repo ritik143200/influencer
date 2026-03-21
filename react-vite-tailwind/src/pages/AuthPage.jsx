@@ -448,13 +448,13 @@ const AuthPage = () => {
                     : 'text-gray-600 hover:text-gray-800'
                     }`}
                 >
-                  Sign Up
+                  Register Profile
                 </button>
               </div>
 
               {/* Form Title */}
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : 'Create Account'))}
+                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : 'Create Your Profile'))}
               </h2>
               <p className="text-gray-600 mb-8">
                 {isResetPassword
@@ -462,8 +462,8 @@ const AuthPage = () => {
                   : (isForgotPassword
                     ? 'Enter your email to receive a password reset link'
                     : (isLogin
-                      ? 'Sign in to continue to your account'
-                      : 'Join our community of talented artists'
+                      ? 'Sign in to manage your artist profile'
+                      : 'Join our platform as a talented artist or influencer. Create your profile to showcase your skills and connect with opportunities.'
                     )
                   )
                 }
@@ -567,7 +567,7 @@ const AuthPage = () => {
                   type="submit"
                   disabled={isLoading}
                   loading={isLoading}
-                  text={isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Account'))}
+                  text={isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Profile'))}
                 />
 
                 {isLogin && !isResetPassword && (

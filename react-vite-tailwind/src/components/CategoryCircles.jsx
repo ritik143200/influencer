@@ -5,103 +5,12 @@ import { categories } from '../data/mockData';
 const CategoryCircles = ({ config }) => {
   const scrollRef = useRef(null);
   const { navigate } = useRouter();
-  const [dynamicCounts, setDynamicCounts] = useState({});
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  // Removed dynamic counts since artist browsing APIs are removed
+  const [dynamicCounts] = useState({});
 
   const normalizeCategoryName = (value) => String(value || '').trim().toLowerCase();
 
-  useEffect(() => {
-    let isMounted = true;
-    const controller = new AbortController();
-
-    const fetchCategoryCounts = async () => {
-      try {
-        const endpoints = [
-          `${API_BASE_URL}/api/artists/category-counts`,
-          `${API_BASE_URL}/api/artists`
-        ];
-
-        let countMap = {};
-        let lastError = null;
-
-        for (const endpoint of endpoints) {
-          try {
-            const response = await fetch(endpoint, {
-              signal: controller.signal,
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            });
-
-            let result = null;
-            try {
-              result = await response.json();
-            } catch {
-              result = null;
-            }
-
-            if (!response.ok || result?.success === false) {
-              const message = result?.message || `HTTP ${response.status}: ${response.statusText}`;
-              throw new Error(message);
-            }
-
-            if (Array.isArray(result?.counts)) {
-              countMap = result.counts.reduce((acc, item) => {
-                const key = normalizeCategoryName(item?.category);
-                const value = Number(item?.count) || 0;
-                if (key) {
-                  acc[key] = (acc[key] || 0) + value;
-                }
-                return acc;
-              }, {});
-              break;
-            }
-
-            const artistsFromResponse = Array.isArray(result?.artists)
-              ? result.artists
-              : Array.isArray(result?.data)
-                ? result.data
-                : [];
-
-            if (artistsFromResponse.length > 0) {
-              countMap = artistsFromResponse.reduce((acc, artist) => {
-                const key = normalizeCategoryName(artist?.category);
-                if (key) {
-                  acc[key] = (acc[key] || 0) + 1;
-                }
-                return acc;
-              }, {});
-              break;
-            }
-          } catch (endpointError) {
-            if (endpointError?.name === 'AbortError') {
-              throw endpointError;
-            }
-            lastError = endpointError;
-          }
-        }
-
-        if (!Object.keys(countMap).length && lastError) {
-          throw lastError;
-        }
-
-        if (isMounted && Object.keys(countMap).length) {
-          setDynamicCounts(countMap);
-        }
-      } catch (error) {
-        if (error?.name !== 'AbortError') {
-          console.error('Failed to fetch category counts:', error);
-        }
-      }
-    };
-
-    fetchCategoryCounts();
-
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
-  }, [API_BASE_URL]);
+  // Removed API fetching since artist browsing functionality is removed
 
   const resolvedCategories = useMemo(
     () =>
@@ -153,7 +62,7 @@ const CategoryCircles = ({ config }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: config.text_color }}>
-            Browse Categories
+            Artist Categories
           </h2>
           <div className="hidden sm:flex gap-2">
             <button 
@@ -180,20 +89,20 @@ const CategoryCircles = ({ config }) => {
           className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
         >
           {resolvedCategories.map((cat, index) => (
-            <button
+            <div
               key={cat.id}
-              onClick={() => navigate('category', { category: cat })}
-              className="flex-shrink-0 group animate-fadeIn"
+              className="flex-shrink-0 group animate-fadeIn opacity-75 cursor-not-allowed"
               style={{ animationDelay: `${index * 0.05}s` }}
+              title="Artist browsing functionality has been disabled"
             >
-              <div className={`w-24 h-24 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${cat.color} flex items-center justify-center text-4xl lg:text-5xl shadow-lg group-hover:shadow-xl transition-all group-hover:scale-110`}>
+              <div className={`w-24 h-24 lg:w-28 lg:h-28 rounded-full bg-gradient-to-br ${cat.color} flex items-center justify-center text-4xl lg:text-5xl shadow-lg transition-all group-hover:scale-110`}>
                 {cat.icon}
               </div>
               <div className="mt-3 text-center">
                 <div className="font-semibold text-gray-900">{cat.name}</div>
                 <div className="text-sm text-gray-500">{cat.count.toLocaleString()}</div>
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
@@ -211,13 +120,13 @@ const CategoryCircles = ({ config }) => {
                 className="text-xs font-semibold uppercase tracking-[0.2em]"
                 style={{ color: config.secondary_action }}
               >
-                Discover Better
+                Artist Platform
               </p>
               <h3 className="text-xl lg:text-2xl font-bold mt-2" style={{ color: config.text_color }}>
-                A modern and clean way to find artists
+                Connect with talented artists
               </h3>
               <p className="text-sm lg:text-base mt-2" style={{ color: config.secondary_action }}>
-                Compare categories, shortlist talent, and connect confidently with the right creative professionals.
+                Register as an artist or sign in to access our artist booking platform.
               </p>
             </div>
 

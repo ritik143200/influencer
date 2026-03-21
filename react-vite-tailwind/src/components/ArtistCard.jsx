@@ -126,9 +126,9 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
       <>
         <div 
           ref={cardRef}
-          onClick={() => navigate('artist', { artistId: artist._id || artist.id, artist })}
-          className="w-full min-w-0 max-w-full overflow-x-hidden rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 hover:shadow-lg hover:shadow-orange-500/10 transition-[box-shadow,border-color] duration-300 cursor-pointer hover:border-orange-200 relative"
+          className="w-full min-w-0 max-w-full overflow-x-hidden rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:p-8 opacity-75 cursor-not-allowed relative"
           style={{ backgroundColor: config.surface_color }}
+          title="Artist profile viewing disabled"
         >
           {/* Refresh Indicator */}
           {isRefreshing && (
@@ -302,9 +302,10 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate('artist', { artist, artistId: artist._id || artist.id });
+                      // Artist profile viewing disabled
                     }}
-                    className="w-full px-4 py-2.5 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl hover:from-brand-600 hover:to-brand-700 transition-all duration-300 font-medium shadow-sm hover:shadow-md flex-shrink-0"
+                    className="w-full px-4 py-2.5 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-xl font-medium shadow-sm flex-shrink-0 cursor-not-allowed"
+                    disabled
                   >
                     View Profile
                   </button>
@@ -365,15 +366,13 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
     return (
       <div
         ref={cardRef}
-        onClick={() => {
-          navigate('artist', { artistId: artist._id || artist.id, artist });
-        }}
-        className="group flex-shrink-0 w-[218px] sm:w-[228px] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 relative"
+        className="group flex-shrink-0 w-[218px] sm:w-[228px] rounded-2xl overflow-hidden cursor-not-allowed transition-all duration-300 relative opacity-75"
         style={{
           backgroundColor: config.surface_color,
           border: `1px solid ${config.secondary_action}24`,
           boxShadow: `0 14px 28px -22px ${config.text_color}66`
         }}
+        title="Artist profile viewing disabled"
       >
         {/* Refresh Indicator */}
         {isRefreshing && (
@@ -488,13 +487,14 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
           <button
             onClick={(e) => {
               e.stopPropagation();
-              navigate('artist', { artistId: artist._id || artist.id, artist });
+              // Artist profile viewing disabled
             }}
-            className="w-full py-2 text-white rounded-lg text-sm font-semibold transition-all duration-300"
+            className="w-full py-2 text-white rounded-lg text-sm font-semibold transition-all duration-300 cursor-not-allowed"
             style={{
-              background: `linear-gradient(90deg, ${config.primary_action} 0%, ${config.primary_action}DD 100%)`,
-              boxShadow: `0 12px 20px -16px ${config.primary_action}`
+              background: `linear-gradient(90deg, #9CA3AF 0%, #6B7280 100%)`,
+              boxShadow: `0 12px 20px -16px #9CA3AF`
             }}
+            disabled
           >
             View Profile
           </button>
@@ -507,15 +507,13 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
   return (
     <div
       ref={cardRef}
-      onClick={() => {
-        navigate('artist', { artistId: artist._id || artist.id, artist });
-      }}
-      className="group flex-shrink-0 w-64 lg:w-72 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 relative"
+      className="group flex-shrink-0 w-64 lg:w-72 rounded-3xl overflow-hidden cursor-not-allowed transition-all duration-300 relative opacity-75"
       style={{
         backgroundColor: config.surface_color,
         border: `1px solid ${config.secondary_action}2A`,
         boxShadow: `0 16px 36px -24px ${config.text_color}66`
       }}
+      title="Artist profile viewing disabled"
     >
       {/* Refresh Indicator */}
       {isRefreshing && (
@@ -651,13 +649,14 @@ const ArtistCard = ({ artist, config, fullWidth = false, variant = 'default', on
         <button
           onClick={(e) => {
             e.stopPropagation();
-            navigate('artist', { artistId: artist._id || artist.id, artist });
+            // Artist profile viewing disabled
           }}
-          className="w-full py-2.5 text-white rounded-xl font-semibold text-sm transition-all duration-300"
+          className="w-full py-2.5 text-white rounded-xl font-semibold text-sm transition-all duration-300 cursor-not-allowed"
           style={{
-            background: `linear-gradient(90deg, ${config.primary_action} 0%, ${config.primary_action}DD 100%)`,
-            boxShadow: `0 14px 22px -16px ${config.primary_action}`
+            background: `linear-gradient(90deg, #9CA3AF 0%, #6B7280 100%)`,
+            boxShadow: `0 14px 22px -16px #9CA3AF`
           }}
+          disabled
         >
           View Profile
         </button>

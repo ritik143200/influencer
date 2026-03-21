@@ -7,7 +7,7 @@ const fs = require('fs');
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const artistRoutes = require('./routes/artistRoutes');
-const artistsRoute = require('./routes/artists');
+// Removed artists route - artist browsing functionality removed
 const bookingRoutes = require('./routes/bookingRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
@@ -42,7 +42,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/artist', artistRoutes);
-app.use('/api/artists', artistsRoute);
+// Removed /api/artists route - artist browsing functionality removed
 app.use('/api/auth', authRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);

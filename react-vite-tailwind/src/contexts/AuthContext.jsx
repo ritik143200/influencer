@@ -38,10 +38,11 @@ export const AuthProvider = ({ children }) => {
     console.log('✅ User logged in:', userData);
   };
 
-  // Logout function
   const logout = () => {
     setUser(null);
     localStorage.removeItem('loggedInUser');
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userData');
     console.log('🚪 User logged out');
   };
 
