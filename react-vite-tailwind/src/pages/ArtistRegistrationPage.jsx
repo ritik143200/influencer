@@ -19,8 +19,9 @@ const ArtistRegistrationPage = ({ config }) => {
     password: '',
     confirmPassword: '',
     
-    // Step 2: Category Selection
-    artistType: '',
+    // Step 2: Profile Type Selection
+    profileType: '', // 'artist' or 'influencer'
+    artistType: '', // for artists
     category: '',
     subcategory: '',
     
@@ -47,6 +48,7 @@ const ArtistRegistrationPage = ({ config }) => {
   const [showSubcategories, setShowSubcategories] = useState(false);
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [selectedCategoryData, setSelectedCategoryData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const allCategoriesData = {
     singers: {
@@ -541,6 +543,8 @@ const ArtistRegistrationPage = ({ config }) => {
 
   const closeCategoryPopup = () => {
     setShowCategoryPopup(false);
+    setShowSubcategories(false);
+    setSelectedCategoryData(null);
   };
 
   const validateStep = (step) => {
@@ -548,7 +552,7 @@ const ArtistRegistrationPage = ({ config }) => {
  
     // Step 1: Personal Info + Category Selection (combined)
     if (step === 1) {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.dateOfBirth || !formData.gender || !formData.password || !formData.confirmPassword) {
+      if (!formData.firstName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
         setError('Please fill all required fields');
         return false;
       }
@@ -564,16 +568,16 @@ const ArtistRegistrationPage = ({ config }) => {
         setError('Passwords do not match');
         return false;
       }
-      if (!formData.artistType || !formData.category) {
+      if (!formData.profileType) {
+        setError('Please select whether you are an artist or influencer');
+        return false;
+      }
+      if (formData.profileType === 'artist' && (!formData.artistType || !formData.category)) {
         setError('Please select artist type and category');
         return false;
       }
-    }
-
-    // Step 2: Professional Information
-    if (step === 2) {
-      if (!formData.experience || !formData.bio || !formData.location) {
-        setError('Please fill all required fields');
+      if (formData.profileType === 'influencer' && !formData.category) {
+        setError('Please select influencer category');
         return false;
       }
     }
@@ -584,9 +588,8 @@ const ArtistRegistrationPage = ({ config }) => {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      if (currentStep < 3) {
-        setCurrentStep(currentStep + 1);
-      }
+      // Directly submit form since we only have one step
+      handleSubmit();
     }
   };
 
@@ -597,7 +600,7 @@ const ArtistRegistrationPage = ({ config }) => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
+    setIsLoading(true);
     setError('');
     
     try {
@@ -631,7 +634,7 @@ const ArtistRegistrationPage = ({ config }) => {
       const data = await response.json();
       
       if (data.success) {
-        setSuccess('Registration successful! Your application is under review.');
+        setSuccess('Profile created successfully! Your artist profile is under review.');
         setTimeout(() => {
           navigate('auth');
         }, 3000);
@@ -642,74 +645,85 @@ const ArtistRegistrationPage = ({ config }) => {
       setError('Network error. Please try again.');
       console.error('Registration error:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const renderStep1 = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: config.text_color }}>
-        Personal Information
-      </h2>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
+          Personal Information
+        </h2>
+        <p className="text-gray-600 text-sm">Please provide your basic details to get started</p>
+      </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-          <input
-            type="text"
-            value={formData.firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="Enter your first name"
-          />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              First Name
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="text"
+              value={formData.firstName}
+              onChange={(e) => handleInputChange('firstName', e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
+              placeholder="Enter your first name"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Email Address
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
+              placeholder="your.email@example.com"
+            />
+          </div>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-          <input
-            type="text"
-            value={formData.lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="Enter your last name"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Phone Number
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
+              placeholder="+91 98765 43210"
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Password
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
+              placeholder="Create a strong password (min 6 characters)"
+            />
+          </div>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="your.email@example.com"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="+91 98765 43210"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => handleInputChange('password', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="Create a strong password (min 6 characters)"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
+        <div className="space-y-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Confirm Password
+            <span className="text-red-500 ml-1">*</span>
+          </label>
           <input
             type="password"
             value={formData.confirmPassword}
@@ -719,80 +733,395 @@ const ArtistRegistrationPage = ({ config }) => {
           />
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-          <input
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-          <select
-            value={formData.gender}
-            onChange={(e) => handleInputChange('gender', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-          >
-            <option value="">Select Gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-            <option value="prefer-not-to-say">Prefer not to say</option>
-          </select>
-        </div>
+        {/* Artist Benefits Section - Only shown when Artist is selected */}
+        {formData.profileType === 'artist' && (
+          <div className="mt-6 p-6 bg-gradient-to-r from-brand-50 to-purple-50 rounded-2xl border border-brand-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-brand-500 rounded-full flex items-center justify-center">
+                <span className="text-xl">🌟</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">Why Join as an Artist?</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Showcase Your Talent</h4>
+                  <p className="text-xs text-gray-600">Display your skills to thousands of potential clients</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Get Booked Directly</h4>
+                  <p className="text-xs text-gray-600">Connect with clients without intermediaries</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Secure Payments</h4>
+                  <p className="text-xs text-gray-600">Guaranteed payment protection for all gigs</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Build Your Portfolio</h4>
+                  <p className="text-xs text-gray-600">Create a professional profile with reviews</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Global Exposure</h4>
+                  <p className="text-xs text-gray-600">Reach international clients and opportunities</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Performance Analytics</h4>
+                  <p className="text-xs text-gray-600">Track bookings and optimize your presence</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Success Stories Section */}
+            <div className="mt-6 p-4 bg-white/60 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🏆</span>
+                <h4 className="font-semibold text-gray-800 text-sm">Success Stories</h4>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🎤</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-800">Priya, Singer</p>
+                    <p className="text-xs text-gray-600">"Booked 15+ gigs in first month!"</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🎨</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-800">Rahul, Painter</p>
+                    <p className="text-xs text-gray-600">"Doubled my income through platform"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Stats Section */}
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">10K+</div>
+                <div className="text-xs text-gray-600">Active Artists</div>
+              </div>
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">50K+</div>
+                <div className="text-xs text-gray-600">Bookings</div>
+              </div>
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">4.8★</div>
+                <div className="text-xs text-gray-600">Avg Rating</div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-white/50 rounded-lg">
+              <p className="text-xs text-gray-700 text-center">
+                <span className="font-semibold">🎯 Pro Tip:</span> Complete your profile to get 5x more booking requests!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Influencer Benefits Section - Only shown when Influencer is selected */}
+        {formData.profileType === 'influencer' && (
+          <div className="mt-6 p-6 bg-gradient-to-r from-brand-50 to-pink-50 rounded-2xl border border-brand-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-brand-500 rounded-full flex items-center justify-center">
+                <span className="text-xl">📱</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">Why Join as an Influencer?</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Brand Collaborations</h4>
+                  <p className="text-xs text-gray-600">Partner with top brands for sponsored content</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Monetize Your Content</h4>
+                  <p className="text-xs text-gray-600">Turn your influence into sustainable income</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Audience Analytics</h4>
+                  <p className="text-xs text-gray-600">Track engagement and grow your following</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Professional Growth</h4>
+                  <p className="text-xs text-gray-600">Access exclusive workshops and networking</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Content Creation Tools</h4>
+                  <p className="text-xs text-gray-600">Access professional resources and templates</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-sm">Exclusive Campaigns</h4>
+                  <p className="text-xs text-gray-600">Get early access to brand partnerships</p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Success Stories Section */}
+            <div className="mt-6 p-4 bg-white/60 rounded-xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🏆</span>
+                <h4 className="font-semibold text-gray-800 text-sm">Success Stories</h4>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs">👗</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-800">Ananya, Fashion</p>
+                    <p className="text-xs text-gray-600">"Collaborated with 20+ top brands!"</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-brand-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs">🎮</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-gray-800">Rohit, Gaming</p>
+                    <p className="text-xs text-gray-600">"Tripled my income in 6 months!"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Stats Section */}
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">8K+</div>
+                <div className="text-xs text-gray-600">Active Influencers</div>
+              </div>
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">25K+</div>
+                <div className="text-xs text-gray-600">Brand Deals</div>
+              </div>
+              <div className="text-center p-3 bg-white/60 rounded-lg">
+                <div className="text-lg font-bold text-brand-600">4.9★</div>
+                <div className="text-xs text-gray-600">Avg Rating</div>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-3 bg-white/50 rounded-lg">
+              <p className="text-xs text-gray-700 text-center">
+                <span className="font-semibold">🚀 Pro Tip:</span> Link your social media to get 3x more brand deals!
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 
   const renderStep2 = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: config.text_color }}>
-        Category Selection
-      </h2>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
+          Profile Type Selection
+        </h2>
+        <p className="text-gray-600 text-sm">Choose your profile type to help us find the best opportunities for you</p>
+      </div>
       
       <div className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Artist Type</label>
-          <select
-            value={formData.artistType}
-            onChange={(e) => handleInputChange('artistType', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-          >
-            <option value="">Select Artist Type</option>
-            <option value="solo">Solo Artist</option>
-            <option value="group">Group/Band</option>
-            <option value="duo">Duo</option>
-            <option value="trio">Trio</option>
-          </select>
+          <label className="block text-sm font-semibold text-gray-700 mb-4">
+            I am a...
+            <span className="text-red-500 ml-1">*</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <button
+              onClick={() => handleInputChange('profileType', 'artist')}
+              className={`p-8 rounded-2xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[140px] ${
+                formData.profileType === 'artist'
+                  ? 'border-brand-500 bg-brand-50 shadow-lg'
+                  : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              <div className="text-4xl mb-3">🎨</div>
+              <div className="text-xl font-bold text-center">Artist</div>
+              <div className="text-sm text-gray-500 text-center mt-2">Singer, Dancer, Musician, etc.</div>
+            </button>
+            <button
+              onClick={() => handleInputChange('profileType', 'influencer')}
+              className={`p-8 rounded-2xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[140px] ${
+                formData.profileType === 'influencer'
+                  ? 'border-brand-500 bg-brand-50 shadow-lg'
+                  : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
+              }`}
+            >
+              <div className="text-4xl mb-3">📱</div>
+              <div className="text-xl font-bold text-center">Influencer</div>
+              <div className="text-sm text-gray-500 text-center mt-2">Content Creator, Social Media</div>
+            </button>
+          </div>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-          <div className="max-h-96 overflow-y-auto overflow-x-hidden border-2 border-gray-200 rounded-xl p-5 bg-gray-50">
-            <div className="grid grid-cols-3 gap-3">
-              {artistCategories.map(category => (
+        {formData.profileType === 'artist' && (
+          <>
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Artist Type
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <select
+                value={formData.artistType}
+                onChange={(e) => handleInputChange('artistType', e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
+              >
+                <option value="">Select Artist Type</option>
+                <option value="solo">Solo Artist</option>
+                <option value="group">Group/Band</option>
+                <option value="duo">Duo</option>
+                <option value="trio">Trio</option>
+              </select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Category
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="max-h-96 overflow-y-auto overflow-x-hidden border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {artistCategories.map(category => (
+                    <button
+                      key={category.id}
+                      onClick={() => handleInputChange('category', category.id)}
+                      className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[100px] ${
+                        formData.category === category.id
+                          ? 'border-brand-500 bg-brand-50 shadow-lg'
+                          : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{category.icon}</div>
+                      <div className="text-sm font-medium text-center leading-tight">{category.name}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">Scroll to see all categories</p>
+            </div>
+          </>
+        )}
+        
+        {formData.profileType === 'influencer' && (
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Influencer Category
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[
+                { id: 'fashion', name: 'Fashion', icon: '👗' },
+                { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
+                { id: 'beauty', name: 'Beauty', icon: '💄' },
+                { id: 'fitness', name: 'Fitness', icon: '💪' },
+                { id: 'travel', name: 'Travel', icon: '✈️' },
+                { id: 'food', name: 'Food', icon: '🍕' },
+                { id: 'tech', name: 'Technology', icon: '💻' },
+                { id: 'gaming', name: 'Gaming', icon: '🎮' }
+              ].map(category => (
                 <button
                   key={category.id}
                   onClick={() => handleInputChange('category', category.id)}
-                  className={`p-3 rounded-xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[90px] ${
+                  className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[100px] ${
                     formData.category === category.id
                       ? 'border-brand-500 bg-brand-50 shadow-lg'
                       : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
                   }`}
                 >
-                  <div className="text-2xl mb-1">{category.icon}</div>
-                  <div className="text-xs font-medium text-center leading-tight">{category.name}</div>
+                  <div className="text-3xl mb-2">{category.icon}</div>
+                  <div className="text-sm font-medium text-center">{category.name}</div>
                 </button>
               ))}
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-2">Scroll to see all categories</p>
-        </div>
+        )}
 
-              </div>
+      </div>
     </div>
   );
 
@@ -1079,9 +1408,9 @@ const ArtistRegistrationPage = ({ config }) => {
             </svg>
           </button>
           <h1 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: config.text_color }}>
-            Artist Registration
+            Create Your Artist Profile
           </h1>
-          <p className="text-gray-600">Join our community of talented artists</p>
+          <p className="text-gray-600">Join our platform as a talented artist or influencer. Showcase your skills and connect with opportunities.</p>
         </div>
 
         {/* Error/Success Messages */}
@@ -1099,70 +1428,32 @@ const ArtistRegistrationPage = ({ config }) => {
 
         {/* Progress Steps */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all ${
-                  step <= currentStep
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step}
-                </div>
-                <div className={`ml-3 text-sm font-medium ${
-                  step <= currentStep ? 'text-brand-600' : 'text-gray-500'
-                }`}>
-                  {step === 1 && 'Personal + Category'}
-                  {step === 2 && 'Professional Info'}
-                  {step === 3 && 'Portfolio'}
-                </div>
-                {step < 3 && (
-                  <div className={`w-16 h-1 mx-4 ${
-                    step < currentStep ? 'bg-brand-500' : 'bg-gray-200'
-                  }`} />
-                )}
+          <div className="flex items-center justify-center">
+            <div className="flex items-center">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all bg-brand-500 text-white`}>
+                1
               </div>
-            ))}
+              <div className={`ml-3 text-sm font-medium text-brand-600`}>
+                Profile Information
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Form Content */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          {currentStep === 1 && renderStep1Combined()}
-          {currentStep === 2 && renderStep3()}
-          {currentStep === 3 && renderStep4()}
+          {renderStep1Combined()}
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-center mt-8">
           <button
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
-              currentStep === 1
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            onClick={handleNext}
+            disabled={isLoading}
+            className="px-8 py-3 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Previous
+            {isLoading ? 'Creating Profile...' : 'Create Profile'}
           </button>
-          
-          {currentStep < 3 ? (
-            <button
-              onClick={handleNext}
-              className="px-6 py-3 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 transition-all"
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="px-6 py-3 bg-brand-500 text-white rounded-xl font-semibold hover:bg-brand-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Submitting...' : 'Submit Registration'}
-            </button>
-          )}
         </div>
       </div>
 

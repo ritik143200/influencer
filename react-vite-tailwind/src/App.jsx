@@ -3,11 +3,15 @@ import { RouterProvider, useRouter } from './contexts/RouterContext';
 import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
-import CategoryPage from './pages/CategoryPage_Flipkart';
-import ArtistPage from './pages/ArtistPage';
 import AuthPage from './pages/AuthPage';
 import AboutPage from './pages/AboutPage';
+import AboutArtistsPage from './pages/AboutArtistsPage';
+import AboutInfluencersPage from './pages/AboutInfluencersPage';
 import ServicesPage from './pages/ServicesPage';
+import ServicesArtistsPage from './pages/ServicesArtistsPage';
+import ServicesInfluencersPage from './pages/ServicesInfluencersPage';
+import HowItWorksPage from './pages/HowItWorksPage';
+import ProfilePage from './pages/ProfilePage';
 import FAQPage from './pages/FAQPage';
 import ArtistRegistrationPage from './pages/ArtistRegistrationPage';
 import UserDashboard from './pages/UserDashboard';
@@ -63,11 +67,15 @@ const AppContent = ({ config }) => {
       {currentPath === 'auth' && <AuthPage />}
       {currentPath === 'artist-registration' && <ArtistRegistrationPage config={config} />}
       {currentPath === 'about' && <AboutPage config={config} />}
+      {currentPath === 'about-artists' && <AboutArtistsPage config={config} />}
+      {currentPath === 'about-influencers' && <AboutInfluencersPage config={config} />}
       {currentPath === 'services' && <ServicesPage config={config} />}
+      {currentPath === 'services-artists' && <ServicesArtistsPage config={config} />}
+      {currentPath === 'services-influencers' && <ServicesInfluencersPage config={config} />}
+      {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
+      {currentPath === 'profile' && <ProfilePage config={config} />}
       {currentPath === 'faq' && <FAQPage config={config} />}
-      {currentPath === 'category' && <CategoryPage config={config} />}
-      {currentPath === 'artist' && <ArtistPage config={config} />}
-      {currentPath === 'home' && <HomePage config={config} />}
+                  {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && <UserDashboard config={config} />}
       {currentPath === 'artist-dashboard' && <ArtistDashboard config={config} />}
       {currentPath === 'admin-dashboard' && <AdminDashboard config={config} />}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ArtistDashboard = ({ config }) => {
   const { navigate } = useRouter();
+  const { logout } = useAuth();
   const [artistData, setArtistData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [bookings, setBookings] = useState([]);
@@ -129,9 +131,7 @@ const ArtistDashboard = ({ config }) => {
   };
 
   const handleLogout = () => {
-
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
+    logout();
     navigate('home');
   };
 

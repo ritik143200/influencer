@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const AdminDashboard = ({ config }) => {
   const { navigate } = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -171,8 +171,7 @@ const AdminDashboard = ({ config }) => {
 
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userData');
+    logout();
     navigate('home');
   };
 
