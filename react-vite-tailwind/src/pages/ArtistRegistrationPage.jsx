@@ -10,12 +10,9 @@ const ArtistRegistrationPage = ({ config }) => {
   
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
-    firstName: '',
-    lastName: '',
+    fullName: '',
     email: '',
     phone: '',
-    dateOfBirth: '',
-    gender: '',
     password: '',
     confirmPassword: '',
     
@@ -580,7 +577,7 @@ const ArtistRegistrationPage = ({ config }) => {
  
     // Step 1: Personal Info + Category Selection (combined)
     if (step === 1) {
-      if (!formData.firstName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
+      if (!formData.fullName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
         setError('Please fill all required fields');
         return false;
       }
@@ -669,7 +666,7 @@ const ArtistRegistrationPage = ({ config }) => {
         }
       });
       
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
       const response = await fetch(`${API_BASE_URL}/api/artist/register`, {
         method: 'POST',
         body: formDataToSend
@@ -706,15 +703,15 @@ const ArtistRegistrationPage = ({ config }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              First Name
+              Full Name
               <span className="text-red-500 ml-1">*</span>
             </label>
             <input
               type="text"
-              value={formData.firstName}
-              onChange={(e) => handleInputChange('firstName', e.target.value)}
+              value={formData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              placeholder="Enter your first name"
+              placeholder="Enter your full name"
             />
           </div>
           

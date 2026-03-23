@@ -43,20 +43,21 @@ const upload = multer({
 const registerArtist = async (req, res) => {
   try {
     const {
-      firstName,
-      lastName,
+      fullName,
       email,
       phone,
       dateOfBirth,
       gender,
       password,
+      profileType,
       artistType,
-      category,
-      subcategory,
-      experience,
+      categories,
+      subcategories,
       skills,
       bio,
       location,
+      budgetMin,
+      budgetMax,
       socialLinks,
       termsAccepted
     } = req.body;
@@ -94,25 +95,51 @@ const registerArtist = async (req, res) => {
       parsedSocialLinks = JSON.parse(socialLinks);
     }
 
+    // Split fullName into firstName and lastName
+    const nameParts = fullName ? fullName.trim().split(' ') : ['', ''];
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    // Handle categories and subcategories (convert from comma-separated strings to arrays)
+    let parsedCategories = [];
+    let parsedSubcategories = [];
+    
+    if (categories) {
+      if (typeof categories === 'string') {
+        parsedCategories = categories.split(',').map(cat => cat.trim()).filter(cat => cat);
+      } else if (Array.isArray(categories)) {
+        parsedCategories = categories;
+      }
+    }
+    
+    if (subcategories) {
+      if (typeof subcategories === 'string') {
+        parsedSubcategories = subcategories.split(',').map(sub => sub.trim()).filter(sub => sub);
+      } else if (Array.isArray(subcategories)) {
+        parsedSubcategories = subcategories;
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new artist
     const newArtist = new Artist({
-      firstName,
-      lastName,
+      fullName,
       email,
       phone,
       dateOfBirth,
       gender,
       password: hashedPassword,
+      profileType,
       artistType,
-      category,
-      subcategory,
-      experience,
+      categories: parsedCategories,
+      subcategories: parsedSubcategories,
       skills: parsedSkills,
       bio,
       location,
+      budgetMin,
+      budgetMax,
       portfolio: portfolioFiles,
       socialLinks: parsedSocialLinks,
       idProof: idProofFile,
@@ -124,7 +151,7 @@ const registerArtist = async (req, res) => {
     try {
       await Notification.create({
         type: 'general',
-        message: `New artist registration: ${newArtist.firstName} ${newArtist.lastName}`,
+        message: `New artist registration: ${newArtist.fullName}`,
         relatedId: newArtist._id
       });
     } catch (err) {
@@ -281,16 +308,16 @@ const searchArtists = async (req, res) => {
     // Build search query
     let query = { verificationStatus: 'verified', isActive: true };
 
-    if (category) query.category = category;
+    if (category) query.categories = { $in: [category] };
     if (location) query.location = { $regex: location, $options: 'i' };
     if (experience) query.experience = experience;
     if (artistType) query.artistType = artistType;
     if (search) {
       query.$or = [
-        { firstName: { $regex: search, $options: 'i' } },
-        { lastName: { $regex: search, $options: 'i' } },
+        { fullName: { $regex: search, $options: 'i' } },
         { bio: { $regex: search, $options: 'i' } },
-        { skills: { $in: [new RegExp(search, 'i')] } }
+        { skills: { $in: [new RegExp(search, 'i')] } },
+        { categories: { $in: [new RegExp(search, 'i')] } }
       ];
     }
 
