@@ -12,8 +12,6 @@ import {
   Layout,
   Instagram,
   Youtube,
-  Linkedin,
-  Twitter,
   MessageSquare,
   Edit3
 } from 'lucide-react';
@@ -45,38 +43,88 @@ const ProfilePage = ({ config }) => {
     socialLinks: { instagram: '', youtube: '', facebook: '', website: '' }
   });
 
-  useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
-        ...prev, ...user,
-        firstName: user.firstName || user.name?.split(' ')[0] || '',
-        lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || '',
-        location: typeof user.location === 'string'
-          ? { city: user.location, country: '' }
-          : { city: user?.location?.city || '', country: user?.location?.country || '' },
-        audienceType: {
-          ageGroup: user?.audienceType?.ageGroup || '',
-          region: user?.audienceType?.region || '',
-          interests: user?.audienceType?.interests || []
-        },
-        pricing: {
-          collaborationCharges: user?.pricing?.collaborationCharges || '',
-          pricingModel: user?.pricing?.pricingModel || 'fixed'
-        },
-        platforms: {
-          instagram: { hasAccount: user?.platforms?.instagram?.hasAccount || false, url: user?.platforms?.instagram?.url || user?.socialLinks?.instagram || '', followers: user?.platforms?.instagram?.followers || '', engagementRate: user?.platforms?.instagram?.engagementRate || '' },
-          youtube: { hasAccount: user?.platforms?.youtube?.hasAccount || false, url: user?.platforms?.youtube?.url || user?.socialLinks?.youtube || '', followers: user?.platforms?.youtube?.followers || '', engagementRate: user?.platforms?.youtube?.engagementRate || '' },
-          twitter: { hasAccount: user?.platforms?.twitter?.hasAccount || false, url: user?.platforms?.twitter?.url || '', followers: user?.platforms?.twitter?.followers || '', engagementRate: user?.platforms?.twitter?.engagementRate || '' },
-          linkedin: { hasAccount: user?.platforms?.linkedin?.hasAccount || false, url: user?.platforms?.linkedin?.url || '', followers: user?.platforms?.linkedin?.followers || '', engagementRate: user?.platforms?.linkedin?.engagementRate || '' },
-          tiktok: { hasAccount: user?.platforms?.tiktok?.hasAccount || false, url: user?.platforms?.tiktok?.url || '', followers: user?.platforms?.tiktok?.followers || '', engagementRate: user?.platforms?.tiktok?.engagementRate || '' },
-          facebook: { hasAccount: user?.platforms?.facebook?.hasAccount || false, url: user?.platforms?.facebook?.url || user?.socialLinks?.facebook || '', followers: user?.platforms?.facebook?.followers || '', engagementRate: user?.platforms?.facebook?.engagementRate || '' }
-        },
-        portfolio: user?.portfolio || [],
-        skills: user?.skills || [],
-        niche: user?.niche || user?.category || '',
-      }));
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // Helper to normalize raw API/user data into formData shape
+  const normalizeProfile = (src) => ({
+    fullName: src.fullName || src.name || `${src.firstName || ''} ${src.lastName || ''}`.trim() || '',
+    firstName: src.firstName || src.name?.split(' ')[0] || '',
+    lastName: src.lastName || src.name?.split(' ').slice(1).join(' ') || '',
+    username: src.username || '',
+    email: src.email || '',
+    phone: src.phone || '',
+    password: '',
+    profilePicture: src.profilePicture || '',
+    profileImage: src.profileImage || '',
+    bio: src.bio || '',
+    location: typeof src.location === 'string'
+      ? { city: src.location, country: '' }
+      : { city: src?.location?.city || '', country: src?.location?.country || '' },
+    niche: src.niche || src.category || '',
+    category: src.category || '',
+    experience: src.experience || '',
+    previousCollaborations: src.previousCollaborations || '',
+    skills: src.skills || [],
+    portfolio: src.portfolio || [],
+    availability: src.availability || 'available',
+    role: src.role || 'user',
+    verificationStatus: src.verificationStatus || 'pending',
+    budget: src.budget || 0,
+    budgetMin: src.budgetMin || '',
+    budgetMax: src.budgetMax || '',
+    audienceType: {
+      ageGroup: src?.audienceType?.ageGroup || '',
+      region: src?.audienceType?.region || '',
+      interests: src?.audienceType?.interests || []
+    },
+    pricing: {
+      collaborationCharges: src?.pricing?.collaborationCharges || '',
+      pricingModel: src?.pricing?.pricingModel || 'fixed'
+    },
+    socialLinks: {
+      instagram: src?.socialLinks?.instagram || '',
+      youtube: src?.socialLinks?.youtube || '',
+      facebook: src?.socialLinks?.facebook || '',
+      website: src?.socialLinks?.website || ''
+    },
+    platforms: {
+      instagram: { hasAccount: src?.platforms?.instagram?.hasAccount || false, url: src?.platforms?.instagram?.url || src?.socialLinks?.instagram || '', followers: src?.platforms?.instagram?.followers || '', engagementRate: src?.platforms?.instagram?.engagementRate || '' },
+      youtube: { hasAccount: src?.platforms?.youtube?.hasAccount || false, url: src?.platforms?.youtube?.url || src?.socialLinks?.youtube || '', followers: src?.platforms?.youtube?.followers || '', engagementRate: src?.platforms?.youtube?.engagementRate || '' },
+      facebook: { hasAccount: src?.platforms?.facebook?.hasAccount || false, url: src?.platforms?.facebook?.url || src?.socialLinks?.facebook || '', followers: src?.platforms?.facebook?.followers || '', engagementRate: src?.platforms?.facebook?.engagementRate || '' }
     }
-  }, [user]);
+  });
+
+  // Seed from localStorage user immediately, then fetch fresh data from API
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Step 1: seed from cached user
+    if (user) setFormData(prev => ({ ...prev, ...normalizeProfile(user) }));
+
+    // Step 2: fetch fresh from DB
+    const fetchProfile = async () => {
+      setProfileLoading(true);
+      try {
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const token = localStorage.getItem('userToken');
+        const res = await fetch(`${API_BASE_URL}/api/artist/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const result = await res.json();
+          const normalized = normalizeProfile(result.data);
+          setFormData(prev => ({ ...prev, ...normalized }));
+          updateUser(result.data); // keep AuthContext in sync
+        }
+      } catch (err) {
+        console.warn('Could not fetch profile from server, using cached data.', err);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -102,28 +150,58 @@ const ProfilePage = ({ config }) => {
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const token = localStorage.getItem('userToken');
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
+
+      // Build the payload with all editable fields
+      const payload = {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        bio: formData.bio,
+        location: formData.location,
+        experience: formData.experience,
+        skills: formData.skills,
+        budgetMin: formData.budgetMin,
+        budgetMax: formData.budgetMax,
+        budget: formData.budget,
+        socialLinks: formData.socialLinks,
+        platforms: formData.platforms,
+        niche: formData.niche,
+        category: formData.category,
+        availability: formData.availability,
+        previousCollaborations: formData.previousCollaborations,
+        pricing: formData.pricing,
+        audienceType: formData.audienceType,
+        profileImage: formData.profileImage,
+        profilePicture: formData.profilePicture,
+      };
+
+      // Only include password if user typed a new one
+      if (formData.password && formData.password.length >= 6) {
+        payload.password = formData.password;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/artist/me`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(formData)
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
       });
 
       if (response.ok) {
-        await response.json();
-        updateUser(formData);
+        const result = await response.json();
+        const updatedUser = result.data || formData;
+        updateUser(updatedUser);
         setSaveMessage('Profile updated successfully!');
-        setIsEditing(false);
       } else {
-        updateUser(formData);
-        setSaveMessage('Profile saved locally!');
-        setIsEditing(false);
+        const err = await response.json().catch(() => ({}));
+        setSaveMessage(err.message || 'Update failed. Please try again.');
       }
     } catch {
+      setSaveMessage('Network error. Changes saved locally only.');
       updateUser(formData);
-      setSaveMessage('Profile saved locally!');
-      setIsEditing(false);
     }
+    setIsEditing(false);
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -139,6 +217,17 @@ const ProfilePage = ({ config }) => {
           <button onClick={() => navigate('auth')} className="px-8 py-3 bg-brand-500 text-white rounded-xl font-bold hover:bg-brand-600 transition-all shadow-lg">
             Sign In →
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (profileLoading) {
+    return (
+      <div className="pt-24 pb-16 min-h-screen flex items-center justify-center" style={{ backgroundColor: config.background_color }}>
+        <div className="text-center">
+          <div className="w-14 h-14 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500 font-medium">Loading your profile...</p>
         </div>
       </div>
     );
@@ -164,7 +253,7 @@ const ProfilePage = ({ config }) => {
   const displayRole = formData.role === 'artist' ? 'Artist' : formData.role === 'influencer' ? 'Influencer' : 'User';
 
   const userData = {
-    name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Your Name',
+    name: formData.fullName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Your Name',
     username: formData.username ? `@${formData.username}` : '@username',
     title: displayRole,
     handle2: nicheOrCategory,
@@ -418,8 +507,6 @@ const ProfilePage = ({ config }) => {
             <div className="flex items-center gap-4">
               <a href={formData.platforms?.instagram?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#fceef5] flex items-center justify-center text-[#e1306c] hover:scale-110 transition-transform"><Instagram size={20} /></a>
               <a href={formData.platforms?.youtube?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#feecec] flex items-center justify-center text-[#ff0000] hover:scale-110 transition-transform"><Youtube size={20} /></a>
-              <a href={formData.platforms?.linkedin?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#e7f3ff] flex items-center justify-center text-[#0077b5] hover:scale-110 transition-transform"><Linkedin size={20} /></a>
-              <a href={formData.platforms?.twitter?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#f0f5fa] flex items-center justify-center text-[#1da1f2] hover:scale-110 transition-transform"><Twitter size={20} /></a>
             </div>
           </div>
 

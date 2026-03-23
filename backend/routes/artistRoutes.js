@@ -7,8 +7,11 @@ const {
   updateArtist,
   deleteArtist,
   searchArtists,
+  getMyProfile,
+  updateMyProfile,
   upload
 } = require('../controllers/artistController');
+const { protect } = require('../middleware/authMiddleware');
 
 // Configure file upload middleware
 const uploadMiddleware = upload.fields([
@@ -19,9 +22,13 @@ const uploadMiddleware = upload.fields([
 // Public routes
 router.post('/register', uploadMiddleware, registerArtist);
 router.get('/search', searchArtists);
-router.get('/:id', getArtistById);
 
-// Protected routes (add authentication middleware later)
+// Protected: logged-in artist's own profile
+router.get('/me', protect, getMyProfile);
+router.put('/me', protect, updateMyProfile);
+
+// Other routes
+router.get('/:id', getArtistById);
 router.get('/', getAllArtists);
 router.put('/:id', updateArtist);
 router.delete('/:id', deleteArtist);

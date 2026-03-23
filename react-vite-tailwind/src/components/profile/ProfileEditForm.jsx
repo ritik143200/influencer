@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const ARTIST_NICHES = ['Singer', 'Dancer', 'Musician', 'Painter', 'Photographer', 'Actor', 'Comedian', 'Magician', 'DJ', 'Makeup Artist', 'Fashion Designer', 'Writer'];
 const INFLUENCER_NICHES = ['Fashion', 'Food', 'Travel', 'Tech', 'Fitness', 'Beauty', 'Gaming', 'Lifestyle', 'Business', 'Education', 'Entertainment', 'Sports'];
-const PLATFORM_LIST = ['instagram', 'youtube', 'twitter', 'linkedin', 'tiktok', 'facebook'];
+const PLATFORM_LIST = ['instagram', 'youtube', 'facebook'];
 
 const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
   const [step, setStep] = useState(1);
@@ -51,8 +51,7 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
         <div className="space-y-5">
           <h3 className="text-xl font-bold text-gray-800 mb-4">🔹 Basic Details</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className={labelClass}>First Name *</label><input className={inputClass} value={formData.firstName || ''} onChange={e => handleField('firstName', e.target.value)} placeholder="Enter first name" /></div>
-            <div><label className={labelClass}>Last Name *</label><input className={inputClass} value={formData.lastName || ''} onChange={e => handleField('lastName', e.target.value)} placeholder="Enter last name" /></div>
+            <div className="sm:col-span-2"><label className={labelClass}>Full Name *</label><input className={inputClass} value={formData.fullName || ''} onChange={e => handleField('fullName', e.target.value)} placeholder="Enter your full name" /></div>
             <div><label className={labelClass}>Username / Display Name</label><input className={inputClass} value={formData.username || ''} onChange={e => handleField('username', e.target.value)} placeholder="@username" /></div>
             <div><label className={labelClass}>Email Address *</label><input className={inputClass} type="email" value={formData.email || ''} onChange={e => handleField('email', e.target.value)} placeholder="your@email.com" /></div>
             <div><label className={labelClass}>Phone Number *</label><input className={inputClass} type="tel" value={formData.phone || ''} onChange={e => handleField('phone', e.target.value)} placeholder="+91 XXXXX XXXXX" /></div>
