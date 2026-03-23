@@ -24,6 +24,10 @@ const AdminDashboard = ({ config }) => {
   // Artist detail modal state
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showArtistModal, setShowArtistModal] = useState(false);
+  // Forward inquiry modal state
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [forwardInquiryId, setForwardInquiryId] = useState(null);
+  const [forwardRecipients, setForwardRecipients] = useState(new Set());
   const [analytics, setAnalytics] = useState({
     totalRevenue: 245678,
     thisMonthRevenue: 45678,
@@ -151,6 +155,52 @@ const AdminDashboard = ({ config }) => {
   const handleLogout = () => {
     logout();
     navigate('home');
+  };
+
+  const handleOpenForwardModal = (inquiryId) => {
+    setForwardInquiryId(inquiryId);
+    setForwardRecipients(new Set());
+    setShowForwardModal(true);
+  };
+
+  const handleToggleRecipient = (artistId) => {
+    setForwardRecipients(prev => {
+      const next = new Set(prev);
+      if (next.has(artistId)) next.delete(artistId);
+      else next.add(artistId);
+      return next;
+    });
+  };
+
+  const handleConfirmForward = async () => {
+    if (!forwardInquiryId) return;
+    const recipients = Array.from(forwardRecipients);
+    if (recipients.length === 0) {
+      alert('Select at least one artist to forward to');
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${forwardInquiryId}/forward`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('userToken')}` },
+        body: JSON.stringify({ recipients })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Update the inquiry in state
+        setInquiries(prev => prev.map(i => (i._id === forwardInquiryId || i.id === forwardInquiryId) ? data.data : i));
+        setShowForwardModal(false);
+        setForwardInquiryId(null);
+        setForwardRecipients(new Set());
+        setSuccessMessage('Inquiry forwarded successfully');
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        alert(data.message || 'Failed to forward inquiry');
+      }
+    } catch (err) {
+      console.error('Error forwarding inquiry:', err);
+      alert('Network error while forwarding inquiry');
+    }
   };
 
   const handleMarkAllNotificationsRead = async () => {
@@ -502,24 +552,33 @@ const AdminDashboard = ({ config }) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {status === 'pending' ? (
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Accept
-                      </button>
-                      <button
-                        onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">No actions</span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {status === 'pending' ? (
+                      <>
+                        <button
+                          onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
+                          className="text-green-600 hover:text-green-900"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-gray-400">No actions</span>
+                    )}
+
+                    <button
+                      onClick={() => handleOpenForwardModal(inquiryId)}
+                      className="text-indigo-600 hover:text-indigo-900"
+                    >
+                      Forward
+                    </button>
+                  </div>
                 </td>
               </tr>
               );
@@ -1285,6 +1344,43 @@ const AdminDashboard = ({ config }) => {
                 >
                   Edit Artist
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forward Inquiry Modal */}
+      {showForwardModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className={`p-6 border-b border-gray-100 flex justify-between items-center`}>
+              <h3 className="text-xl font-bold">Forward Inquiry</h3>
+              <button onClick={() => setShowForwardModal(false)} className="text-gray-500 hover:text-gray-700">Close</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-600">Select one or more artists/influencers to forward this inquiry to.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {artists.length === 0 ? (
+                  <div className="text-gray-400">No artists available</div>
+                ) : artists.map(a => {
+                  const aid = a._id || a.id;
+                  const checked = forwardRecipients.has(aid);
+                  return (
+                    <label key={aid} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <input type="checkbox" checked={checked} onChange={() => handleToggleRecipient(aid)} />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-800">{a.firstName} {a.lastName}</div>
+                        <div className="text-xs text-gray-500">{a.category} · {a.email}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setShowForwardModal(false)} className="px-4 py-2 rounded-xl border">Cancel</button>
+                <button onClick={handleConfirmForward} className="px-4 py-2 rounded-xl bg-indigo-600 text-white">Forward</button>
               </div>
             </div>
           </div>
