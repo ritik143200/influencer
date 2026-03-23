@@ -1,13 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ArtistRegistrationPage = ({ config }) => {
   const { navigate } = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
+  // Redirect authenticated artists to their dashboard — they're already registered
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'artist') {
+      navigate('artist-dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);  
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
     fullName: '',
