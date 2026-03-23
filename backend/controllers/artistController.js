@@ -5,6 +5,58 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
+// Get logged-in artist's own profile
+const getMyProfile = async (req, res) => {
+  try {
+    const artist = await Artist.findById(req.user._id).select('-password');
+    if (!artist) return res.status(404).json({ success: false, message: 'Artist not found' });
+    res.status(200).json({ success: true, data: artist });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to fetch profile', error: error.message });
+  }
+};
+
+// Update logged-in artist's own profile
+const updateMyProfile = async (req, res) => {
+  try {
+    const allowedFields = [
+      'fullName', 'phone', 'bio', 'location', 'experience',
+      'skills', 'budgetMin', 'budgetMax', 'budget',
+      'socialLinks', 'platforms', 'niche', 'category',
+      'availability', 'previousCollaborations', 'pricing', 'audienceType',
+      'profileImage', 'profilePicture'
+    ];
+
+    const updateData = {};
+    allowedFields.forEach(field => {
+      if (req.body[field] !== undefined) updateData[field] = req.body[field];
+    });
+
+    // Flatten location object { city, country } → "City, Country" string
+    if (updateData.location && typeof updateData.location === 'object') {
+      const { city = '', country = '' } = updateData.location;
+      updateData.location = [city, country].filter(Boolean).join(', ') || '';
+    }
+
+    // Handle password change
+    if (req.body.password && req.body.password.length >= 6) {
+      updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const artist = await Artist.findByIdAndUpdate(
+      req.user._id,
+      { $set: updateData },
+      { new: true, runValidators: false }
+    ).select('-password');
+
+    if (!artist) return res.status(404).json({ success: false, message: 'Artist not found' });
+
+    res.status(200).json({ success: true, message: 'Profile updated successfully', data: artist });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+  }
+};
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -354,5 +406,7 @@ module.exports = {
   updateArtist,
   deleteArtist,
   searchArtists,
+  getMyProfile,
+  updateMyProfile,
   upload
 };

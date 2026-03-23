@@ -48,11 +48,12 @@ export const AuthProvider = ({ children }) => {
 
   // Update user function
   const updateUser = (userData) => {
-    setUser(prevUser => ({ ...prevUser, ...userData }));
-    if (user) {
-      localStorage.setItem('loggedInUser', JSON.stringify({ ...user, ...userData }));
-    }
-    console.log('📝 User updated:', { ...user, ...userData });
+    setUser(prevUser => {
+      const merged = { ...prevUser, ...userData };
+      localStorage.setItem('loggedInUser', JSON.stringify(merged));
+      console.log('📝 User updated:', merged);
+      return merged;
+    });
   };
 
   const value = {

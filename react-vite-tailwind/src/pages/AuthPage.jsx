@@ -271,21 +271,16 @@ const AuthPage = () => {
         // Save user data to localStorage and auth context
         if (data.token) {
           localStorage.setItem('userToken', data.token);
-          const userData = {
-            _id: data._id,
-            name: data.name,
-            email: data.email,
-            phone: data.phone || '',
-            role: data.role
-          };
-          
-          // Update auth context
+
+          // Login response now returns full profile for artists
+          // Store everything that came back from the server
+          const userData = { ...data };
+          delete userData.message; // remove non-user fields
+
           login(userData);
-          
-          // Also save to localStorage for backward compatibility
           localStorage.setItem('userData', JSON.stringify(userData));
-          
-          console.log('✅ User logged in and saved to auth context:', userData);
+
+          console.log('✅ User logged in with full profile:', userData.fullName || userData.name);
         }
 
         // Direct redirect based on user role

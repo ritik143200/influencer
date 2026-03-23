@@ -97,9 +97,19 @@ const loginUser = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
+    // For artists, return the FULL profile document so client has all data immediately
+    if (userType === 'artist') {
+      const fullArtist = await Artist.findById(user._id).select('-password');
+      return res.json({
+        ...(fullArtist ? fullArtist.toObject() : {}),
+        token,
+        message: 'Login successful'
+      });
+    }
+
     res.json({
       _id: user._id,
-      name: user.firstName ? `${user.firstName} ${user.lastName}` : user.name,
+      name: user.name,
       email: user.email,
       role: user.role || 'user',
       token,
