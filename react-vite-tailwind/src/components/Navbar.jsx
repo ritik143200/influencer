@@ -271,6 +271,14 @@ const Navbar = ({ config }) => {
                 FAQ
               </button>
 
+              {/* Inquiry Link */}
+              <button 
+                onClick={() => navigate('inquiry')}
+                className="font-medium text-gray-700 hover:text-brand-600 transition-colors whitespace-nowrap"
+              >
+                Inquiry
+              </button>
+
               {/* Profile Link - Only for authenticated users */}
               {isAuthenticated && (
                 <button 
@@ -456,6 +464,15 @@ const Navbar = ({ config }) => {
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
               >
                 <span className="font-medium">FAQ</span>
+              </button>
+              <button
+                onClick={() => {
+                  navigate('inquiry');
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
+              >
+                <span className="font-medium">Inquiry</span>
               </button>
                               {isAuthenticated && (
                 <>

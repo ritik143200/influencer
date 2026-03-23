@@ -19,12 +19,7 @@ const AdminDashboard = ({ config }) => {
   // Data states
   const [users, setUsers] = useState([]);
   const [artists, setArtists] = useState([]);
-  const [bookings, setBookings] = useState([]);
   const [inquiries, setInquiries] = useState([]);
-  const [bookingFilter, setBookingFilter] = useState('all');
-  // Booking UI states
-  const [expandedBookingId, setExpandedBookingId] = useState(null);
-  const [statusDropdownId, setStatusDropdownId] = useState(null);
   
   // Artist detail modal state
   const [selectedArtist, setSelectedArtist] = useState(null);
@@ -35,8 +30,7 @@ const AdminDashboard = ({ config }) => {
     lastMonthRevenue: 38956,
     totalUsers: users.length,
     totalArtists: artists.length,
-    totalBookings: bookings.length,
-    pendingInquiries: bookings.filter(b => b.status === 'pending').length,
+    pendingInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length,
     activeUsers: Math.floor(users.length * 0.8),
     conversionRate: 12.5
   });
@@ -62,12 +56,9 @@ const AdminDashboard = ({ config }) => {
 
         // Fetch all data in parallel
         const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` };
-        const [
-          usersRes,
-          bookingsRes
-        ] = await Promise.all([
+        const [usersRes, inquiriesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/admin/users`, { headers: authHeader }),
-          fetch(`${API_BASE_URL}/api/admin/bookings`, { headers: authHeader })
+          fetch(`${API_BASE_URL}/api/admin/inquiries`, { headers: authHeader })
         ]);
 
         // Handle responses
@@ -76,9 +67,9 @@ const AdminDashboard = ({ config }) => {
           setUsers(usersData.data || usersData || []);
         }
 
-        if (bookingsRes.ok) {
-          const bookingsData = await bookingsRes.json();
-          setBookings(bookingsData.data || bookingsData || []);
+        if (inquiriesRes.ok) {
+          const inquiriesData = await inquiriesRes.json();
+          setInquiries(inquiriesData.data || inquiriesData || []);
         }
 
         // Fetch artists data
@@ -103,8 +94,7 @@ const AdminDashboard = ({ config }) => {
           lastMonthRevenue: 38956,
           totalUsers: Array.isArray(users) ? users.length : 0,
           totalArtists: Array.isArray(artists) ? artists.length : 0,
-          totalBookings: Array.isArray(bookings) ? bookings.length : 0,
-          pendingInquiries: Array.isArray(bookings) ? bookings.filter(b => b.status === 'pending').length : 0,
+          pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
           activeUsers: Array.isArray(users) ? Math.floor(users.length * 0.8) : 0,
           conversionRate: 12.5
         });
@@ -135,40 +125,28 @@ const AdminDashboard = ({ config }) => {
     fetchDashboardData();
   }, [adminData, API_BASE_URL]);
 
-  const handleAdminBookingAction = async (bookingId, action) => {
+  const handleAdminInquiryAction = async (inquiryId, action) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/bookings/${bookingId}/${action}`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/${action}`, {
         method: 'PATCH',
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Update the booking in local state
-        const updatedBooking = data.data;
-        setBookings(prev => prev.map(b =>
-          (b._id === bookingId || b.id === bookingId) ? updatedBooking : b
+        const updatedInquiry = data.data;
+        setInquiries(prev => prev.map(i =>
+          (i._id === inquiryId || i.id === inquiryId) ? updatedInquiry : i
         ));
-        
-        // Emit custom event for real-time User Dashboard updates
-        window.dispatchEvent(new CustomEvent('bookingStatusUpdated', {
-          detail: {
-            bookingId,
-            newStatus: updatedBooking.status,
-            timestamp: new Date().toISOString()
-          }
-        }));
-        
-        setSuccessMessage(`Booking ${action === 'approve' ? 'approved' : 'rejected'} successfully!`);
+        setSuccessMessage(`Inquiry ${action === 'accept' ? 'accepted' : 'rejected'} successfully!`);
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
-        alert(data.message || 'Failed to update booking');
+        alert(data.message || 'Failed to update inquiry');
       }
     } catch (err) {
-      console.error('Error updating booking:', err);
-      alert('Network error while updating booking.');
+      console.error('Error updating inquiry:', err);
+      alert('Network error while updating inquiry.');
     }
   };
-
 
   const handleLogout = () => {
     logout();
@@ -203,25 +181,6 @@ const AdminDashboard = ({ config }) => {
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
     }
-  };
-
-  // Helper function to filter bookings based on status
-  const getFilteredBookings = () => {
-    if (bookingFilter === 'all') {
-      return bookings;
-    }
-    
-    const statusMap = {
-      'pending': 'pending',
-      'approved': 'adminApproved',
-      'confirmed': 'confirmed',
-      'completed': 'completed',
-      'rejected': 'rejected',
-      'artistRejected': 'artistRejected'
-    };
-    
-    const targetStatus = statusMap[bookingFilter];
-    return bookings.filter(booking => booking.status === targetStatus);
   };
 
   // Artist detail view functions
@@ -485,337 +444,6 @@ const AdminDashboard = ({ config }) => {
   );
 
 
-  const handleInlineStatusChange = async (bookingId, newStatus) => {
-    const actionMap = { adminApproved: 'approve', rejected: 'reject', completed: 'complete' };
-    const action = actionMap[newStatus];
-    if (!action) return;
-    setStatusDropdownId(null);
-    await handleAdminBookingAction(bookingId, action);
-  };
-
-  const renderBookings = () => {
-    const getStatusStyle = (status) => {
-      if (status === 'adminApproved') return { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500', label: '✓ Approved' };
-      if (status === 'rejected') return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500', label: '✗ Rejected' };
-      if (status === 'confirmed') return { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500', label: '✓ Confirmed' };
-      if (status === 'completed') return { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-400', label: '✓ Completed' };
-      if (status === 'artistRejected') return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-400', label: '✗ Artist Declined' };
-      return { bg: 'bg-yellow-50', text: 'text-yellow-700', dot: 'bg-yellow-400', label: '⏳ Pending' };
-    };
-
-    return (
-      <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden" style={{ backgroundColor: getThemeColor('surface') }}>
-        {/* Header */}
-        <div className={`bg-gradient-to-r ${getCategoryColors(3)} p-6`}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h3 className="text-xl font-bold text-white">Booking Management</h3>
-              <p className="text-white/80 text-sm mt-1">
-                {bookings.filter(b => b.status === 'pending').length} pending · {bookings.length} total
-              </p>
-            </div>
-            
-            {/* Status Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-white/80">Filter:</label>
-              <select 
-                value={bookingFilter}
-                onChange={(e) => setBookingFilter(e.target.value)}
-                className="px-3 py-2 text-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/10 text-white backdrop-blur-sm"
-              >
-                <option value="all" className="text-gray-800">All Bookings</option>
-                <option value="pending" className="text-gray-800">⏳ Pending</option>
-                <option value="approved" className="text-gray-800">✓ Approved</option>
-                <option value="confirmed" className="text-gray-800">✓ Confirmed</option>
-                <option value="completed" className="text-gray-800">✓ Completed</option>
-                <option value="rejected" className="text-gray-800">✗ Rejected</option>
-                <option value="artistRejected" className="text-gray-800">✗ Artist Declined</option>
-              </select>
-            </div>
-          </div>
-          
-          {/* Filter Summary */}
-          {bookingFilter !== 'all' && (
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-sm text-white/80">
-                Showing <span className="font-semibold text-white">{getFilteredBookings().length}</span> {bookingFilter} bookings
-              </span>
-              <button 
-                onClick={() => setBookingFilter('all')}
-                className="text-xs text-white/80 hover:text-white font-medium"
-              >
-                Clear Filter
-              </button>
-            </div>
-          )}
-          
-          <span className="px-3 py-1 bg-white/20 text-white rounded-full text-sm font-medium inline-block mt-3">
-            {bookings.filter(b => b.status === 'adminApproved').length} awaiting artist
-          </span>
-        </div>
-
-        {/* Success toast */}
-        {successMessage && (
-          <div className="mx-6 mt-4 px-4 py-3 bg-green-50 border border-green-200 text-green-800 rounded-xl text-sm font-medium flex items-center gap-2">
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-            {successMessage}
-          </div>
-        )}
-
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-rose-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-8">#</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Event Type</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Event Date</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getFilteredBookings().length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="px-6 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <p className="text-gray-400 font-medium">
-                        {bookingFilter === 'all' 
-                          ? 'No bookings yet'
-                          : `No ${bookingFilter} bookings found. Try selecting a different filter.`
-                        }
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : getFilteredBookings().map((booking, idx) => {
-                const bookingId = booking._id || booking.id;
-                const isExpanded = expandedBookingId === bookingId;
-                const showDropdown = statusDropdownId === bookingId;
-                const st = getStatusStyle(booking.status);
-                const artistName = booking.artistId
-                  ? `${booking.artistId.firstName} ${booking.artistId.lastName}`
-                  : 'Unknown Artist';
-
-                return (
-                  <React.Fragment key={bookingId}>
-                    {/* Main row */}
-                    <tr
-                      className={`border-b border-gray-100 transition-colors cursor-pointer ${isExpanded ? 'bg-indigo-50/40' : 'hover:bg-gray-50'}`}
-                      onClick={() => setExpandedBookingId(isExpanded ? null : bookingId)}
-                    >
-                      <td className="px-4 py-4 text-sm font-semibold text-gray-500">{idx + 1}</td>
-
-                      <td className="px-4 py-4">
-                        <div className="font-semibold text-gray-800 text-sm">{booking.userId?.name || booking.name || '—'}</div>
-                        <div className="text-xs text-gray-400 mt-0.5">{booking.userId?.email || booking.email || ''}</div>
-                      </td>
-
-                      <td className="px-4 py-4 text-sm text-gray-600">{booking.phone || booking.userId?.phone || '—'}</td>
-
-                      <td className="px-4 py-4 text-sm text-gray-700">{booking.eventType || '—'}</td>
-
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className="text-sm text-indigo-600 font-medium">
-                            {booking.eventDate ? new Date(booking.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Artist type chip */}
-                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-md font-medium">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
-                          </svg>
-                          {booking.artistId?.artistType?.charAt(0)?.toUpperCase() || 'A'}
-                        </span>
-                      </td>
-
-                      {/* Inline status dropdown */}
-                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                        <div className="relative">
-                          <button
-                            onClick={() => setStatusDropdownId(showDropdown ? null : bookingId)}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${st.bg} ${st.text} border-current/20 hover:shadow-sm`}
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
-                            {st.label}
-                            <svg className="w-3 h-3 ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </button>
-
-                          {/* Dropdown menu */}
-                          {showDropdown && (
-                            <div className="absolute left-0 top-full mt-1 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                              <div className="py-1">
-                                <button
-                                  onClick={() => handleInlineStatusChange(bookingId, 'pending')}
-                                  disabled={booking.status === 'pending'}
-                                  className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-yellow-50 transition-colors disabled:opacity-40"
-                                >
-                                  <span className="w-2 h-2 rounded-full bg-yellow-400"></span>
-                                  <span className="text-yellow-700 font-medium">Pending</span>
-                                </button>
-                                <button
-                                  onClick={() => handleInlineStatusChange(bookingId, 'adminApproved')}
-                                  disabled={booking.status === 'adminApproved'}
-                                  className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-green-50 transition-colors disabled:opacity-40"
-                                >
-                                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                                  <span className="text-green-700 font-medium">✓ Approved</span>
-                                </button>
-                                <button
-                                  onClick={() => handleInlineStatusChange(bookingId, 'rejected')}
-                                  disabled={booking.status === 'rejected'}
-                                  className="w-full text-left px-4 py-2.5 text-sm flex items-center gap-2 hover:bg-red-50 transition-colors disabled:opacity-40"
-                                >
-                                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                                  <span className="text-red-700 font-medium">✗ Rejected</span>
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Eye icon */}
-                      <td className="px-4 py-4" onClick={e => e.stopPropagation()}>
-                        <button
-                          onClick={() => setExpandedBookingId(isExpanded ? null : bookingId)}
-                          className={`p-2 rounded-full transition-all ${isExpanded ? 'bg-indigo-100 text-indigo-600' : 'text-gray-400 hover:text-indigo-500 hover:bg-indigo-50'}`}
-                          title="View details"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* Expanded detail panel */}
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan="8" className="px-0 py-0 bg-gray-50 border-b border-gray-200">
-                          <div className="px-6 py-5">
-                            {/* Detail grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 mb-5">
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Email</p>
-                                <p className="text-sm font-semibold text-gray-800">{booking.userId?.email || booking.email || '—'}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Phone</p>
-                                <p className="text-sm font-semibold text-gray-800">{booking.phone || '—'}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Budget</p>
-                                <p className="text-sm font-semibold text-gray-800">₹{(booking.budget || 0).toLocaleString('en-IN')}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Event Date</p>
-                                <p className="text-sm font-semibold text-gray-800 flex items-center gap-1">
-                                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
-                                  {booking.eventDate ? new Date(booking.eventDate).toLocaleDateString('en-IN') : '—'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">City</p>
-                                <p className="text-sm font-semibold text-gray-800">{booking.eventLocation || '—'}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Created On</p>
-                                <p className="text-sm font-semibold text-gray-800">
-                                  {booking.createdAt ? new Date(booking.createdAt).toLocaleString('en-IN') : '—'}
-                                </p>
-                              </div>
-                              <div className="md:col-span-3">
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Vendor / Artist</p>
-                                <p className="text-sm font-semibold text-indigo-600">{artistName}</p>
-                              </div>
-                            </div>
-
-                            {/* Message box */}
-                            {booking.message && (
-                              <div className="mb-5">
-                                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-2">Message</p>
-                                <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700">
-                                  {booking.message}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Action buttons */}
-                            <div className="flex flex-wrap items-center gap-3">
-                              {(booking.status === 'pending' || booking.status === 'rejected') && (
-                                <button
-                                  onClick={() => handleAdminBookingAction(bookingId, 'approve')}
-                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg active:scale-95"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                  </svg>
-                                  Forward to Artist
-                                </button>
-                              )}
-                              {booking.status === 'adminApproved' && (
-                                <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-50 text-green-700 text-sm font-semibold rounded-xl border border-green-200">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                  </svg>
-                                  Forwarded to Artist
-                                </span>
-                              )}
-                              {booking.status === 'confirmed' && (
-                                <button
-                                  onClick={() => handleAdminBookingAction(bookingId, 'complete')}
-                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md hover:shadow-lg active:scale-95"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  Mark as Completed
-                                </button>
-                              )}
-                              {!['rejected', 'artistRejected', 'completed'].includes(booking.status) && (
-                                <button
-                                  onClick={() => handleAdminBookingAction(bookingId, 'reject')}
-                                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 text-white text-sm font-semibold rounded-xl hover:bg-orange-600 transition-all shadow-md hover:shadow-lg active:scale-95"
-                                >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                  </svg>
-                                  Make Inactive
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    );
-  };
 
 
   const renderInquiries = () => (
@@ -823,9 +451,9 @@ const AdminDashboard = ({ config }) => {
       style={{ backgroundColor: getThemeColor('surface') }}>
       <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 flex justify-between items-center`}>
         <h3 className="text-xl font-bold text-white">Inquiry Management</h3>
-        <button className="px-4 py-2 bg-white text-pink-600 rounded-xl font-medium hover:bg-pink-50 transition-colors">
-          Mark All Read
-        </button>
+        <div className="text-white/90 text-sm font-semibold">
+          Total: {Array.isArray(inquiries) ? inquiries.length : 0}
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -833,33 +461,69 @@ const AdminDashboard = ({ config }) => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requirement</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {inquiries.map((inquiry) => (
-              <tr key={inquiry.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: getThemeColor('text') }}>#{inquiry.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{inquiry.user}</td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{inquiry.message}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{inquiry.date}</td>
+            {(Array.isArray(inquiries) ? inquiries : []).map((inquiry) => {
+              const inquiryId = inquiry._id || inquiry.id;
+              const status = (inquiry.status || 'pending').toLowerCase();
+              return (
+              <tr key={inquiryId} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: getThemeColor('text') }}>#{String(inquiryId).slice(-6)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {inquiry.userId?.name || inquiry.name}
+                  <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  <div className="font-semibold text-gray-700 capitalize">{inquiry.hiringFor}</div>
+                  <div className="text-xs text-gray-500">{inquiry.category} · {inquiry.location}</div>
+                  {inquiry.budget !== undefined && inquiry.budget !== null && (
+                    <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                  <div className="font-medium text-gray-700">{inquiry.eventType}</div>
+                  <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${inquiry.status === 'resolved' ? 'bg-green-100 text-green-800' :
-                    inquiry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                    {inquiry.status}
+                    {status}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button className="text-indigo-600 hover:text-indigo-900 mr-3">Reply</button>
-                  <button className="text-green-600 hover:text-green-900">Resolve</button>
+                  {status === 'pending' ? (
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">No actions</span>
+                  )}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -1103,7 +767,7 @@ const AdminDashboard = ({ config }) => {
       <div className="shadow-lg border-b border-gray-100 sticky top-0 z-40" style={{ backgroundColor: getThemeColor('surface') }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex overflow-x-auto space-x-2 sm:space-x-4 scrollbar-hide">
-            {['overview', 'users', 'artists', 'bookings', 'inquiries', 'analytics', 'settings'].map((tab, index) => (
+            {['overview', 'users', 'artists', 'inquiries', 'analytics', 'settings'].map((tab, index) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -1123,7 +787,6 @@ const AdminDashboard = ({ config }) => {
                     {tab === 'overview' && '📊'}
                     {tab === 'users' && '👥'}
                     {tab === 'artists' && '🎨'}
-                    {tab === 'bookings' && '📅'}
                     {tab === 'inquiries' && '💬'}
                     {tab === 'analytics' && '📈'}
                     {tab === 'settings' && '⚙️'}
@@ -1302,7 +965,6 @@ const AdminDashboard = ({ config }) => {
             </div>
           </div>
         )}
-        {activeTab === 'bookings' && renderBookings()}
         {activeTab === 'inquiries' && renderInquiries()}
         {activeTab === 'analytics' && renderAnalytics()}
         {activeTab === 'settings' && renderSettings()}

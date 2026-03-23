@@ -31,12 +31,7 @@ const mockArtists = [
   { id: 4, name: 'David Kim', email: 'david@example.com', specialty: 'Contemporary Dance', rating: 4.7, status: 'pending', createdAt: '2024-01-04' }
 ];
 
-const mockBookings = [
-  { id: 1, user: 'John Doe', artist: 'Elena Rodriguez', date: '2024-01-15', amount: 500, status: 'completed', createdAt: '2024-01-15' },
-  { id: 2, user: 'Jane Smith', artist: 'Marcus Chen', date: '2024-01-16', amount: 350, status: 'pending', createdAt: '2024-01-16' },
-  { id: 3, user: 'Robert Wilson', artist: 'Aria Williams', date: '2024-01-17', amount: 800, status: 'completed', createdAt: '2024-01-17' },
-  { id: 4, user: 'Sarah Johnson', artist: 'David Kim', date: '2024-01-18', amount: 450, status: 'pending', createdAt: '2024-01-18' }
-];
+// Booking mocks removed
 
 const mockInquiries = [
   { id: 1, user: 'John Doe', message: 'Looking for a photographer for wedding', date: '2024-01-15', status: 'pending', createdAt: '2024-01-15' },
@@ -63,14 +58,7 @@ app.get('/api/admin/artists', (req, res) => {
   });
 });
 
-app.get('/api/admin/bookings', (req, res) => {
-  console.log('📅 Admin Bookings API called');
-  res.json({
-    success: true,
-    data: mockBookings,
-    message: 'Bookings retrieved successfully'
-  });
-});
+// Booking admin API route removed
 
 app.get('/api/admin/inquiries', (req, res) => {
   console.log('💬 Admin Inquiries API called');
@@ -125,17 +113,7 @@ app.post('/api/admin/artists', (req, res) => {
   });
 });
 
-app.post('/api/admin/bookings', (req, res) => {
-  console.log('📅 Create/Update Booking API called');
-  const newBooking = req.body;
-  newBooking.id = mockBookings.length + 1;
-  mockBookings.push(newBooking);
-  res.json({
-    success: true,
-    data: newBooking,
-    message: 'Booking created/updated successfully'
-  });
-});
+// Booking create/update API route removed
 
 app.post('/api/admin/inquiries', (req, res) => {
   console.log('💬 Create/Update Inquiry API called');
