@@ -69,7 +69,7 @@ const HeroSlider = ({ config }) => {
                 <div className="hidden lg:flex justify-center">
                   <div className="relative">
                     <div className="w-80 h-80 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 opacity-20 blur-3xl absolute -inset-10" />
-                    <div className="relative grid grid-cols-2 gap-4">
+                    {/* <div className="relative grid grid-cols-2 gap-4">
                       {['🎸', '📷', '🖼️', '🩰'].map((emoji, i) => (
                         <div 
                           key={i}
@@ -87,6 +87,9 @@ const HeroSlider = ({ config }) => {
                           </div>
                         </div>
                       ))}
+                    </div> */}
+                    <div>
+                      <img src='../public/hero.png' alt='Hero'/>
                     </div>
                   </div>
                 </div>
