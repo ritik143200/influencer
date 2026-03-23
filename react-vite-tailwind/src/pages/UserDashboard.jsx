@@ -6,11 +6,9 @@ const UserDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { logout } = useAuth();
   const [userData, setUserData] = useState(null);
-  const [bookings, setBookings] = useState([]);
   const [favoriteArtists, setFavoriteArtists] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
-  const [lastStatusUpdate, setLastStatusUpdate] = useState(null);
-  const [bookingFilter, setBookingFilter] = useState('all');
+  // Removed bookings, bookingFilter
 
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -30,121 +28,7 @@ const UserDashboard = ({ config }) => {
       setUserData(JSON.parse(storedUser));
     }
 
-    const fetchBookings = async () => {
-      try {
-        const token = localStorage.getItem('userToken');
-        if (!token) {
-          console.log('❌ No token found - user not logged in');
-          // Try to get user data to check login status
-          const userData = localStorage.getItem('userData');
-          if (userData) {
-            console.log('📝 User data found but no token - authentication issue');
-          }
-          return;
-        }
-
-        // Try multiple possible API base URLs
-        const possibleUrls = [
-          import.meta.env.VITE_API_BASE_URL,
-          'http://localhost:5001',
-          'http://127.0.0.1:5001',
-          'http://localhost:5000',
-          'http://127.0.0.1:5000'
-        ].filter(Boolean);
-
-        let bookingData = null;
-        let workingUrl = null;
-
-        for (const baseUrl of possibleUrls) {
-          try {
-            const endpoint = `${baseUrl}/api/bookings/my`;
-            console.log(`� Trying URL: ${endpoint}`);
-
-            // Test health first
-            const healthCheck = await fetch(`${baseUrl}/api/health`, {
-              method: 'GET',
-              headers: { 'Accept': 'application/json' }
-            });
-
-            if (healthCheck.ok) {
-              console.log(`✅ Health check passed for ${baseUrl}`);
-
-              // Now try bookings endpoint
-              const res = await fetch(endpoint, {
-                method: 'GET',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json'
-                }
-              });
-
-              console.log(`📡 Response from ${baseUrl}:`, res.status);
-
-              if (res.ok) {
-                const data = await res.json();
-                if (data.success) {
-                  bookingData = data.data;
-                  workingUrl = baseUrl;
-                  console.log(`✅ Success with ${baseUrl}:`, data.data.length, 'bookings');
-                  break;
-                }
-              } else {
-                const errorText = await res.text();
-                console.error(`❌ Error from ${baseUrl}:`, {
-                  status: res.status,
-                  body: errorText
-                });
-              }
-            }
-          } catch (error) {
-            console.error(`❌ Failed with ${baseUrl}:`, error.message);
-          }
-        }
-
-        if (bookingData !== null) {
-          setBookings(bookingData);
-          console.log(`✅ Bookings loaded from ${workingUrl}:`, bookingData.length);
-        } else {
-          console.error('❌ All URLs failed - backend may be down or wrong configuration');
-        }
-
-      } catch (error) {
-        console.error("❌ Critical error in fetchBookings:", error);
-      }
-    };
-
-    fetchBookings();
-
-    // Listen for booking status updates from Admin Panel
-    const handleBookingStatusUpdate = (event) => {
-      const { bookingId, newStatus, timestamp } = event.detail;
-
-      // Update local booking state with new status
-      setBookings(prev => prev.map(booking =>
-        (booking._id === bookingId || booking.id === bookingId)
-          ? { ...booking, status: newStatus }
-          : booking
-      ));
-
-      const statusStyle = getStatusStyle(newStatus);
-      setLastStatusUpdate({
-        bookingId,
-        newStatus: statusStyle.label,
-        timestamp: new Date(timestamp).toLocaleString()
-      });
-
-      // Clear the status update message after 5 seconds
-      setTimeout(() => setLastStatusUpdate(null), 5000);
-    };
-
-    // Add event listener for booking updates
-    window.addEventListener('bookingStatusUpdated', handleBookingStatusUpdate);
-
-    // Cleanup event listener on component unmount
-    return () => {
-      window.removeEventListener('bookingStatusUpdated', handleBookingStatusUpdate);
-    };
+    // Booking-related effect removed
 
     setFavoriteArtists([
       { id: 1, name: 'Melody Band', category: 'Bands', rating: 4.8, image: '🎸' },
@@ -218,38 +102,7 @@ const UserDashboard = ({ config }) => {
   };
 
   // Helper function to get inquiry progress
-  const getInquiryProgress = (booking) => {
-    const steps = [
-      { key: 'pending', label: 'Inquiry Submitted', completed: booking.status === 'pending' },
-      { key: 'adminApproved', label: 'Admin Approved', completed: booking.status === 'adminApproved' },
-      { key: 'confirmed', label: 'Artist Confirmed', completed: booking.status === 'confirmed' },
-      { key: 'completed', label: 'Event Completed', completed: booking.status === 'completed' }
-    ];
-
-    const currentStepIndex = steps.findIndex(step => step.completed);
-    const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100;
-
-    return { steps, currentStepIndex, progressPercentage };
-  };
-
-  // Helper function to filter bookings based on status
-  const getFilteredBookings = () => {
-    if (bookingFilter === 'all') {
-      return bookings;
-    }
-
-    const statusMap = {
-      'pending': 'pending',
-      'approved': 'adminApproved',
-      'confirmed': 'confirmed',
-      'completed': 'completed',
-      'rejected': 'rejected',
-      'artistRejected': 'artistRejected'
-    };
-
-    const targetStatus = statusMap[bookingFilter];
-    return bookings.filter(booking => booking.status === targetStatus);
-  };
+  // Booking-related helpers removed
 
   const renderUser = () => (
     <div className="space-y-6">
@@ -355,7 +208,7 @@ const UserDashboard = ({ config }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-gray-800">{bookings.filter(b => b.status === 'completed').length}</span>
+            {/* Bookings removed */}
           </div>
           <h3 className="text-gray-600 text-sm font-medium">Completed Events</h3>
           <p className="text-gray-500 text-xs mt-1">Successfully attended</p>
@@ -434,9 +287,9 @@ const UserDashboard = ({ config }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{bookings.length}</span>
+          {/* Bookings removed */}
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Total Bookings</h3>
+        {/* Bookings removed */}
       </div>
 
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -446,7 +299,7 @@ const UserDashboard = ({ config }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{bookings.filter(b => b.status === 'completed').length}</span>
+          {/* Bookings removed */}
         </div>
         <h3 className="text-gray-600 text-sm font-medium">Completed Events</h3>
       </div>
@@ -458,9 +311,9 @@ const UserDashboard = ({ config }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{bookings.filter(b => ['pending', 'adminApproved', 'confirmed'].includes(b.status)).length}</span>
+          {/* Bookings removed */}
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Upcoming Events</h3>
+        {/* Bookings removed */}
       </div>
 
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -477,153 +330,7 @@ const UserDashboard = ({ config }) => {
     </div>
   );
 
-  const renderBookings = () => (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-xl font-bold text-gray-800">My Bookings</h3>
-
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-600">Filter:</label>
-            <select
-              value={bookingFilter}
-              onChange={(e) => setBookingFilter(e.target.value)}
-              className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-white"
-            >
-              <option value="all">All Bookings</option>
-              <option value="pending">⏳ Pending</option>
-              <option value="approved">✓ Approved</option>
-              <option value="confirmed">✓ Confirmed</option>
-              <option value="completed">✓ Completed</option>
-              <option value="rejected">✗ Rejected</option>
-              <option value="artistRejected">✗ Artist Declined</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Filter Summary */}
-        {bookingFilter !== 'all' && (
-          <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-gray-600">
-              Showing <span className="font-semibold text-brand-600">{getFilteredBookings().length}</span> {bookingFilter} bookings
-            </span>
-            <button
-              onClick={() => setBookingFilter('all')}
-              className="text-xs text-brand-600 hover:text-brand-700 font-medium"
-            >
-              Clear Filter
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Artist</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
-            {getFilteredBookings().length > 0 ? getFilteredBookings().map((booking, index) => {
-              const progress = getInquiryProgress(booking);
-              return (
-                <tr key={booking._id || booking.id || `booking-${index}`} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      {booking.artistId?.profileImage && (
-                        <img
-                          src={booking.artistId.profileImage}
-                          alt="Artist"
-                          className="w-8 h-8 rounded-full border border-gray-200 mr-3"
-                        />
-                      )}
-                      <div className="text-sm font-medium text-gray-900">
-                        {booking.artistId ? `${booking.artistId.firstName} ${booking.artistId.lastName}` : 'Unknown Artist'}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{booking.eventType}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-600">{new Date(booking.eventDate).toLocaleDateString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">₹{booking.budget?.toLocaleString()}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusStyle(booking.status).bg} ${getStatusStyle(booking.status).text}`}>
-                      {getStatusStyle(booking.status).label}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {/* Visual Progress Indicator */}
-                    <div className="w-32">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-600">Progress</span>
-                        <span className="text-xs font-bold text-brand-600">{progress.progressPercentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full transition-all duration-500 bg-gradient-to-r from-brand-400 to-brand-600"
-                          style={{ width: `${progress.progressPercentage}%` }}
-                        />
-                      </div>
-                      <div className="mt-2 space-y-1">
-                        {progress.steps.map((step, stepIndex) => (
-                          <div key={step.key} className="flex items-center text-xs">
-                            <div className={`w-4 h-4 rounded-full flex items-center justify-center mr-2 ${step.completed
-                                ? 'bg-brand-500 text-white'
-                                : stepIndex === progress.currentStepIndex
-                                  ? 'bg-brand-300 text-white animate-pulse'
-                                  : 'bg-gray-300 text-gray-600'
-                              }`}>
-                              {step.completed ? (
-                                <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-8-8a1 1 0 00-1.414-1.414L8.586 10l-1.293 1.293a1 1 0 00-1.414 1.414l2-2a1 1 0 001.414 1.414z" clipRule="evenodd" />
-                                </svg>
-                              ) : stepIndex === progress.currentStepIndex ? (
-                                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                              ) : (
-                                <div className="w-2 h-2 bg-gray-400 rounded-full" />
-                              )}
-                            </div>
-                            <span className={`${step.completed
-                                ? 'text-gray-900 font-medium'
-                                : stepIndex === progress.currentStepIndex
-                                  ? 'text-brand-600 font-medium'
-                                  : 'text-gray-500'
-                              }`}>
-                              {step.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              );
-            }) : (
-              <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-sm text-gray-500">
-                  {bookingFilter === 'all'
-                    ? 'No bookings found. Discover artists to make your first booking!'
-                    : `No ${bookingFilter} bookings found. Try selecting a different filter.`
-                  }
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
+  // Booking-related UI removed
 
   const renderFavorites = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -654,27 +361,7 @@ const UserDashboard = ({ config }) => {
 
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>
-      {/* Status Update Notification */}
-      {lastStatusUpdate && (
-        <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right duration-300">
-          <div className="bg-white rounded-lg shadow-xl border border-gray-200 p-4 min-w-[300px]">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-gray-900">Booking Status Updated</p>
-                <p className="text-xs text-gray-600 mt-1">
-                  Status changed to <span className="font-medium text-green-600">{lastStatusUpdate.newStatus}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">{lastStatusUpdate.timestamp}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Status Update Notification removed (booking feature deleted) */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
@@ -704,7 +391,7 @@ const UserDashboard = ({ config }) => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex space-x-8 px-6">
-            {['overview', 'bookings', 'favorites', 'user'].map((tab) => (
+            {['overview', 'favorites', 'user'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -721,7 +408,6 @@ const UserDashboard = ({ config }) => {
 
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'bookings' && renderBookings()}
         {activeTab === 'favorites' && renderFavorites()}
         {activeTab === 'user' && renderUser()}
       </div>

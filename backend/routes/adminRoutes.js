@@ -4,6 +4,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
     getAllBookings, updateBookingStatus,
+    getAllInquiries, updateInquiryStatus,
     getAllUsers, updateUserAction, deleteUser
 } = require('../controllers/adminController');
 const {
@@ -23,11 +24,11 @@ const adminOnly = (req, res, next) => {
 router.use(protect);
 router.use(adminOnly);
 
-// Route for fetching all bookings
-router.get('/bookings', getAllBookings);
+// Booking routes removed
 
-// Route for updating booking status
-router.patch('/bookings/:id/:action', updateBookingStatus);
+// Inquiries Routing
+router.get('/inquiries', getAllInquiries);
+router.patch('/inquiries/:id/:action', updateInquiryStatus);
 
 // Users Routing
 router.get('/users', getAllUsers);

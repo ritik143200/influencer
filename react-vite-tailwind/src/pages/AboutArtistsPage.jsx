@@ -84,8 +84,8 @@ const AboutArtistsPage = ({ config }) => {
               },
               {
                 icon: '🌟',
-                title: 'Reviews & Ratings',
-                description: 'Build trust through transparent reviews and rating system.'
+                title: 'Portfolio Showcase',
+                description: 'Display your work beautifully with photos, videos, and detailed descriptions.'
               }
             ].map((feature, index) => (
               <div 

@@ -39,12 +39,6 @@ const ServicesArtistsPage = ({ config }) => {
               features: ['Instant payouts', 'Payment protection', 'Multiple payment methods', 'Tax documentation']
             },
             {
-              icon: '⭐',
-              title: 'Reviews & Ratings',
-              description: 'Build your reputation with authentic reviews and showcase your talent through client feedback.',
-              features: ['Verified reviews', 'Rating system', 'Testimonial display', 'Performance analytics']
-            },
-            {
               icon: '🎯',
               title: 'Talent Discovery',
               description: 'Get discovered by clients actively searching for your specific skills and artistic style.',

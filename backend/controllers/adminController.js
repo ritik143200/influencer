@@ -1,64 +1,11 @@
-const Booking = require('../models/Booking');
+// Booking import removed
 const User = require('../models/User');
+const Inquiry = require('../models/Inquiry');
 
 // @desc    Get all bookings (Admin)
 // @route   GET /api/admin/bookings
 // @access  Private/Admin
-const getAllBookings = async (req, res) => {
-    try {
-        const bookings = await Booking.find()
-            .populate('userId', 'name email phone')
-            .populate('artistId', 'firstName lastName profileImage')
-            .sort({ createdAt: -1 });
-
-        res.status(200).json({ success: true, count: bookings.length, data: bookings });
-    } catch (error) {
-        console.error('Error fetching all bookings:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while fetching all bookings',
-            error: error.message
-        });
-    }
-};
-
-// @desc    Update booking status (Admin)
-// @route   PATCH /api/admin/bookings/:id/:action
-// @access  Private/Admin
-const updateBookingStatus = async (req, res) => {
-    try {
-        const { id, action } = req.params;
-
-        let status;
-        if (action === 'approve') status = 'adminApproved';
-        else if (action === 'reject') status = 'rejected';
-        else if (action === 'complete') status = 'completed';
-        else return res.status(400).json({ success: false, message: 'Invalid action. Use: approve, reject, complete' });
-
-        const booking = await Booking.findById(id);
-
-        if (!booking) {
-            return res.status(404).json({ success: false, message: 'Booking not found' });
-        }
-
-        booking.status = status;
-        await booking.save();
-
-        // Return fully populated booking so frontend can update state directly
-        const populated = await Booking.findById(id)
-            .populate('userId', 'name email phone')
-            .populate('artistId', 'firstName lastName profileImage');
-
-        res.status(200).json({ success: true, data: populated });
-    } catch (error) {
-        console.error(`Error updating booking status:`, error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error while updating booking',
-            error: error.message
-        });
-    }
-};
+// Booking-related functions removed
 
 // @desc    Get all users (Admin)
 // @route   GET /api/admin/users
@@ -114,9 +61,63 @@ const deleteUser = async (req, res) => {
     }
 };
 
+// @desc    Get all inquiries (Admin)
+// @route   GET /api/admin/inquiries
+// @access  Private/Admin
+const getAllInquiries = async (req, res) => {
+    try {
+        const inquiries = await Inquiry.find()
+            .populate('userId', 'name email phone')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, count: inquiries.length, data: inquiries });
+    } catch (error) {
+        console.error('Error fetching all inquiries:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching all inquiries',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Update inquiry status (Admin)
+// @route   PATCH /api/admin/inquiries/:id/:action
+// @access  Private/Admin
+const updateInquiryStatus = async (req, res) => {
+    try {
+        const { id, action } = req.params;
+
+        let status;
+        if (action === 'accept') status = 'accepted';
+        else if (action === 'reject') status = 'rejected';
+        else return res.status(400).json({ success: false, message: 'Invalid action. Use: accept, reject' });
+
+        const inquiry = await Inquiry.findById(id);
+        if (!inquiry) {
+            return res.status(404).json({ success: false, message: 'Inquiry not found' });
+        }
+
+        inquiry.status = status;
+        await inquiry.save();
+
+        const populated = await Inquiry.findById(id)
+            .populate('userId', 'name email phone');
+
+        res.status(200).json({ success: true, data: populated });
+    } catch (error) {
+        console.error('Error updating inquiry status:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while updating inquiry',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
-    getAllBookings,
-    updateBookingStatus,
+    getAllInquiries,
+    updateInquiryStatus,
     getAllUsers,
     updateUserAction,
     deleteUser

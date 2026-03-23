@@ -14,6 +14,7 @@ import HowItWorksPage from './pages/HowItWorksPage';
 import ProfilePage from './pages/ProfilePage';
 import FAQPage from './pages/FAQPage';
 import ArtistRegistrationPage from './pages/ArtistRegistrationPage';
+import InquiryPage from './pages/InquiryPage';
 import UserDashboard from './pages/UserDashboard';
 import ArtistDashboard from './pages/ArtistDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -75,6 +76,7 @@ const AppContent = ({ config }) => {
       {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
       {currentPath === 'profile' && <ProfilePage config={config} />}
       {currentPath === 'faq' && <FAQPage config={config} />}
+      {currentPath === 'inquiry' && <InquiryPage config={config} />}
                   {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && <UserDashboard config={config} />}
       {currentPath === 'artist-dashboard' && <ArtistDashboard config={config} />}
