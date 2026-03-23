@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
-const bookingSchema = new mongoose.Schema({
-    artistId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Artist',
-        required: true
-    },
+const inquirySchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -27,9 +22,25 @@ const bookingSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    hiringFor: {
+        type: String,
+        enum: ['artist', 'influencer'],
+        required: true
+    },
+    category: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    location: {
+        type: String,
+        required: true,
+        trim: true
+    },
     eventType: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     eventDate: {
         type: Date,
@@ -39,25 +50,18 @@ const bookingSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    eventLocation: {
+    requirements: {
         type: String,
-        required: true,
-        trim: true
-    },
-    requirements: [{
-        type: String
-    }],
-    message: {
-        type: String,
+        default: '',
         trim: true
     },
     status: {
         type: String,
-        enum: ['pending', 'adminApproved', 'confirmed', 'rejected', 'artistRejected', 'completed'],
+        enum: ['pending', 'accepted', 'rejected'],
         default: 'pending'
     }
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model('Booking', bookingSchema);
+module.exports = mongoose.model('Inquiry', inquirySchema);

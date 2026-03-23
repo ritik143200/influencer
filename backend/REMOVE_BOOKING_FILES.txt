@@ -1,0 +1,4 @@
+Delete these files to fully remove booking backend:
+- backend/models/Booking.js
+- backend/controllers/bookingController.js
+- backend/routes/bookingRoutes.js

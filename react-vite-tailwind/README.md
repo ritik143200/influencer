@@ -27,7 +27,6 @@ react-vite-tailwind/
 │   ├── components/          # Reusable UI Components
 │   │   ├── Navbar.jsx      # Navigation bar with search
 │   │   ├── HeroSlider.jsx  # Auto-rotating hero section
-│   │   ├── ArtistCard.jsx  # Artist display card
 │   │   ├── CategoryCircles.jsx # Category selection
 │   │   ├── TrendingArtists.jsx # Trending section
 │   │   ├── CategorySection.jsx # Category-wise artists
@@ -51,7 +50,6 @@ react-vite-tailwind/
 ### 1. **Navigation System**
 - Sticky navbar with scroll effects
 - Category dropdown menu
-- Search functionality
 - Mobile responsive menu
 
 ### 2. **Hero Section**
@@ -65,7 +63,6 @@ react-vite-tailwind/
 - Horizontal scrolling
 
 ### 4. **Artist Cards**
-- Rating system with stars
 - Price display
 - Verified badges
 - Trending indicators

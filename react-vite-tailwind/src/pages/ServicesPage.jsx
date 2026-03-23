@@ -44,8 +44,7 @@ const ServicesPage = ({ config }) => {
               {[
                 '🎤 Portfolio Showcase',
                 '📅 Booking Management',
-                '💳 Secure Payments',
-                '⭐ Reviews & Ratings'
+                '💳 Secure Payments'
               ].map((item, index) => (
                 <div key={index} className="flex items-center gap-2 text-white/90">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -220,7 +220,6 @@ const HowItWorksPage = ({ config }) => {
             {[
               { icon: '🔒', label: 'Secure Platform', color: 'brand' },
               { icon: '📱', label: 'Mobile Friendly', color: 'purple' },
-              { icon: '⭐', label: 'Reviews & Ratings', color: 'brand' },
               { icon: '💬', label: 'Direct Messaging', color: 'purple' },
               { icon: '📊', label: 'Analytics Dashboard', color: 'brand' },
               { icon: '🌍', label: 'Global Reach', color: 'purple' },

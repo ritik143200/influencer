@@ -1024,14 +1024,14 @@ const ArtistRegistrationPage = ({ config }) => {
                     onClick={() => {
                       // For influencers, create simple subcategories
                       const influencerSubcategories = {
-                        fashion_content: { name: 'Fashion Content', icon: '👗', items: ['Outfit Ideas', 'Style Tips', 'Fashion Reviews', 'Trend Analysis'], categoryName: 'Fashion', categoryId: 'fashion' },
+                        fashion_content: { name: 'Fashion Content', icon: '👗', items: ['Outfit Ideas', 'Style Tips', 'Trend Analysis', 'Fashion Photography'], categoryName: 'Fashion', categoryId: 'fashion' },
                         lifestyle_content: { name: 'Lifestyle Content', icon: '🌟', items: ['Daily Routines', 'Home Decor', 'Life Hacks', 'Personal Stories'], categoryName: 'Lifestyle', categoryId: 'lifestyle' },
-                        beauty_content: { name: 'Beauty Content', icon: '💄', items: ['Makeup Tutorials', 'Skincare', 'Product Reviews', 'Beauty Tips'], categoryName: 'Beauty', categoryId: 'beauty' },
+                        beauty_content: { name: 'Beauty Content', icon: '💄', items: ['Makeup Tutorials', 'Skincare', 'Beauty Tips', 'Wellness'], categoryName: 'Beauty', categoryId: 'beauty' },
                         fitness_content: { name: 'Fitness Content', icon: '💪', items: ['Workout Routines', 'Fitness Tips', 'Nutrition', 'Wellness'], categoryName: 'Fitness', categoryId: 'fitness' },
-                        travel_content: { name: 'Travel Content', icon: '✈️', items: ['Travel Guides', 'Destination Reviews', 'Travel Tips', 'Adventure Stories'], categoryName: 'Travel', categoryId: 'travel' },
-                        food_content: { name: 'Food Content', icon: '🍕', items: ['Recipes', 'Food Reviews', 'Cooking Tips', 'Restaurant Guides'], categoryName: 'Food', categoryId: 'food' },
-                        tech_content: { name: 'Tech Content', icon: '💻', items: ['Gadget Reviews', 'Tech Tips', 'Software Tutorials', 'Tech News'], categoryName: 'Technology', categoryId: 'tech' },
-                        gaming_content: { name: 'Gaming Content', icon: '🎮', items: ['Game Reviews', 'Gaming Tips', 'Live Streams', 'Gaming News'], categoryName: 'Gaming', categoryId: 'gaming' }
+                        travel_content: { name: 'Travel Content', icon: '✈️', items: ['Travel Guides', 'Travel Tips', 'Adventure Stories', 'Photography'], categoryName: 'Travel', categoryId: 'travel' },
+                        food_content: { name: 'Food Content', icon: '🍕', items: ['Recipes', 'Cooking Tips', 'Restaurant Guides', 'Food Photography'], categoryName: 'Food', categoryId: 'food' },
+                        tech_content: { name: 'Tech Content', icon: '💻', items: ['Tech Tips', 'Software Tutorials', 'Tech News', 'Product Guides'], categoryName: 'Technology', categoryId: 'tech' },
+                        gaming_content: { name: 'Gaming Content', icon: '🎮', items: ['Gaming Tips', 'Live Streams', 'Gaming News', 'Esports'], categoryName: 'Gaming', categoryId: 'gaming' }
                       };
                       
                       // Filter only selected categories
