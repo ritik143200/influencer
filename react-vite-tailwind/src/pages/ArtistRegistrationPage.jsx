@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 
 const ArtistRegistrationPage = ({ config }) => {
@@ -45,6 +45,7 @@ const ArtistRegistrationPage = ({ config }) => {
   const [showSubcategories, setShowSubcategories] = useState(false);
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [selectedCategoryData, setSelectedCategoryData] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const allCategoriesData = {
@@ -796,7 +797,10 @@ const ArtistRegistrationPage = ({ config }) => {
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <button
-              onClick={() => handleInputChange('profileType', 'artist')}
+              onClick={() => {
+                handleInputChange('profileType', 'artist');
+                setShowProfileModal(true);
+              }}
               className={`p-8 rounded-2xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[140px] ${
                 formData.profileType === 'artist'
                   ? 'border-brand-500 bg-brand-50 shadow-lg'
@@ -808,7 +812,10 @@ const ArtistRegistrationPage = ({ config }) => {
               <div className="text-sm text-gray-500 text-center mt-2">Singer, Dancer, Musician, etc.</div>
             </button>
             <button
-              onClick={() => handleInputChange('profileType', 'influencer')}
+              onClick={() => {
+                handleInputChange('profileType', 'influencer');
+                setShowProfileModal(true);
+              }}
               className={`p-8 rounded-2xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[140px] ${
                 formData.profileType === 'influencer'
                   ? 'border-brand-500 bg-brand-50 shadow-lg'
@@ -822,241 +829,20 @@ const ArtistRegistrationPage = ({ config }) => {
           </div>
         </div>
         
-        {formData.profileType === 'artist' && (
-          <>
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Artist Type
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <select
-                value={formData.artistType}
-                onChange={(e) => handleInputChange('artistType', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              >
-                <option value="">Select Artist Type</option>
-                <option value="solo">Solo Artist</option>
-                <option value="group">Group/Band</option>
-                <option value="duo">Duo</option>
-                <option value="trio">Trio</option>
-              </select>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Categories
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <div className="mb-3">
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <span>Selected: {formData.categories?.length || 0} / 3 maximum</span>
-                  {formData.categories && formData.categories.length >= 3 && (
-                    <span className="text-orange-600 font-medium">⚠ Maximum reached</span>
-                  )}
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                  <div 
-                    className="bg-brand-500 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${Math.min((formData.categories?.length || 0) / 3 * 100, 100)}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className="max-h-96 overflow-y-auto overflow-x-hidden border-2 border-gray-200 rounded-xl p-6 bg-gray-50">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {artistCategories.map(category => {
-                    const isSelected = formData.categories?.includes(category.id);
-                    return (
-                      <button
-                        key={category.id}
-                        onClick={() => toggleCategory(category.id)}
-                        className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[100px] relative ${
-                          isSelected
-                            ? 'border-brand-500 bg-brand-50 shadow-lg'
-                            : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
-                        }`}
-                      >
-                        {isSelected && (
-                          <div className="absolute top-2 right-2 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center">
-                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
-                        )}
-                        <div className="text-3xl mb-2">{category.icon}</div>
-                        <div className="text-sm font-medium text-center leading-tight">{category.name}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2">Scroll to see all categories. Select up to 3 categories.</p>
-              {formData.categories && formData.categories.length > 0 && (
-                <div className="mt-3 p-3 bg-brand-50 rounded-lg">
-                  <p className="text-sm font-medium text-brand-700 mb-2">Selected Categories:</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {formData.categories.map(catId => {
-                      const category = artistCategories.find(cat => cat.id === catId);
-                      return (
-                        <span key={catId} className="px-2 py-1 bg-brand-100 text-brand-700 rounded-md text-xs font-medium">
-                          {category?.icon} {category?.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                  {formData.categories.length >= 1 && (
-                    <button
-                      onClick={() => {
-                        // Combine subcategories from all selected categories
-                        const combinedSubcategories = {};
-                        formData.categories.forEach(categoryId => {
-                          if (allCategoriesData[categoryId]) {
-                            const categoryData = allCategoriesData[categoryId];
-                            Object.entries(categoryData.subcategories).forEach(([key, subcategory]) => {
-                              // Create unique key to avoid conflicts between categories
-                              const uniqueKey = `${categoryId}_${key}`;
-                              combinedSubcategories[uniqueKey] = {
-                                ...subcategory,
-                                categoryName: categoryData.name,
-                                categoryId: categoryId
-                              };
-                            });
-                          }
-                        });
-                        
-                        setSelectedCategoryData({
-                          name: 'Selected Categories',
-                          subcategories: combinedSubcategories
-                        });
-                        setShowSubcategories(true);
-                        setShowCategoryPopup(true);
-                      }}
-                      className="w-full px-4 py-2 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-all"
-                    >
-                      Select Subcategories ({formData.subcategories?.length || 0}/6)
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-        
-        {formData.profileType === 'influencer' && (
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Influencer Categories
-              <span className="text-red-500 ml-1">*</span>
-            </label>
-            <div className="mb-3">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <span>Selected: {formData.categories?.length || 0} / 3 maximum</span>
-                {formData.categories && formData.categories.length >= 3 && (
-                  <span className="text-orange-600 font-medium">⚠ Maximum reached</span>
-                )}
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                <div 
-                  className="bg-brand-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min((formData.categories?.length || 0) / 3 * 100, 100)}%` }}
-                ></div>
+        {formData.profileType && (
+          <div className="space-y-4">
+            <div className="p-4 bg-brand-50 rounded-lg">
+              <p className="text-sm font-medium text-brand-700">Selected Profile: {formData.profileType === 'artist' ? 'Artist' : 'Influencer'}</p>
+              <p className="text-xs text-gray-600 mt-1">Click to edit profile-specific details in a popup.</p>
+              <div className="mt-3">
+                <button
+                  onClick={() => setShowProfileModal(true)}
+                  className="px-4 py-2 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-all"
+                >
+                  Edit Details
+                </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {[
-                { id: 'fashion', name: 'Fashion', icon: '👗' },
-                { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
-                { id: 'beauty', name: 'Beauty', icon: '💄' },
-                { id: 'fitness', name: 'Fitness', icon: '💪' },
-                { id: 'travel', name: 'Travel', icon: '✈️' },
-                { id: 'food', name: 'Food', icon: '🍕' },
-                { id: 'tech', name: 'Technology', icon: '💻' },
-                { id: 'gaming', name: 'Gaming', icon: '🎮' }
-              ].map(category => {
-                const isSelected = formData.categories?.includes(category.id);
-                return (
-                  <button
-                    key={category.id}
-                    onClick={() => toggleCategory(category.id)}
-                    className={`p-4 rounded-xl border-2 transition-all transform hover:scale-105 flex flex-col items-center justify-center min-h-[100px] relative ${
-                      isSelected
-                        ? 'border-brand-500 bg-brand-50 shadow-lg'
-                        : 'border-gray-200 hover:border-gray-300 bg-white shadow-md hover:shadow-lg'
-                    }`}
-                  >
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-brand-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                    <div className="text-3xl mb-2">{category.icon}</div>
-                    <div className="text-sm font-medium text-center">{category.name}</div>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Select up to 3 categories.</p>
-            {formData.categories && formData.categories.length > 0 && (
-              <div className="mt-3 p-3 bg-brand-50 rounded-lg">
-                <p className="text-sm font-medium text-brand-700 mb-2">Selected Categories:</p>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {formData.categories.map(catId => {
-                    const category = [
-                      { id: 'fashion', name: 'Fashion', icon: '👗' },
-                      { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
-                      { id: 'beauty', name: 'Beauty', icon: '💄' },
-                      { id: 'fitness', name: 'Fitness', icon: '💪' },
-                      { id: 'travel', name: 'Travel', icon: '✈️' },
-                      { id: 'food', name: 'Food', icon: '🍕' },
-                      { id: 'tech', name: 'Technology', icon: '💻' },
-                      { id: 'gaming', name: 'Gaming', icon: '🎮' }
-                    ].find(cat => cat.id === catId);
-                    return (
-                      <span key={catId} className="px-2 py-1 bg-brand-100 text-brand-700 rounded-md text-xs font-medium">
-                        {category?.icon} {category?.name}
-                      </span>
-                    );
-                  })}
-                </div>
-                {formData.categories.length >= 1 && (
-                  <button
-                    onClick={() => {
-                      // For influencers, create simple subcategories
-                      const influencerSubcategories = {
-                        fashion_content: { name: 'Fashion Content', icon: '👗', items: ['Outfit Ideas', 'Style Tips', 'Trend Analysis', 'Fashion Photography'], categoryName: 'Fashion', categoryId: 'fashion' },
-                        lifestyle_content: { name: 'Lifestyle Content', icon: '🌟', items: ['Daily Routines', 'Home Decor', 'Life Hacks', 'Personal Stories'], categoryName: 'Lifestyle', categoryId: 'lifestyle' },
-                        beauty_content: { name: 'Beauty Content', icon: '💄', items: ['Makeup Tutorials', 'Skincare', 'Beauty Tips', 'Wellness'], categoryName: 'Beauty', categoryId: 'beauty' },
-                        fitness_content: { name: 'Fitness Content', icon: '💪', items: ['Workout Routines', 'Fitness Tips', 'Nutrition', 'Wellness'], categoryName: 'Fitness', categoryId: 'fitness' },
-                        travel_content: { name: 'Travel Content', icon: '✈️', items: ['Travel Guides', 'Travel Tips', 'Adventure Stories', 'Photography'], categoryName: 'Travel', categoryId: 'travel' },
-                        food_content: { name: 'Food Content', icon: '🍕', items: ['Recipes', 'Cooking Tips', 'Restaurant Guides', 'Food Photography'], categoryName: 'Food', categoryId: 'food' },
-                        tech_content: { name: 'Tech Content', icon: '💻', items: ['Tech Tips', 'Software Tutorials', 'Tech News', 'Product Guides'], categoryName: 'Technology', categoryId: 'tech' },
-                        gaming_content: { name: 'Gaming Content', icon: '🎮', items: ['Gaming Tips', 'Live Streams', 'Gaming News', 'Esports'], categoryName: 'Gaming', categoryId: 'gaming' }
-                      };
-                      
-                      // Filter only selected categories
-                      const selectedInfluencerSubcategories = {};
-                      formData.categories.forEach(categoryId => {
-                        const key = `${categoryId}_content`;
-                        if (influencerSubcategories[key]) {
-                          selectedInfluencerSubcategories[key] = influencerSubcategories[key];
-                        }
-                      });
-                      
-                      setSelectedCategoryData({
-                        name: 'Selected Categories',
-                        subcategories: selectedInfluencerSubcategories
-                      });
-                      setShowSubcategories(true);
-                      setShowCategoryPopup(true);
-                    }}
-                    className="w-full px-4 py-2 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-all"
-                  >
-                    Select Subcategories ({formData.subcategories?.length || 0}/6)
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         )}
 
@@ -1445,20 +1231,269 @@ const ArtistRegistrationPage = ({ config }) => {
     </div>
   );
 
+  // Profile Details Modal (Artist / Influencer)
+  const modalRef = useRef(null);
+  const formCardRef = useRef(null);
+  const [formScale, setFormScale] = useState(1);
+  const [modalScale, setModalScale] = useState(1);
+
+  const closeProfileModal = () => {
+    setShowProfileModal(false);
+  };
+
+  useEffect(() => {
+    if (!showProfileModal) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') closeProfileModal();
+    };
+    const onClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        closeProfileModal();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClickOutside);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClickOutside);
+    };
+  }, [showProfileModal]);
+
+  // Scale down the main form or modal if it exceeds viewport height
+  useEffect(() => {
+    let rafId = null;
+    const adjust = () => {
+      // main form card
+      if (formCardRef.current) {
+        const rect = formCardRef.current.getBoundingClientRect();
+        const available = window.innerHeight - 120; // header+padding
+        let scale = 1;
+        if (rect.height > available) {
+          scale = Math.max(0.75, available / rect.height);
+        }
+        setFormScale(scale);
+      }
+
+      // modal content
+      if (modalRef.current) {
+        const rect = modalRef.current.getBoundingClientRect();
+        const available = window.innerHeight - 80;
+        let scale = 1;
+        if (rect.height > available) {
+          scale = Math.max(0.7, available / rect.height);
+        }
+        setModalScale(scale);
+      }
+    };
+
+    const onResize = () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(adjust);
+    };
+
+    // initial adjust and on resize
+    adjust();
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [/* depends on layout changes */]);
+
+  const prepareAndOpenSubcategories = () => {
+    if (!formData.categories || formData.categories.length === 0) return;
+    if (formData.profileType === 'artist') {
+      const combinedSubcategories = {};
+      formData.categories.forEach(categoryId => {
+        if (allCategoriesData[categoryId]) {
+          const categoryData = allCategoriesData[categoryId];
+          Object.entries(categoryData.subcategories).forEach(([key, subcategory]) => {
+            const uniqueKey = `${categoryId}_${key}`;
+            combinedSubcategories[uniqueKey] = {
+              ...subcategory,
+              categoryName: categoryData.name,
+              categoryId
+            };
+          });
+        }
+      });
+      setSelectedCategoryData({ name: 'Selected Categories', subcategories: combinedSubcategories });
+    } else {
+      const influencerSubcategories = {
+        fashion_content: { name: 'Fashion Content', icon: '👗', items: ['Outfit Ideas', 'Style Tips', 'Trend Analysis', 'Fashion Photography'], categoryName: 'Fashion', categoryId: 'fashion' },
+        lifestyle_content: { name: 'Lifestyle Content', icon: '🌟', items: ['Daily Routines', 'Home Decor', 'Life Hacks', 'Personal Stories'], categoryName: 'Lifestyle', categoryId: 'lifestyle' },
+        beauty_content: { name: 'Beauty Content', icon: '💄', items: ['Makeup Tutorials', 'Skincare', 'Beauty Tips', 'Wellness'], categoryName: 'Beauty', categoryId: 'beauty' },
+        fitness_content: { name: 'Fitness Content', icon: '💪', items: ['Workout Routines', 'Fitness Tips', 'Nutrition', 'Wellness'], categoryName: 'Fitness', categoryId: 'fitness' },
+        travel_content: { name: 'Travel Content', icon: '✈️', items: ['Travel Guides', 'Travel Tips', 'Adventure Stories', 'Photography'], categoryName: 'Travel', categoryId: 'travel' },
+        food_content: { name: 'Food Content', icon: '🍕', items: ['Recipes', 'Cooking Tips', 'Restaurant Guides', 'Food Photography'], categoryName: 'Food', categoryId: 'food' },
+        tech_content: { name: 'Tech Content', icon: '💻', items: ['Tech Tips', 'Software Tutorials', 'Tech News', 'Product Guides'], categoryName: 'Technology', categoryId: 'tech' },
+        gaming_content: { name: 'Gaming Content', icon: '🎮', items: ['Gaming Tips', 'Live Streams', 'Gaming News', 'Esports'], categoryName: 'Gaming', categoryId: 'gaming' }
+      };
+      const selectedInfluencerSubcategories = {};
+      formData.categories.forEach(categoryId => {
+        const key = `${categoryId}_content`;
+        if (influencerSubcategories[key]) selectedInfluencerSubcategories[key] = influencerSubcategories[key];
+      });
+      setSelectedCategoryData({ name: 'Selected Categories', subcategories: selectedInfluencerSubcategories });
+    }
+
+    setShowSubcategories(true);
+    setShowCategoryPopup(true);
+  };
+
+  const ProfileDetailsModal = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-200">
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Profile details" className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[85vh] overflow-hidden transform transition-all duration-300 scale-100">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold">{formData.profileType === 'artist' ? 'Artist Details' : 'Influencer Details'}</h3>
+            <p className="text-xs text-gray-500">Provide details to help us categorize your profile</p>
+          </div>
+          <button onClick={closeProfileModal} aria-label="Close modal" className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Sticky top bar with select subcategories */}
+        <div className="sticky top-0 z-20 bg-white px-6 pt-4 pb-3 border-b">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="text-sm font-medium">{formData.profileType === 'artist' ? 'Artist' : 'Influencer'}</div>
+              <div className="text-xs text-gray-500">{formData.categories?.length || 0} selected</div>
+            </div>
+            <div>
+              <button onClick={prepareAndOpenSubcategories} className="px-3 py-1.5 bg-brand-500 text-white rounded-md text-sm shadow-sm hover:shadow-md transition">
+                Select Subcategories ({formData.subcategories?.length || 0}/6)
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          {formData.profileType === 'artist' ? (
+            <>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Artist Type</label>
+                  <select
+                    value={formData.artistType}
+                    onChange={(e) => handleInputChange('artistType', e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 bg-gray-50 focus:ring-0"
+                  >
+                    <option value="">Select Artist Type</option>
+                    <option value="solo">Solo Artist</option>
+                    <option value="group">Group/Band</option>
+                    <option value="duo">Duo</option>
+                    <option value="trio">Trio</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">Categories</label>
+                    <span className="text-xs text-gray-500">Selected: {formData.categories?.length || 0} / 3</span>
+                  </div>
+
+                  <div className="overflow-y-auto" style={{ maxHeight: '48vh' }}>
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search categories..."
+                        onChange={(e) => {/* optional: hook for filtering in future */}}
+                        className="w-full px-3 py-2 rounded-md border border-gray-100 text-sm bg-white/80 placeholder-gray-400"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                      {artistCategories.map(category => {
+                        const isSelected = formData.categories?.includes(category.id);
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => toggleCategory(category.id)}
+                            className={`group relative flex flex-col items-center gap-2 p-2 rounded-xl border ${isSelected ? 'border-brand-500 bg-brand-50' : 'border-transparent bg-white'} hover:shadow-sm transition`}
+                            style={{ minHeight: 76 }}
+                          >
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${isSelected ? 'bg-gradient-to-br from-brand-400 to-brand-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                              {category.icon}
+                            </div>
+                            <div className="text-xs text-center text-gray-700 truncate w-full">{category.name}</div>
+                            {isSelected && (
+                              <div className="absolute -top-1 -right-1 w-6 h-6 bg-white border border-brand-500 rounded-full flex items-center justify-center text-brand-600 shadow">✓</div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {formData.categories && formData.categories.length > 0 && (
+                    <div className="mt-4 flex items-center justify-end">
+                      <button onClick={prepareAndOpenSubcategories} className="px-4 py-2 bg-brand-500 text-white rounded-lg shadow-sm">Select Subcategories ({formData.subcategories?.length || 0}/6)</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <div className="overflow-y-auto" style={{ maxHeight: '48vh' }}>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {[{ id: 'fashion', name: 'Fashion', icon: '👗' }, { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' }, { id: 'beauty', name: 'Beauty', icon: '💄' }, { id: 'fitness', name: 'Fitness', icon: '💪' }, { id: 'travel', name: 'Travel', icon: '✈️' }, { id: 'food', name: 'Food', icon: '🍕' }, { id: 'tech', name: 'Technology', icon: '💻' }, { id: 'gaming', name: 'Gaming', icon: '🎮' }].map(category => {
+                      const isSelected = formData.categories?.includes(category.id);
+                      return (
+                        <button
+                          key={category.id}
+                          onClick={() => toggleCategory(category.id)}
+                          className={`relative flex flex-col items-center gap-2 p-2 rounded-xl border ${isSelected ? 'border-brand-500 bg-brand-50' : 'border-transparent bg-white'} hover:shadow-sm transition`} 
+                          style={{ minHeight: 76 }}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${isSelected ? 'bg-gradient-to-br from-brand-400 to-brand-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                            {category.icon}
+                          </div>
+                          <div className="text-xs text-center text-gray-700 truncate w-full">{category.name}</div>
+                          {isSelected && <div className="absolute -top-1 -right-1 w-6 h-6 bg-white border border-brand-500 rounded-full flex items-center justify-center text-brand-600 shadow">✓</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {formData.categories && formData.categories.length > 0 && (
+                  <div className="mt-4 flex items-center justify-end">
+                    <button onClick={prepareAndOpenSubcategories} className="px-4 py-2 bg-brand-500 text-white rounded-lg shadow-sm">Select Subcategories ({formData.subcategories?.length || 0}/6)</button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="flex justify-end">
+            <button onClick={closeProfileModal} className="px-4 py-2 bg-white border border-gray-200 rounded-lg mr-2 hover:bg-gray-50">Close</button>
+            <button onClick={() => setShowProfileModal(false)} className="px-4 py-2 bg-brand-500 text-white rounded-lg shadow-sm hover:shadow-md">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
+    <div className="pt-8 pb-8 min-h-full" style={{ backgroundColor: config.background_color }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-8">
           <button 
             onClick={() => navigate('home')}
-            className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all mb-4"
+            className="w-10 h-10 rounded-full bg-white shadow hover:shadow-md flex items-center justify-center transition-all mb-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-3xl lg:text-4xl font-bold mb-4" style={{ color: config.text_color }}>
+          <h1 className="text-2xl lg:text-3xl font-bold mb-2" style={{ color: config.text_color }}>
             Create Your Artist Profile
           </h1>
           <p className="text-gray-600">Join our platform as a talented artist or influencer. Showcase your skills and connect with opportunities.</p>
@@ -1492,8 +1527,18 @@ const ArtistRegistrationPage = ({ config }) => {
         </div>
 
         {/* Form Content */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          {renderStep1Combined()}
+        <div className="flex justify-center">
+          <div
+            ref={formCardRef}
+            className="bg-white rounded-2xl shadow-lg p-8 w-full"
+            style={{
+              transform: `scale(${formScale})`,
+              transformOrigin: 'top center',
+              transition: 'transform 160ms ease'
+            }}
+          >
+            {renderStep1Combined()}
+          </div>
         </div>
 
         {/* Selection Progress Summary */}
@@ -1554,6 +1599,7 @@ const ArtistRegistrationPage = ({ config }) => {
 
       {/* Category Selection Popup */}
       {showCategoryPopup && <CategoryPopup />}
+      {showProfileModal && <ProfileDetailsModal />}
     </div>
   );
 };
