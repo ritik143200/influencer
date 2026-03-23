@@ -94,7 +94,7 @@ const ServicesInfluencersPage = ({ config }) => {
                 '✈️ Travel', '🍕 Food', '💻 Technology', '🎮 Gaming',
                 '🎬 Entertainment', '📚 Education', '🏃 Sports', '🏠 Home',
                 '🐾 Pets', '🚗 Automotive', '💰 Finance', '🎯 Business',
-                '📱 Tech Reviews', '🎨 Art & Design', '🎵 Music', '📖 Books',
+                '🎨 Art & Design', '🎵 Music', '📖 Books',
                 '🌿 Wellness', '👶 Parenting', '💑 Relationships', '🎪 Comedy'
               ].map((category, index) => (
                 <div 

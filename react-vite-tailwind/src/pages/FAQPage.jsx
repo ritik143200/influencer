@@ -65,11 +65,6 @@ const FAQPage = ({ config }) => {
       question: "What kind of support is available?",
       answer: "We offer 24/7 customer support via chat, email, and phone. Our team helps with booking issues, payment problems, artist disputes, and general inquiries. Premium members get priority support.",
       category: "Support"
-    },
-    {
-      question: "Can artists leave reviews for clients?",
-      answer: "Yes, after completing a booking, both artists and clients can leave reviews. This builds trust and helps the community make informed decisions. Reviews are moderated to ensure fairness.",
-      category: "Reviews"
     }
   ];
 
@@ -93,7 +88,7 @@ const FAQPage = ({ config }) => {
         {/* FAQ Categories */}
         <div className="mb-8">
           <div className="flex flex-wrap gap-2 justify-center">
-            {['All', 'Booking', 'Verification', 'Payment', 'Pricing', 'Support', 'Features', 'Communication', 'Reviews'].map(category => (
+            {['All', 'Booking', 'Verification', 'Payment', 'Pricing', 'Support', 'Features', 'Communication'].map(category => (
               <button
                 key={category}
                 className="px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-brand-100 hover:text-brand-600 transition-colors"

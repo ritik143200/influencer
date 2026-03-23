@@ -8,8 +8,9 @@ const fs = require('fs');
 const authRoutes = require('./routes/authRoutes');
 const artistRoutes = require('./routes/artistRoutes');
 // Removed artists route - artist browsing functionality removed
-const bookingRoutes = require('./routes/bookingRoutes');
+// Booking routes import removed
 const adminRoutes = require('./routes/adminRoutes');
+const inquiryRoutes = require('./routes/inquiryRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -44,7 +45,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/artist', artistRoutes);
 // Removed /api/artists route - artist browsing functionality removed
 app.use('/api/auth', authRoutes);
-app.use('/api/bookings', bookingRoutes);
+// Booking routes usage removed
+app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Health check
