@@ -2,12 +2,7 @@ const mongoose = require('mongoose');
 
 const artistSchema = new mongoose.Schema({
   // Personal Information
-  firstName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  lastName: {
+  fullName: {
     type: String,
     required: true,
     trim: true
@@ -24,15 +19,7 @@ const artistSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  dateOfBirth: {
-    type: Date,
-    required: true
-  },
-  gender: {
-    type: String,
-    enum: ['male', 'female', 'other', 'prefer-not-to-say'],
-    required: true
-  },
+ 
   password: {
     type: String,
     required: true,
@@ -45,36 +32,39 @@ const artistSchema = new mongoose.Schema({
   },
 
   // Professional Information
+  profileType: {
+    type: String,
+    enum: ['artist', 'influencer'],
+    required: true
+  },
   artistType: {
     type: String,
     enum: ['solo', 'group', 'duo', 'trio'],
-    required: true
+    required: function() { return this.profileType === 'artist'; }
   },
-  category: {
+  categories: [{
     type: String,
     required: true
-  },
-  subcategory: {
+  }],
+  subcategories: [{
     type: String,
-    default: ''
-  },
-  experience: {
-    type: String,
-    enum: ['0-1', '1-3', '3-5', '5-10', '10+'],
-    required: true
-  },
+    default: []
+  }],
+  
   skills: [{
     type: String,
-    trim: true
+    trim: true,
+    required: false,
+    default: []
   }],
   bio: {
     type: String,
-    required: true,
+    required: false,
     maxlength: 1000
   },
   location: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   budget: {
@@ -168,13 +158,14 @@ const artistSchema = new mongoose.Schema({
 
 // Index for better search performance
 artistSchema.index({ email: 1 });
-artistSchema.index({ category: 1 });
+artistSchema.index({ categories: 1 });
 artistSchema.index({ location: 1 });
 artistSchema.index({ verificationStatus: 1 });
+artistSchema.index({ profileType: 1 });
 
-// Virtual for full name
-artistSchema.virtual('fullName').get(function () {
-  return `${this.firstName} ${this.lastName}`;
+// Virtual for display name (alternative to fullName)
+artistSchema.virtual('displayName').get(function () {
+  return this.fullName ;
 });
 
 // Ensure virtuals are included in JSON output
