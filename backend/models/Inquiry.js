@@ -91,7 +91,7 @@ const inquirySchema = new mongoose.Schema({
     },
     forwardedTo: [
         {
-            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
             forwardedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
             forwardedAt: { type: Date, default: Date.now }
         }

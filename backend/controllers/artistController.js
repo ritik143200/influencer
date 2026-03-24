@@ -1,4 +1,5 @@
 const Artist = require('../models/Artist');
+const Inquiry = require('../models/Inquiry');
 const Notification = require('../models/Notification');
 const multer = require('multer');
 const path = require('path');
