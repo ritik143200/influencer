@@ -7,7 +7,7 @@ import AdminArtistsManagement from '../components/AdminArtistsManagement';
 const AdminDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { user, logout } = useAuth();
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(true);
