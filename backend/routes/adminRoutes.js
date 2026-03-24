@@ -5,7 +5,8 @@ const { protect } = require('../middleware/authMiddleware');
 const {
     getAllBookings, updateBookingStatus,
     getAllInquiries, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
-    getAllUsers, updateUserAction, deleteUser
+    getAllUsers, updateUserAction, deleteUser,
+    updateArtistStatus
 } = require('../controllers/adminController');
 const {
     getAdminNotifications, markAsRead, markAllAsRead
