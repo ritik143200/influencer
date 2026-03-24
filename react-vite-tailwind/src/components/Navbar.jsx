@@ -99,36 +99,40 @@ const Navbar = ({ config }) => {
                 {/* Services Dropdown */}
                 {showServicesDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[100]">
-                    <button
-                      onClick={() => {
-                        navigate('artist-registration');
-                        setShowServicesDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.55c-.9.35-1.45-1.97-1.45H13c-.55 0-1.05.45-1.05 1.45v1c0 1.1.9 2 2 2h3c.55 0 1.05-.45 1.05-1.45v-1c0-1.1-.9-2-2-2z"/>
-                      </svg>
-                      <div>
-                        <div className="font-medium">Artist Registration</div>
-                        <div className="text-xs text-gray-500">Create your artist profile</div>
-                      </div>
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate('auth');
-                        setShowServicesDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      <div>
-                        <div className="font-medium">Sign In</div>
-                        <div className="text-xs text-gray-500">Access your account</div>
-                      </div>
-                    </button>
+                    {!isAuthenticated && (
+                      <>
+                        <button
+                          onClick={() => {
+                            navigate('artist-registration');
+                            setShowServicesDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.55c-.9.35-1.45-1.97-1.45H13c-.55 0-1.05.45-1.05 1.45v1c0 1.1.9 2 2 2h3c.55 0 1.05-.45 1.05-1.45v-1c0-1.1-.9-2-2-2z"/>
+                          </svg>
+                          <div>
+                            <div className="font-medium">Artist Registration</div>
+                            <div className="text-xs text-gray-500">Create your artist profile</div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('auth');
+                            setShowServicesDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <div>
+                            <div className="font-medium">Sign In</div>
+                            <div className="text-xs text-gray-500">Access your account</div>
+                          </div>
+                        </button>
+                      </>
+                    )}
                     <div className="border-t border-gray-200 mt-2 pt-2">
                       <button
                         onClick={() => {
@@ -386,18 +390,20 @@ const Navbar = ({ config }) => {
               </div>
             )}
 
-            {/* Artist Registration Link */}
-            <button 
-              onClick={() => navigate('artist-registration')}
-              className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap flex items-center gap-2"
-              style={{ backgroundColor: config.primary_action }}
-            >
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-              </span>
-              Artist/Influencer Registration
-            </button>
+            {/* Artist Registration Link - Hidden for authenticated users */}
+            {!isAuthenticated && (
+              <button 
+                onClick={() => navigate('artist-registration')}
+                className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap flex items-center gap-2"
+                style={{ backgroundColor: config.primary_action }}
+              >
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                </span>
+                Artist/Influencer Registration
+              </button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -507,20 +513,23 @@ const Navbar = ({ config }) => {
                 </>
               )}
               
-              <button
-                onClick={() => {
-                  navigate('artist-registration');
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                style={{ backgroundColor: config.primary_action }}
-              >
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                </span>
-                Artist/Influencer Registration
-              </button>
+              {/* Artist Registration Link - Hidden for authenticated users */}
+              {!isAuthenticated && (
+                <button
+                  onClick={() => {
+                    navigate('artist-registration');
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                  style={{ backgroundColor: config.primary_action }}
+                >
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                  </span>
+                  Artist/Influencer Registration
+                </button>
+              )}
             </div>
           </div>
         )}
