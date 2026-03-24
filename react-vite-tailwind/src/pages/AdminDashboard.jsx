@@ -52,10 +52,7 @@ const AdminDashboard = ({ config }) => {
   }, [user, navigate]);
 
   // Fetch dashboard data function
-  useEffect(() => {
-    if (!adminData) return;
-
-    const fetchDashboardData = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -78,66 +75,33 @@ const AdminDashboard = ({ config }) => {
         setInquiries(inquiriesData.data || inquiriesData || []);
       }
 
-        // Fetch artists data
-        const artistsRes = await fetch(`${API_BASE_URL}/api/artist`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-          }
-        });
+      // Fetch artists data
+      const artistsRes = await fetch(`${API_BASE_URL}/api/artist`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+        }
+      });
+      
+      console.log('Artists fetch response status:', artistsRes.status);
+      
+      if (artistsRes.ok) {
+        const artistsData = await artistsRes.json();
+        console.log('Artists data received:', artistsData);
+        const artistsArray = Array.isArray(artistsData.data) ? artistsData.data : 
+                            Array.isArray(artistsData) ? artistsData : 
+                            Array.isArray(artistsData.artists) ? artistsData.artists : [];
+        console.log('Artists array after processing:', artistsArray);
         
-        console.log('Artists fetch response status:', artistsRes.status);
+        // Filter out artists with missing required fields and create demo artists if needed
+        const validArtists = artistsArray.filter(artist => 
+          artist && (artist.fullName || artist.name) && artist.email && 
+          (artist.categories && artist.categories.length > 0 || artist.category)
+        );
         
-        if (artistsRes.ok) {
-          const artistsData = await artistsRes.json();
-          console.log('Artists data received:', artistsData);
-          const artistsArray = Array.isArray(artistsData.data) ? artistsData.data : 
-                              Array.isArray(artistsData) ? artistsData : 
-                              Array.isArray(artistsData.artists) ? artistsData.artists : [];
-          console.log('Artists array after processing:', artistsArray);
-          
-          // Filter out artists with missing required fields and create demo artists if needed
-          const validArtists = artistsArray.filter(artist => 
-            artist && (artist.fullName || artist.name) && artist.email && 
-            (artist.categories && artist.categories.length > 0 || artist.category)
-          );
-          
-          console.log('Valid artists after filtering:', validArtists.length);
-          
-          // If no valid artists exist, create demo artists for testing
-          if (validArtists.length === 0) {
-            const demoArtists = [
-              {
-                _id: 'demo1',
-                fullName: 'Demo Artist 1',
-                email: 'artist1@example.com',
-                categories: ['Singer'],
-                profileType: 'artist'
-              },
-              {
-                _id: 'demo2',
-                fullName: 'Demo Artist 2',
-                email: 'artist2@example.com',
-                categories: ['DJ'],
-                profileType: 'artist'
-              }
-            ];
-            console.log('Using demo artists:', demoArtists);
-            setArtists(demoArtists);
-          } else {
-            console.log('Using real artists:', validArtists);
-            setArtists(validArtists);
-          }
-        } else {
-          console.error('Failed to fetch artists:', artistsRes.status, artistsRes.statusText);
-          try {
-            const errorData = await artistsRes.json();
-            console.error('Error response:', errorData);
-          } catch (e) {
-            const errorText = await artistsRes.text();
-            console.error('Error text:', errorText);
-          }
-          
-          // Set demo artists as fallback
+        console.log('Valid artists after filtering:', validArtists.length);
+        
+        // If no valid artists exist, create demo artists for testing
+        if (validArtists.length === 0) {
           const demoArtists = [
             {
               _id: 'demo1',
@@ -145,46 +109,81 @@ const AdminDashboard = ({ config }) => {
               email: 'artist1@example.com',
               categories: ['Singer'],
               profileType: 'artist'
+            },
+            {
+              _id: 'demo2',
+              fullName: 'Demo Artist 2',
+              email: 'artist2@example.com',
+              categories: ['DJ'],
+              profileType: 'artist'
             }
           ];
+          console.log('Using demo artists:', demoArtists);
           setArtists(demoArtists);
+        } else {
+          console.log('Using real artists:', validArtists);
+          setArtists(validArtists);
         }
-
-        // Update analytics with real data (ensure arrays exist)
-        setAnalytics({
-          totalRevenue: 245678,
-          thisMonthRevenue: 45678,
-          lastMonthRevenue: 38956,
-          totalUsers: Array.isArray(users) ? users.length : 0,
-          totalArtists: Array.isArray(artists) ? artists.length : 0,
-          pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
-          activeUsers: Array.isArray(users) ? Math.floor(users.length * 0.8) : 0,
-          conversionRate: 12.5
-        });
-
-        // Fetch notifications
+      } else {
+        console.error('Failed to fetch artists:', artistsRes.status, artistsRes.statusText);
         try {
-          const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
-            headers: authHeader
-          });
-          if (notifRes.ok) {
-            const notifData = await notifRes.json();
-            // The backend returns an array directly, not wrapped in { data: [...] }
-            setNotifications(Array.isArray(notifData) ? notifData : []);
-          }
-        } catch (notifErr) {
-          console.error('Error fetching notifications:', notifErr);
-          setNotifications([]);
+          const errorData = await artistsRes.json();
+          console.error('Error response:', errorData);
+        } catch (e) {
+          const errorText = await artistsRes.text();
+          console.error('Error text:', errorText);
         }
-
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
-      } finally {
-        setLoading(false);
+        
+        // Set demo artists as fallback
+        const demoArtists = [
+          {
+            _id: 'demo1',
+            fullName: 'Demo Artist 1',
+            email: 'artist1@example.com',
+            categories: ['Singer'],
+            profileType: 'artist'
+          }
+        ];
+        setArtists(demoArtists);
       }
-    };
 
+      // Update analytics with real data (ensure arrays exist)
+      setAnalytics({
+        totalRevenue: 245678,
+        thisMonthRevenue: 45678,
+        lastMonthRevenue: 38956,
+        totalUsers: Array.isArray(users) ? users.length : 0,
+        totalArtists: Array.isArray(artists) ? artists.length : 0,
+        pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
+        activeUsers: Array.isArray(users) ? Math.floor(users.length * 0.8) : 0,
+        conversionRate: 12.5
+      });
+
+      // Fetch notifications
+      try {
+        const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
+          headers: authHeader
+        });
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          // The backend returns an array directly, not wrapped in { data: [...] }
+          setNotifications(Array.isArray(notifData) ? notifData : []);
+        }
+      } catch (notifErr) {
+        console.error('Error fetching notifications:', notifErr);
+        setNotifications([]);
+      }
+
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!adminData) return;
     fetchDashboardData();
   }, [adminData, API_BASE_URL]);
 

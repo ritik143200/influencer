@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ArtistRegistrationPage = ({ config }) => {
   const { navigate } = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const { user, isAuthenticated } = useAuth();
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
+  // Redirect authenticated artists to their dashboard — they're already registered
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'artist') {
+      navigate('artist-dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);  
   const [formData, setFormData] = useState({
     // Step 1: Personal Information
     fullName: '',
@@ -42,7 +49,7 @@ const ArtistRegistrationPage = ({ config }) => {
     termsAccepted: false
   });
 
-  const [showSubcategories, setShowSubcategories] = useState(false);
+
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [selectedCategoryData, setSelectedCategoryData] = useState(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -559,17 +566,10 @@ const ArtistRegistrationPage = ({ config }) => {
     });
   };
 
-  const handleFileChange = (field, files) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: files
-    }));
-  };
 
 
   const closeCategoryPopup = () => {
     setShowCategoryPopup(false);
-    setShowSubcategories(false);
     setSelectedCategoryData(null);
   };
 
@@ -631,11 +631,7 @@ const ArtistRegistrationPage = ({ config }) => {
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
+
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -850,154 +846,9 @@ const ArtistRegistrationPage = ({ config }) => {
     </div>
   );
 
-  const renderStep3 = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: config.text_color }}>
-        Professional Information
-      </h2>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Experience (Years)</label>
-          <select
-            value={formData.experience}
-            onChange={(e) => handleInputChange('experience', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-          >
-            <option value="">Select Experience</option>
-            <option value="0-1">0-1 Years</option>
-            <option value="1-3">1-3 Years</option>
-            <option value="3-5">3-5 Years</option>
-            <option value="5-10">5-10 Years</option>
-            <option value="10+">10+ Years</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-          <textarea
-            value={formData.bio}
-            onChange={(e) => handleInputChange('bio', e.target.value)}
-            rows={4}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="Tell us about yourself and your artistic journey..."
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-            placeholder="City, State"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Expected Budget Range (₹)</label>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Starting From</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm">₹</span>
-                </div>
-                <input
-                  type="number"
-                  value={formData.budgetMin}
-                  onChange={(e) => handleInputChange('budgetMin', e.target.value)}
-                  className="w-full px-4 py-3 pl-8 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-                  placeholder="Starting amount"
-                  min="0"
-                  step="1000"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Upto</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm">₹</span>
-                </div>
-                <input
-                  type="number"
-                  value={formData.budgetMax}
-                  onChange={(e) => handleInputChange('budgetMax', e.target.value)}
-                  className="w-full px-4 py-3 pl-8 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-                  placeholder="Maximum amount"
-                  min="0"
-                  step="1000"
-                />
-              </div>
-            </div>
-          </div>
-          <p className="mt-1 text-xs text-gray-500">
-            Enter your budget range for performances, events, or services (e.g., Starting from ₹15,000 to ₹50,000)
-          </p>
-        </div>
-      </div>
-    </div>
-  );
 
-  const renderStep4 = () => (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: config.text_color }}>
-        Social Media & Verification
-      </h2>
-      
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Social Media Links</label>
-          <div className="space-y-4">
-            <input
-              type="url"
-              value={formData.socialLinks.instagram}
-              onChange={(e) => handleInputChange('socialLinks', {...formData.socialLinks, instagram: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              placeholder="Instagram Profile URL"
-            />
-            <input
-              type="url"
-              value={formData.socialLinks.youtube}
-              onChange={(e) => handleInputChange('socialLinks', {...formData.socialLinks, youtube: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              placeholder="YouTube Channel URL"
-            />
-            <input
-              type="url"
-              value={formData.socialLinks.facebook}
-              onChange={(e) => handleInputChange('socialLinks', {...formData.socialLinks, facebook: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              placeholder="Facebook Page URL"
-            />
-            <input
-              type="url"
-              value={formData.socialLinks.website}
-              onChange={(e) => handleInputChange('socialLinks', {...formData.socialLinks, website: e.target.value})}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
-              placeholder="Personal Website URL"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              checked={formData.termsAccepted}
-              onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
-              className="w-5 h-5 text-brand-500 border-gray-300 rounded focus:ring-brand-500"
-            />
-            <span className="text-sm text-gray-700">
-              I accept the Terms of Service and Privacy Policy
-            </span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
+
+
 
   const renderStep1Combined = () => (
     <div className="space-y-6">
@@ -1235,7 +1086,7 @@ const ArtistRegistrationPage = ({ config }) => {
   const modalRef = useRef(null);
   const formCardRef = useRef(null);
   const [formScale, setFormScale] = useState(1);
-  const [modalScale, setModalScale] = useState(1);
+
 
   const closeProfileModal = () => {
     setShowProfileModal(false);
@@ -1274,16 +1125,7 @@ const ArtistRegistrationPage = ({ config }) => {
         setFormScale(scale);
       }
 
-      // modal content
-      if (modalRef.current) {
-        const rect = modalRef.current.getBoundingClientRect();
-        const available = window.innerHeight - 80;
-        let scale = 1;
-        if (rect.height > available) {
-          scale = Math.max(0.7, available / rect.height);
-        }
-        setModalScale(scale);
-      }
+
     };
 
     const onResize = () => {
@@ -1337,7 +1179,6 @@ const ArtistRegistrationPage = ({ config }) => {
       setSelectedCategoryData({ name: 'Selected Categories', subcategories: selectedInfluencerSubcategories });
     }
 
-    setShowSubcategories(true);
     setShowCategoryPopup(true);
   };
 

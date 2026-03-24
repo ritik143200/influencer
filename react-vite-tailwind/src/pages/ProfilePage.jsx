@@ -29,9 +29,6 @@ const ProfilePage = ({ config }) => {
     platforms: {
       instagram: { hasAccount: false, url: '', followers: '', engagementRate: '' },
       youtube: { hasAccount: false, url: '', followers: '', engagementRate: '' },
-      twitter: { hasAccount: false, url: '', followers: '', engagementRate: '' },
-      linkedin: { hasAccount: false, url: '', followers: '', engagementRate: '' },
-      tiktok: { hasAccount: false, url: '', followers: '', engagementRate: '' },
       facebook: { hasAccount: false, url: '', followers: '', engagementRate: '' }
     },
     experience: '', previousCollaborations: '',
@@ -249,7 +246,7 @@ const ProfilePage = ({ config }) => {
     ? formData.location 
     : [locCity, locCountry].filter(Boolean).join(', ') || 'Global';
 
-  const nicheOrCategory = formData.niche || formData.category || 'MERN Developer';
+  const nicheOrCategory = formData.niche || formData.category;
   const displayRole = formData.role === 'artist' ? 'Artist' : formData.role === 'influencer' ? 'Influencer' : 'User';
 
   const userData = {
