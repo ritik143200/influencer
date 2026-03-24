@@ -4,7 +4,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
     getAllBookings, updateBookingStatus,
-    getAllInquiries, updateInquiryStatus,
+    getAllInquiries, updateInquiryStatus, forwardInquiry,
     getAllUsers, updateUserAction, deleteUser
 } = require('../controllers/adminController');
 const {
@@ -29,6 +29,7 @@ router.use(adminOnly);
 // Inquiries Routing
 router.get('/inquiries', getAllInquiries);
 router.patch('/inquiries/:id/:action', updateInquiryStatus);
+router.post('/inquiries/:id/forward', forwardInquiry);
 
 // Users Routing
 router.get('/users', getAllUsers);

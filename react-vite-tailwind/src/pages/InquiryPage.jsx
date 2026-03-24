@@ -119,19 +119,19 @@ const InquiryPage = ({ config }) => {
   };
 
   return (
-    <div className="min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background_color') }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-screen pt-12" style={{ backgroundColor: getThemeColor('background_color') }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-white/20" style={{ backgroundColor: getThemeColor('surface') || '#ffffff' }}>
           <div
-            className="px-6 sm:px-10 py-10 bg-gradient-to-br"
+            className="px-6 sm:px-10 py-8 bg-gradient-to-br rounded-t-3xl"
             style={{
               backgroundImage: `linear-gradient(135deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)`
             }}
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Inquiry</h1>
-                <p className="text-white/90 mt-2 max-w-2xl">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Send a Hiring Request</h1>
+                <p className="text-white/95 mt-2 max-w-2xl leading-relaxed">
                   Send a hiring request for an artist or influencer. Your inquiry will be reviewed by the admin and marked as <span className="font-semibold">Pending</span> by default.
                 </p>
               </div>
@@ -142,7 +142,7 @@ const InquiryPage = ({ config }) => {
             </div>
           </div>
 
-          <div className="px-6 sm:px-10 py-10">
+          <div className="-mt-10 px-6 sm:px-10 pb-10 relative z-10">
             {!isAuthenticated && (
               <div className="mb-8 rounded-2xl border border-yellow-200 bg-yellow-50 px-5 py-4">
                 <p className="text-sm font-semibold text-yellow-900">Sign in required</p>
@@ -166,123 +166,164 @@ const InquiryPage = ({ config }) => {
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h2 className="text-lg font-bold text-gray-900">Your Details</h2>
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+                  <h2 className="text-lg font-semibold text-gray-900">Your Details</h2>
                   <p className="text-sm text-gray-500 mt-1">So the admin can contact you quickly.</p>
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Full Name</label>
-                      <input
-                        value={form.name}
-                        onChange={onChange('name')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="Your name"
-                        autoComplete="name"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Full Name</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1118.88 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          value={form.name}
+                          onChange={onChange('name')}
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          placeholder="Your name"
+                          autoComplete="name"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Phone</label>
-                      <input
-                        value={form.phone}
-                        onChange={onChange('phone')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="Phone number"
-                        autoComplete="tel"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h2.6a1 1 0 01.9.55l1.2 2.4a1 1 0 01-.2 1.05L9 8.5a11 11 0 005.5 5.5l1.5-1.1a1 1 0 011.05-.2l2.4 1.2A1 1 0 0119 18.4V21a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
+                          </svg>
+                        </div>
+                        <input
+                          value={form.phone}
+                          onChange={onChange('phone')}
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          placeholder="Phone number"
+                          autoComplete="tel"
+                        />
+                      </div>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700">Email</label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={onChange('email')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="Email address"
-                        autoComplete="email"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0l-4-4m4 4l-4 4" />
+                          </svg>
+                        </div>
+                        <input
+                          type="email"
+                          value={form.email}
+                          onChange={onChange('email')}
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          placeholder="Email address"
+                          autoComplete="email"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h2 className="text-lg font-bold text-gray-900">Requirement</h2>
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+                  <h2 className="text-lg font-semibold text-gray-900">Requirement</h2>
                   <p className="text-sm text-gray-500 mt-1">Tell us what you want to hire.</p>
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Hiring For</label>
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Hiring For</label>
                       <select
                         value={form.hiringFor}
                         onChange={onChange('hiringFor')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
                       >
                         <option value="artist">Artist</option>
                         <option value="influencer">Influencer</option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Category</label>
-                      <input
-                        value={form.category}
-                        onChange={onChange('category')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="e.g. Singer, Makeup Artist, Tech"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Category</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h12M3 17h18" />
+                          </svg>
+                        </div>
+                        <input
+                          value={form.category}
+                          onChange={onChange('category')}
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          placeholder="e.g. Singer, Makeup Artist, Tech"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Location</label>
-                      <input
-                        value={form.location}
-                        onChange={onChange('location')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="City / Venue"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Location</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          value={form.location}
+                          onChange={onChange('location')}
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          placeholder="City / Venue"
+                        />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700">Budget (INR)</label>
-                      <input
-                        value={form.budget}
-                        onChange={onChange('budget')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
-                        placeholder="e.g. 5000"
-                        inputMode="numeric"
-                      />
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Budget (INR)</label>
+                      <div className="mt-2 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-600">₹</span>
+                        </div>
+                        <input
+                          value={form.budget}
+                          onChange={onChange('budget')}
+                          className="mt-0 w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          placeholder="e.g. 5000"
+                          inputMode="numeric"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900">Event Details</h2>
+              <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+                <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
                 <p className="text-sm text-gray-500 mt-1">Help us understand the timeline and context.</p>
 
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700">Event Type</label>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Event Type</label>
                     <input
                       value={form.eventType}
                       onChange={onChange('eventType')}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
                       placeholder="e.g. Wedding, Brand Shoot"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700">Event Date</label>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Event Date</label>
                     <input
                       type="date"
                       value={form.eventDate}
                       onChange={onChange('eventDate')}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
                     />
                   </div>
                   <div className="md:col-span-3">
-                    <label className="block text-sm font-semibold text-gray-700">Requirements / Message</label>
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Requirements / Message</label>
                     <textarea
                       value={form.requirements}
                       onChange={onChange('requirements')}
                       rows={4}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
                       placeholder="Describe the artist/influencer style, duration, deliverables, audience size, etc."
                     />
                   </div>
@@ -294,17 +335,22 @@ const InquiryPage = ({ config }) => {
                   By submitting, you agree that an admin may contact you using the details provided.
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting || !isAuthenticated}
-                  className={`px-6 py-3 rounded-xl font-semibold text-white shadow-lg transition-all ${submitting || !isAuthenticated
-                    ? 'opacity-60 cursor-not-allowed'
-                    : 'hover:shadow-xl active:scale-[0.99]'
-                    }`}
-                  style={{ backgroundColor: getThemeColor('primary_action') || getThemeColor('primary') || '#ee7711' }}
-                >
-                  {submitting ? 'Submitting...' : 'Submit Inquiry'}
-                </button>
+                <div className="sm:flex-1 flex sm:justify-end">
+                  <button
+                    type="submit"
+                    disabled={submitting || !isAuthenticated}
+                    className={`px-8 py-3 rounded-full font-semibold text-white shadow-2xl transition-all flex items-center gap-3 justify-center w-full sm:w-auto ${submitting || !isAuthenticated
+                      ? 'opacity-60 cursor-not-allowed'
+                      : 'hover:shadow-2xl active:scale-[0.99]'
+                      }`}
+                    style={{ background: `linear-gradient(90deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)` }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                    {submitting ? 'Submitting...' : 'Submit Inquiry'}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

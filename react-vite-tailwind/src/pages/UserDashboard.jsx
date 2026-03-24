@@ -10,6 +10,12 @@ const UserDashboard = ({ config }) => {
   const [activeTab, setActiveTab] = useState('overview');
   // Removed bookings, bookingFilter
 
+  // Inquiries state
+  const [inquiries, setInquiries] = useState([]);
+  const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [inquiriesError, setInquiriesError] = useState('');
+  const [expandedInquiryIds, setExpandedInquiryIds] = useState(new Set());
+
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -35,7 +41,48 @@ const UserDashboard = ({ config }) => {
       { id: 2, name: 'DJ Storm', category: 'DJs', rating: 4.9, image: '🎧' },
       { id: 3, name: 'Sara Singh', category: 'Singers', rating: 4.7, image: '🎤' }
     ]);
+    
+      // Fetch inquiries for the user (try API, fallback to localStorage)
+      const fetchInquiries = async () => {
+        setLoadingInquiries(true);
+        setInquiriesError('');
+        try {
+          const token = localStorage.getItem('userToken');
+          const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+          const res = await fetch(`${API_BASE_URL}/api/inquiries`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            // backend may return { data: [...] } or an array directly
+            const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.inquiries) ? data.inquiries : (Array.isArray(data) ? data : []));
+            setInquiries(list);
+          } else {
+            const fallback = JSON.parse(localStorage.getItem('userInquiries') || '[]');
+            setInquiries(fallback);
+            setInquiriesError('Failed to load inquiries from server');
+          }
+        } catch (err) {
+          const fallback = JSON.parse(localStorage.getItem('userInquiries') || '[]');
+          setInquiries(fallback);
+          setInquiriesError('Network error while loading inquiries');
+        } finally {
+          setLoadingInquiries(false);
+        }
+      };
+
+      fetchInquiries();
   }, []);
+
+  const toggleInquiryExpand = (id) => {
+    setExpandedInquiryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const handleLogout = () => {
     logout();
@@ -74,6 +121,7 @@ const UserDashboard = ({ config }) => {
       });
 
       const data = await res.json();
+
       if (res.ok && data.success) {
         setPasswordSuccess('Password successfully updated!');
         setTimeout(() => {
@@ -359,6 +407,89 @@ const UserDashboard = ({ config }) => {
     </div>
   );
 
+  const renderInquiries = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold text-gray-800">Your Inquiries</h3>
+        <p className="text-sm text-gray-500">{inquiries.length} total</p>
+      </div>
+
+      {loadingInquiries ? (
+        <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
+      ) : inquiries.length === 0 ? (
+        <div className="p-6 text-center text-gray-500">You haven't sent any inquiries yet.</div>
+      ) : (
+        null
+      )}
+      {inquiriesError && (
+        <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{inquiriesError}</div>
+      )}
+      {inquiries.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {inquiries.map((inq) => {
+            const id = inq.id || inq._id || JSON.stringify(inq).slice(0, 8);
+            const statusKey = inq.status || inq.state || 'pending';
+            const status = getStatusStyle(statusKey);
+            // Status completion percentage logic
+            let percent = 0;
+            if (statusKey === 'pending') percent = 25;
+            else if (statusKey === 'adminApproved' || statusKey === 'confirmed') percent = 60;
+            else if (statusKey === 'completed') percent = 100;
+            else if (statusKey === 'rejected' || statusKey === 'artistRejected') percent = 0;
+
+            return (
+              <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-3">
+                {/* Top: Title, Category, Date */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-1">{inq.title || inq.eventType || 'Hiring Request'}</h4>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                      <span className="inline-block px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full font-medium">{inq.category || inq.type || '—'}</span>
+                      <span className="inline-block px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full font-medium">
+                        <svg className="inline w-4 h-4 mr-1 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                        {inq.eventDate ? new Date(inq.eventDate).toLocaleDateString() : (inq.date ? new Date(inq.date).toLocaleDateString() : '—')}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 sm:mt-0">
+                    <span className={`px-2 py-1 text-xs rounded-full ${status.bg} ${status.text}`}>{status.label}</span>
+                    <button onClick={() => toggleInquiryExpand(id)} className="text-sm text-brand-600 font-medium underline underline-offset-2">Details</button>
+                  </div>
+                </div>
+
+                {/* Status Progress Bar */}
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-2 rounded-full transition-all duration-300 ${percent === 100 ? 'bg-green-400' : 'bg-brand-400'}`} style={{ width: `${percent}%` }}></div>
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 min-w-[40px] text-right">{percent}%</span>
+                </div>
+
+                {/* Always show message, budget, location, sent date, expanded for more */}
+                <div className="mt-2 text-sm text-gray-700">
+                  <div className="mb-1"><span className="font-medium text-gray-600">Message:</span> <span className="break-words text-gray-800">{inq.message || inq.details || inq.requirements || '—'}</span></div>
+                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                    <span><strong>Budget:</strong> {inq.budget ? `₹${inq.budget}` : (inq.budgetRange || '—')}</span>
+                    <span><strong>Location:</strong> {inq.location || '—'}</span>
+                    <span><strong>Sent:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : (inq.created ? new Date(inq.created).toLocaleString() : '—')}</span>
+                  </div>
+                </div>
+
+                {/* Expanded details (optional) */}
+                {expandedInquiryIds.has(id) && (
+                  <div className="mt-2 text-sm text-gray-600 space-y-1 border-t border-gray-100 pt-2">
+                    {inq.requirements && <div><strong>Requirements:</strong> {inq.requirements}</div>}
+                    {/* Add more fields here if needed */}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>
       {/* Status Update Notification removed (booking feature deleted) */}
@@ -391,7 +522,7 @@ const UserDashboard = ({ config }) => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex space-x-8 px-6">
-            {['overview', 'favorites', 'user'].map((tab) => (
+            {['overview', 'favorites', 'inquiries', 'user'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -409,6 +540,7 @@ const UserDashboard = ({ config }) => {
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'favorites' && renderFavorites()}
+        {activeTab === 'inquiries' && renderInquiries()}
         {activeTab === 'user' && renderUser()}
       </div>
 

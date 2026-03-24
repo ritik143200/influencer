@@ -115,10 +115,61 @@ const updateInquiryStatus = async (req, res) => {
     }
 };
 
+// @desc    Forward an inquiry to one or more artists/influencers
+// @route   POST /api/admin/inquiries/:id/forward
+// @access  Private/Admin
+const forwardInquiry = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { recipients } = req.body; // array of userIds
+
+        if (!Array.isArray(recipients) || recipients.length === 0) {
+            return res.status(400).json({ success: false, message: 'Provide recipients array of userIds' });
+        }
+
+        console.log('Admin forwarding inquiry', { inquiryId: id, recipients, forwardedBy: req.user?._id });
+
+        // Validate recipients exist and are artists/influencers
+        const validUsers = await User.find({ _id: { $in: recipients } }).select('_id role firstName lastName email name');
+        const validIds = validUsers.map(u => String(u._id));
+        const invalid = recipients.filter(r => !validIds.includes(String(r)));
+        if (invalid.length > 0) {
+            return res.status(400).json({ success: false, message: 'Some recipients not found', invalid });
+        }
+        const inquiry = await Inquiry.findById(id);
+        if (!inquiry) return res.status(404).json({ success: false, message: 'Inquiry not found' });
+
+        // Add recipients to forwardedTo if not already present
+        const existing = new Set((inquiry.forwardedTo || []).map(f => String(f.userId)));
+        const additions = [];
+        for (const rid of recipients) {
+            if (!existing.has(String(rid))) {
+                inquiry.forwardedTo = inquiry.forwardedTo || [];
+                inquiry.forwardedTo.push({ userId: rid, forwardedBy: req.user._id });
+                additions.push(rid);
+            }
+        }
+
+        await inquiry.save();
+
+        // Return populated inquiry
+        const populated = await Inquiry.findById(id)
+            .populate('userId', 'name email phone')
+            .populate('forwardedTo.userId', 'firstName lastName email name role');
+
+        console.log('Forwarded inquiry saved, additions:', additions);
+        res.status(200).json({ success: true, data: populated, added: additions });
+    } catch (error) {
+        console.error('Error forwarding inquiry:', error);
+        res.status(500).json({ success: false, message: 'Server error while forwarding inquiry' });
+    }
+};
+
 module.exports = {
     getAllInquiries,
     updateInquiryStatus,
     getAllUsers,
     updateUserAction,
-    deleteUser
+    deleteUser,
+    forwardInquiry
 };
