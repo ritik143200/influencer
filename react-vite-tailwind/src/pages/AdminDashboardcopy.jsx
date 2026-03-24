@@ -52,10 +52,7 @@ const AdminDashboard = ({ config }) => {
   }, [user, navigate]);
 
   // Fetch dashboard data function
-  useEffect(() => {
-    if (!adminData) return;
-
-    const fetchDashboardData = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError(null);

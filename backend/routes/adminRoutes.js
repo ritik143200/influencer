@@ -4,7 +4,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
     getAllBookings, updateBookingStatus,
-    getAllInquiries, updateInquiryStatus, forwardInquiry,
+    getAllInquiries, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
     getAllUsers, updateUserAction, deleteUser
 } = require('../controllers/adminController');
 const {
@@ -28,13 +28,22 @@ router.use(adminOnly);
 
 // Inquiries Routing
 router.get('/inquiries', getAllInquiries);
+router.get('/inquiries/stats', getInquiryStats);
 router.patch('/inquiries/:id/:action', updateInquiryStatus);
 router.post('/inquiries/:id/forward', forwardInquiry);
+router.patch('/inquiries/:id/assign/:artistId', assignInquiryToArtist);
+router.patch('/inquiries/:id/assign/demo', (req, res) => {
+  // Demo route for testing completion without selecting specific artist
+  assignInquiryToArtist(req, res);
+});
 
 // Users Routing
 router.get('/users', getAllUsers);
 router.post('/users/:id/:action', updateUserAction);
 router.delete('/users/:id', deleteUser);
+
+// Artists Routing
+router.patch('/artists/:id/status', updateArtistStatus);
 
 // Notifications Routing
 router.get('/notifications', getAdminNotifications);

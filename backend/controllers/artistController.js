@@ -236,10 +236,19 @@ const registerArtist = async (req, res) => {
 const getAllArtists = async (req, res) => {
   try {
     const artists = await Artist.find({}).sort({ registrationDate: -1 });
+    
+    // Transform artists to include virtual fields
+    const artistsWithCompletion = artists.map(artist => {
+      const artistObj = artist.toJSON();
+      artistObj.profileCompletion = artist.profileCompletion;
+      artistObj.profileCompletionStatus = artist.profileCompletionStatus;
+      return artistObj;
+    });
+    
     res.status(200).json({
       success: true,
-      count: artists.length,
-      data: artists
+      count: artistsWithCompletion.length,
+      data: artistsWithCompletion
     });
   } catch (error) {
     res.status(500).json({
@@ -399,6 +408,114 @@ const searchArtists = async (req, res) => {
   }
 };
 
+// Get inquiries forwarded to this artist
+const getMyInquiries = async (req, res) => {
+  try {
+    const inquiries = await Inquiry.find({
+      'forwardedTo.userId': req.user._id
+    })
+      .populate('userId', 'name email phone')
+      .populate('forwardedTo.forwardedBy', 'name email')
+      .populate('workflowHistory.updatedBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: inquiries.length,
+      data: inquiries
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch inquiries',
+      error: error.message
+    });
+  }
+};
+
+// Respond to an inquiry (accept/reject)
+const respondToInquiry = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action, notes } = req.body; // action: 'accept' or 'reject'
+
+    if (!['accept', 'reject'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid action. Use: accept or reject'
+      });
+    }
+
+    const inquiry = await Inquiry.findById(id);
+    if (!inquiry) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inquiry not found'
+      });
+    }
+
+    // Check if this inquiry was forwarded to this artist
+    const wasForwarded = inquiry.forwardedTo.some(
+      f => String(f.userId) === String(req.user._id)
+    );
+
+    if (!wasForwarded) {
+      return res.status(403).json({
+        success: false,
+        message: 'This inquiry was not forwarded to you'
+      });
+    }
+
+    // Update inquiry status
+    if (action === 'accept') {
+      inquiry.status = 'artist_accepted';
+      inquiry.artistStatus = 'accepted';
+      inquiry.progressPercentage = 80;
+    } else {
+      inquiry.status = 'artist_rejected';
+      inquiry.artistStatus = 'rejected';
+      inquiry.progressPercentage = 100;
+    }
+
+    // Add to workflow history
+    inquiry.workflowHistory.push({
+      stage: 'artist_response',
+      status: action === 'accept' ? 'artist_accepted' : 'artist_rejected',
+      updatedBy: req.user._id,
+      notes: notes || `Artist ${action}ed the inquiry`
+    });
+
+    await inquiry.save();
+
+    // Create notification for admin
+    try {
+      await Notification.create({
+        type: 'inquiry_response',
+        message: `Artist ${action}ed inquiry from ${inquiry.name}`,
+        relatedId: inquiry._id
+      });
+    } catch (err) {
+      console.error('Failed to create notification:', err);
+    }
+
+    const populated = await Inquiry.findById(id)
+      .populate('userId', 'name email phone')
+      .populate('forwardedTo.userId', 'name email')
+      .populate('workflowHistory.updatedBy', 'name email');
+
+    res.status(200).json({
+      success: true,
+      data: populated
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to respond to inquiry',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   registerArtist,
   getAllArtists,
@@ -408,5 +525,7 @@ module.exports = {
   searchArtists,
   getMyProfile,
   updateMyProfile,
-  upload
+  upload,
+  getMyInquiries,
+  respondToInquiry
 };

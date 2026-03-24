@@ -1,6 +1,38 @@
 // Booking import removed
 const User = require('../models/User');
+const Artist = require('../models/Artist');
 const Inquiry = require('../models/Inquiry');
+
+// @desc    Update artist status (activate/deactivate)
+// @route   PATCH /api/admin/artists/:id/status
+// @access  Private/Admin
+const updateArtistStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { isActive } = req.body;
+
+        const artist = await Artist.findById(id);
+        if (!artist) {
+            return res.status(404).json({ success: false, message: 'Artist not found' });
+        }
+
+        artist.isActive = isActive;
+        await artist.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: `Artist ${isActive ? 'activated' : 'deactivated'} successfully`,
+            data: artist
+        });
+    } catch (error) {
+        console.error('Error updating artist status:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Server error while updating artist status',
+            error: error.message 
+        });
+    }
+};
 
 // @desc    Get all bookings (Admin)
 // @route   GET /api/admin/bookings
@@ -87,22 +119,43 @@ const getAllInquiries = async (req, res) => {
 const updateInquiryStatus = async (req, res) => {
     try {
         const { id, action } = req.params;
-
-        let status;
-        if (action === 'accept') status = 'accepted';
-        else if (action === 'reject') status = 'rejected';
-        else return res.status(400).json({ success: false, message: 'Invalid action. Use: accept, reject' });
+        const { notes } = req.body;
 
         const inquiry = await Inquiry.findById(id);
         if (!inquiry) {
             return res.status(404).json({ success: false, message: 'Inquiry not found' });
         }
 
-        inquiry.status = status;
+        let newStatus, newProgress;
+        
+        if (action === 'accept') {
+            newStatus = 'admin_accepted';
+            newProgress = 40;
+            inquiry.adminStatus = 'accepted';
+        } else if (action === 'reject') {
+            newStatus = 'admin_rejected';
+            newProgress = 100;
+            inquiry.adminStatus = 'rejected';
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid action. Use: accept, reject' });
+        }
+
+        inquiry.status = newStatus;
+        inquiry.progressPercentage = newProgress;
+        
+        // Add to workflow history
+        inquiry.workflowHistory.push({
+            stage: 'admin_review',
+            status: newStatus,
+            updatedBy: req.user._id,
+            notes: notes || `Admin ${action}ed the inquiry`
+        });
+
         await inquiry.save();
 
         const populated = await Inquiry.findById(id)
-            .populate('userId', 'name email phone');
+            .populate('userId', 'name email phone')
+            .populate('workflowHistory.updatedBy', 'name email');
 
         res.status(200).json({ success: true, data: populated });
     } catch (error) {
@@ -121,7 +174,7 @@ const updateInquiryStatus = async (req, res) => {
 const forwardInquiry = async (req, res) => {
     try {
         const { id } = req.params;
-        const { recipients } = req.body; // array of userIds
+        const { recipients, notes } = req.body; // array of userIds
 
         if (!Array.isArray(recipients) || recipients.length === 0) {
             return res.status(400).json({ success: false, message: 'Provide recipients array of userIds' });
@@ -130,14 +183,18 @@ const forwardInquiry = async (req, res) => {
         console.log('Admin forwarding inquiry', { inquiryId: id, recipients, forwardedBy: req.user?._id });
 
         // Validate recipients exist and are artists/influencers
-        const validUsers = await User.find({ _id: { $in: recipients } }).select('_id role firstName lastName email name');
-        const validIds = validUsers.map(u => String(u._id));
+        const validArtists = await Artist.find({ _id: { $in: recipients } }).select('_id role firstName lastName email name profileType');
+        const validIds = validArtists.map(u => String(u._id));
         const invalid = recipients.filter(r => !validIds.includes(String(r)));
         if (invalid.length > 0) {
             return res.status(400).json({ success: false, message: 'Some recipients not found', invalid });
         }
         const inquiry = await Inquiry.findById(id);
         if (!inquiry) return res.status(404).json({ success: false, message: 'Inquiry not found' });
+
+        // Update status and progress
+        inquiry.status = 'forwarded';
+        inquiry.progressPercentage = 60;
 
         // Add recipients to forwardedTo if not already present
         const existing = new Set((inquiry.forwardedTo || []).map(f => String(f.userId)));
@@ -150,12 +207,21 @@ const forwardInquiry = async (req, res) => {
             }
         }
 
+        // Add to workflow history
+        inquiry.workflowHistory.push({
+            stage: 'forwarded',
+            status: 'forwarded',
+            updatedBy: req.user._id,
+            notes: notes || `Inquiry forwarded to ${recipients.length} artist(s)/influencer(s)`
+        });
+
         await inquiry.save();
 
         // Return populated inquiry
         const populated = await Inquiry.findById(id)
             .populate('userId', 'name email phone')
-            .populate('forwardedTo.userId', 'firstName lastName email name role');
+            .populate('forwardedTo.userId', 'firstName lastName email name profileType')
+            .populate('workflowHistory.updatedBy', 'name email');
 
         console.log('Forwarded inquiry saved, additions:', additions);
         res.status(200).json({ success: true, data: populated, added: additions });
@@ -165,11 +231,118 @@ const forwardInquiry = async (req, res) => {
     }
 };
 
+// @desc    Assign inquiry to specific artist and complete workflow
+// @route   PATCH /api/admin/inquiries/:id/assign/:artistId
+// @access  Private/Admin
+const assignInquiryToArtist = async (req, res) => {
+    try {
+        const { id } = req.params;
+        let { artistId } = req.params;
+        const { notes } = req.body;
+
+        const inquiry = await Inquiry.findById(id);
+        if (!inquiry) {
+            return res.status(404).json({ success: false, message: 'Inquiry not found' });
+        }
+
+        // Handle demo case - use a dummy artist ID
+        if (artistId === 'demo') {
+            console.log('Demo completion for inquiry:', id);
+            inquiry.assignedArtist = {
+                userId: null, // No specific artist for demo
+                assignedBy: req.user._id,
+                assignedAt: new Date()
+            };
+            inquiry.status = 'completed';
+            inquiry.progressPercentage = 100;
+
+            // Add to workflow history
+            inquiry.workflowHistory.push({
+                stage: 'completed',
+                status: 'completed',
+                updatedBy: req.user._id,
+                notes: notes || 'Inquiry completed by admin (demo mode)'
+            });
+        } else {
+            // Validate artist exists
+            const artist = await Artist.findById(artistId);
+            if (!artist) {
+                return res.status(404).json({ success: false, message: 'Artist not found' });
+            }
+
+            inquiry.assignedArtist = {
+                userId: artistId,
+                assignedBy: req.user._id,
+                assignedAt: new Date()
+            };
+
+            inquiry.status = 'completed';
+            inquiry.progressPercentage = 100;
+
+            // Add to workflow history
+            inquiry.workflowHistory.push({
+                stage: 'completed',
+                status: 'completed',
+                updatedBy: req.user._id,
+                notes: notes || `Inquiry assigned to ${artist.name || artist.fullName}`
+            });
+        }
+
+        await inquiry.save();
+
+        const populated = await Inquiry.findById(id)
+            .populate('userId', 'name email phone')
+            .populate('assignedArtist.userId', 'name email fullName')
+            .populate('workflowHistory.updatedBy', 'name email');
+
+        res.status(200).json({ success: true, data: populated });
+    } catch (error) {
+        console.error('Error assigning inquiry to artist:', error);
+        res.status(500).json({ success: false, message: 'Server error while assigning inquiry' });
+    }
+};
+
+// @desc    Get workflow statistics
+// @route   GET /api/admin/inquiries/stats
+// @access  Private/Admin
+const getInquiryStats = async (req, res) => {
+    try {
+        const stats = await Inquiry.aggregate([
+            {
+                $group: {
+                    _id: '$status',
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const totalInquiries = await Inquiry.countDocuments();
+        const pendingAdmin = await Inquiry.countDocuments({ adminStatus: 'pending' });
+        const pendingArtist = await Inquiry.countDocuments({ artistStatus: 'pending' });
+
+        res.status(200).json({
+            success: true,
+            data: {
+                total: totalInquiries,
+                byStatus: stats,
+                pendingAdmin,
+                pendingArtist
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching inquiry stats:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching stats' });
+    }
+};
+
 module.exports = {
     getAllInquiries,
     updateInquiryStatus,
     getAllUsers,
     updateUserAction,
     deleteUser,
-    forwardInquiry
+    forwardInquiry,
+    assignInquiryToArtist,
+    getInquiryStats,
+    updateArtistStatus
 };

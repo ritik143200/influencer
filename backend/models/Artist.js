@@ -168,6 +168,47 @@ artistSchema.virtual('displayName').get(function () {
   return this.fullName ;
 });
 
+// Virtual for profile completion percentage
+artistSchema.virtual('profileCompletion').get(function () {
+  let completedFields = 0;
+  let totalFields = 0;
+
+  // Required fields (always counted)
+  totalFields += 4; // fullName, email, phone, profileType
+  completedFields += 4; // These are always present due to schema requirements
+
+  // Optional but important fields
+  const optionalFields = [
+    this.bio && this.bio.length > 0,
+    this.location && this.location.length > 0,
+    this.categories && this.categories.length > 0,
+    this.skills && this.skills.length > 0,
+    this.portfolio && this.portfolio.length > 0,
+    this.profileImage && this.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg',
+    this.idProof && this.idProof.length > 0,
+    this.socialLinks.instagram && this.socialLinks.instagram.length > 0,
+    this.socialLinks.youtube && this.socialLinks.youtube.length > 0,
+    this.socialLinks.facebook && this.socialLinks.facebook.length > 0,
+    this.socialLinks.website && this.socialLinks.website.length > 0,
+    this.budgetMin > 0,
+    this.budgetMax > 0
+  ];
+
+  totalFields += optionalFields.length;
+  completedFields += optionalFields.filter(Boolean).length;
+
+  return Math.round((completedFields / totalFields) * 100);
+});
+
+// Virtual for profile completion status text
+artistSchema.virtual('profileCompletionStatus').get(function () {
+  const completion = this.profileCompletion;
+  if (completion >= 80) return 'Complete';
+  if (completion >= 60) return 'Good';
+  if (completion >= 40) return 'Basic';
+  return 'Incomplete';
+});
+
 // Ensure virtuals are included in JSON output
 artistSchema.set('toJSON', { virtuals: true });
 artistSchema.set('toObject', { virtuals: true });
