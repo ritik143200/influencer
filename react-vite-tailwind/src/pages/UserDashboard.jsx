@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
+import InquiryProgressBar from '../components/InquiryProgressBar';
 
 const UserDashboard = ({ config }) => {
   const { navigate } = useRouter();
@@ -139,14 +140,15 @@ const UserDashboard = ({ config }) => {
     }
   };
 
-  // Helper function to get status styling (consistent with Admin Panel)
+  // Helper function to get status styling (updated for new workflow)
   const getStatusStyle = (status) => {
-    if (status === 'adminApproved') return { bg: 'bg-purple-100', text: 'text-purple-800', label: '✓ Approved' };
-    if (status === 'rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Rejected' };
-    if (status === 'confirmed') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Confirmed' };
-    if (status === 'completed') return { bg: 'bg-blue-100', text: 'text-blue-800', label: '✓ Completed' };
-    if (status === 'artistRejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Artist Declined' };
-    return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pending' };
+    if (status === 'admin_accepted') return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Admin Accepted' };
+    if (status === 'admin_rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Admin Rejected' };
+    if (status === 'forwarded') return { bg: 'bg-purple-100', text: 'text-purple-800', label: '→ Forwarded to Artist' };
+    if (status === 'artist_accepted') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Artist Accepted' };
+    if (status === 'artist_rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Artist Rejected' };
+    if (status === 'completed') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Completed' };
+    return { bg: 'bg-blue-100', text: 'text-blue-800', label: '📤 Sent' };
   };
 
   // Helper function to get inquiry progress
@@ -428,17 +430,12 @@ const UserDashboard = ({ config }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {inquiries.map((inq) => {
             const id = inq.id || inq._id || JSON.stringify(inq).slice(0, 8);
-            const statusKey = inq.status || inq.state || 'pending';
+            const statusKey = inq.status || inq.state || 'sent';
             const status = getStatusStyle(statusKey);
-            // Status completion percentage logic
-            let percent = 0;
-            if (statusKey === 'pending') percent = 25;
-            else if (statusKey === 'adminApproved' || statusKey === 'confirmed') percent = 60;
-            else if (statusKey === 'completed') percent = 100;
-            else if (statusKey === 'rejected' || statusKey === 'artistRejected') percent = 0;
+            const progressPercentage = inq.progressPercentage || 10;
 
             return (
-              <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-3">
+              <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-4">
                 {/* Top: Title, Category, Date */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
@@ -457,29 +454,39 @@ const UserDashboard = ({ config }) => {
                   </div>
                 </div>
 
-                {/* Status Progress Bar */}
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-2 rounded-full transition-all duration-300 ${percent === 100 ? 'bg-green-400' : 'bg-brand-400'}`} style={{ width: `${percent}%` }}></div>
-                  </div>
-                  <span className="text-xs font-semibold text-gray-500 min-w-[40px] text-right">{percent}%</span>
+                {/* Progress Bar Component */}
+                <div className="mt-2">
+                  <InquiryProgressBar status={statusKey} progressPercentage={progressPercentage} />
                 </div>
 
-                {/* Always show message, budget, location, sent date, expanded for more */}
+                {/* Inquiry Details */}
                 <div className="mt-2 text-sm text-gray-700">
-                  <div className="mb-1"><span className="font-medium text-gray-600">Message:</span> <span className="break-words text-gray-800">{inq.message || inq.details || inq.requirements || '—'}</span></div>
+                  <div className="mb-2"><span className="font-medium text-gray-600">Requirements:</span> <span className="break-words text-gray-800">{inq.message || inq.details || inq.requirements || '—'}</span></div>
                   <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                    <span><strong>Budget:</strong> {inq.budget ? `₹${inq.budget}` : (inq.budgetRange || '—')}</span>
+                    <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : (inq.budgetRange || '—')}</span>
                     <span><strong>Location:</strong> {inq.location || '—'}</span>
                     <span><strong>Sent:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : (inq.created ? new Date(inq.created).toLocaleString() : '—')}</span>
                   </div>
                 </div>
 
-                {/* Expanded details (optional) */}
+                {/* Expanded details */}
                 {expandedInquiryIds.has(id) && (
-                  <div className="mt-2 text-sm text-gray-600 space-y-1 border-t border-gray-100 pt-2">
-                    {inq.requirements && <div><strong>Requirements:</strong> {inq.requirements}</div>}
-                    {/* Add more fields here if needed */}
+                  <div className="mt-2 text-sm text-gray-600 space-y-2 border-t border-gray-100 pt-2">
+                    {inq.hiringFor && <div><strong>Hiring For:</strong> {inq.hiringFor}</div>}
+                    {inq.phone && <div><strong>Contact:</strong> {inq.phone}</div>}
+                    {inq.email && <div><strong>Email:</strong> {inq.email}</div>}
+                    {inq.workflowHistory && inq.workflowHistory.length > 0 && (
+                      <div>
+                        <strong>Workflow History:</strong>
+                        <ul className="ml-4 mt-1 space-y-1">
+                          {inq.workflowHistory.map((history, idx) => (
+                            <li key={idx} className="text-xs">
+                              {history.stage}: {history.status} ({new Date(history.updatedAt).toLocaleDateString()})
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

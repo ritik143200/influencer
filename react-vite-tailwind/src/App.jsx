@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { RouterProvider, useRouter } from './contexts/RouterContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
+import NotificationToast from './components/NotificationToast';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import AboutPage from './pages/AboutPage';
@@ -43,9 +45,11 @@ function App() {
 
   return (
     <AuthProvider>
-      <RouterProvider>
-        <AppContent config={config} />
-      </RouterProvider>
+      <NotificationProvider>
+        <RouterProvider>
+          <AppContent config={config} />
+        </RouterProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
@@ -65,6 +69,7 @@ const AppContent = ({ config }) => {
       }}
     >
       {!isAuthPage && <Navbar config={config} />}
+      <NotificationToast />
       {currentPath === 'auth' && <AuthPage />}
       {currentPath === 'artist-registration' && <ArtistRegistrationPage config={config} />}
       {currentPath === 'about' && <AboutPage config={config} />}
