@@ -63,3 +63,26 @@ exports.createInquiry = async (req, res) => {
         });
     }
 };
+
+// @desc    Get inquiries for the logged-in user
+// @route   GET /api/inquiries
+exports.getUserInquiries = async (req, res) => {
+    try {
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ success: false, message: 'Not authorized' });
+        }
+
+        // Return inquiries the user created OR inquiries forwarded to this user (for artists)
+        const inquiries = await Inquiry.find({
+            $or: [
+                { userId: req.user._id },
+                { 'forwardedTo.userId': req.user._id }
+            ]
+        }).sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, count: inquiries.length, data: inquiries });
+    } catch (error) {
+        console.error('Error fetching user inquiries:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching inquiries' });
+    }
+};

@@ -60,6 +60,14 @@ const inquirySchema = new mongoose.Schema({
         enum: ['pending', 'accepted', 'rejected'],
         default: 'pending'
     }
+    ,
+    forwardedTo: [
+        {
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            forwardedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            forwardedAt: { type: Date, default: Date.now }
+        }
+    ]
 }, {
     timestamps: true
 });
