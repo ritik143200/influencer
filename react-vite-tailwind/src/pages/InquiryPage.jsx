@@ -142,7 +142,7 @@ const InquiryPage = ({ config }) => {
             </div>
           </div>
 
-          <div className="-mt-10 px-6 sm:px-10 pb-10 relative z-10">
+          <div className="mt-10 px-6 sm:px-10 pb-10 relative z-10">
             {!isAuthenticated && (
               <div className="mb-8 rounded-2xl border border-yellow-200 bg-yellow-50 px-5 py-4">
                 <p className="text-sm font-semibold text-yellow-900">Sign in required</p>
@@ -166,7 +166,7 @@ const InquiryPage = ({ config }) => {
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
                   <h2 className="text-lg font-semibold text-gray-900">Your Details</h2>
                   <p className="text-sm text-gray-500 mt-1">So the admin can contact you quickly.</p>
 
@@ -226,7 +226,7 @@ const InquiryPage = ({ config }) => {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
                   <h2 className="text-lg font-semibold text-gray-900">Requirement</h2>
                   <p className="text-sm text-gray-500 mt-1">Tell us what you want to hire.</p>
 
@@ -236,7 +236,7 @@ const InquiryPage = ({ config }) => {
                       <select
                         value={form.hiringFor}
                         onChange={onChange('hiringFor')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 appearance-none cursor-pointer"
                       >
                         <option value="artist">Artist</option>
                         <option value="influencer">Influencer</option>
@@ -294,11 +294,11 @@ const InquiryPage = ({ config }) => {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition transform hover:-translate-y-1">
+              <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
                 <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
                 <p className="text-sm text-gray-500 mt-1">Help us understand the timeline and context.</p>
 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Event Type</label>
                     <input
@@ -317,7 +317,7 @@ const InquiryPage = ({ config }) => {
                       className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
                     />
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Requirements / Message</label>
                     <textarea
                       value={form.requirements}
