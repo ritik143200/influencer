@@ -74,7 +74,7 @@ const ArtistDashboard = ({ config }) => {
       setLoadingInquiries(true);
       try {
         const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-        const res = await fetch(`${API_BASE_URL}/api/artists/inquiries`, {
+        const res = await fetch(`${API_BASE_URL}/api/artist/inquiries`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
         });
         if (res.ok) {
@@ -162,7 +162,7 @@ const ArtistDashboard = ({ config }) => {
   const handleInquiryResponse = async (inquiryId, action) => {
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-      const response = await fetch(`${API_BASE_URL}/api/artists/inquiries/${inquiryId}/respond`, {
+      const response = await fetch(`${API_BASE_URL}/api/artist/inquiries/${inquiryId}/respond`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
