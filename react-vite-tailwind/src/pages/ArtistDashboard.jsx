@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
+import InquiryProgressBar from '../components/InquiryProgressBar';
 
 const ArtistDashboard = ({ config }) => {
   const { navigate } = useRouter();
@@ -9,6 +10,8 @@ const ArtistDashboard = ({ config }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [bookings, setBookings] = useState([]);
   const [portfolio, setPortfolio] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [loadingInquiries, setLoadingInquiries] = useState(false);
   const [earnings, setEarnings] = useState({
     total: 0,
     thisMonth: 0,
@@ -65,6 +68,27 @@ const ArtistDashboard = ({ config }) => {
     };
 
     fetchArtistData();
+
+    // Fetch inquiries for this artist
+    const fetchInquiries = async () => {
+      setLoadingInquiries(true);
+      try {
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const res = await fetch(`${API_BASE_URL}/api/artists/inquiries`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setInquiries(data.data || data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching inquiries:', error);
+      } finally {
+        setLoadingInquiries(false);
+      }
+    };
+
+    fetchInquiries();
 
     setPortfolio([
       { id: 1, title: 'Wedding Performance', type: 'video', thumbnail: '🎵', date: '2024-01-15' },
@@ -133,6 +157,34 @@ const ArtistDashboard = ({ config }) => {
   const handleLogout = () => {
     logout();
     navigate('home');
+  };
+
+  const handleInquiryResponse = async (inquiryId, action) => {
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const response = await fetch(`${API_BASE_URL}/api/artists/inquiries/${inquiryId}/respond`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action, notes: `Artist ${action}ed the inquiry` })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setInquiries(prev => prev.map(inq => 
+          (inq._id === inquiryId || inq.id === inquiryId) ? data.data : inq
+        ));
+        alert(`Inquiry ${action}ed successfully!`);
+      } else {
+        const errData = await response.json();
+        alert(errData.message || `Failed to ${action} inquiry`);
+      }
+    } catch (error) {
+      console.error(`Error ${action}ing inquiry:`, error);
+      alert('Network error occurred while updating inquiry.');
+    }
   };
 
   const renderOverview = () => (
@@ -365,6 +417,109 @@ const ArtistDashboard = ({ config }) => {
     </div>
   );
 
+  const renderInquiries = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-bold text-gray-800">Inquiries Forwarded to You</h3>
+        <p className="text-sm text-gray-500">{inquiries.length} total</p>
+      </div>
+
+      {loadingInquiries ? (
+        <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
+      ) : inquiries.length === 0 ? (
+        <div className="p-6 text-center text-gray-500">No inquiries have been forwarded to you yet.</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {inquiries.map((inq) => {
+            const id = inq._id || inq.id;
+            const status = inq.status || 'forwarded';
+            const progressPercentage = inq.progressPercentage || 60;
+
+            return (
+              <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-4">
+                {/* Top: Client Info, Event Date */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-1">
+                      {inq.userId?.name || inq.name || 'Client Request'}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                      <span className="inline-block px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full font-medium">
+                        {inq.category || inq.hiringFor || '—'}
+                      </span>
+                      <span className="inline-block px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full font-medium">
+                        <svg className="inline w-4 h-4 mr-1 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {inq.eventDate ? new Date(inq.eventDate).toLocaleDateString() : '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 mt-2 sm:mt-0">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
+                      status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
+                      status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {status.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar Component */}
+                <div className="mt-2">
+                  <InquiryProgressBar status={status} progressPercentage={progressPercentage} />
+                </div>
+
+                {/* Inquiry Details */}
+                <div className="mt-2 text-sm text-gray-700">
+                  <div className="mb-2">
+                    <span className="font-medium text-gray-600">Event Type:</span> 
+                    <span className="ml-2 text-gray-800">{inq.eventType || 'Not specified'}</span>
+                  </div>
+                  <div className="mb-2">
+                    <span className="font-medium text-gray-600">Requirements:</span> 
+                    <span className="ml-2 break-words text-gray-800">{inq.requirements || '—'}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
+                    <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : '—'}</span>
+                    <span><strong>Location:</strong> {inq.location || '—'}</span>
+                    <span><strong>Forwarded:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : '—'}</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                {status === 'forwarded' && (
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={() => handleInquiryResponse(id, 'accept')}
+                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                    >
+                      Accept Inquiry
+                    </button>
+                    <button
+                      onClick={() => handleInquiryResponse(id, 'reject')}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                    >
+                      Decline Inquiry
+                    </button>
+                  </div>
+                )}
+
+                {(status === 'artist_accepted' || status === 'artist_rejected') && (
+                  <div className="text-center text-sm text-gray-500 mt-2">
+                    You have already {status.includes('accepted') ? 'accepted' : 'declined'} this inquiry
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>
       {/* Header */}
@@ -402,7 +557,7 @@ const ArtistDashboard = ({ config }) => {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['overview', 'bookings', 'portfolio', 'profile', 'settings'].map((tab) => (
+            {['overview', 'inquiries', 'bookings', 'portfolio', 'profile', 'settings'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -422,6 +577,7 @@ const ArtistDashboard = ({ config }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
+        {activeTab === 'inquiries' && renderInquiries()}
         {activeTab === 'bookings' && renderBookings()}
         {activeTab === 'portfolio' && renderPortfolio()}
         {activeTab === 'earnings' && renderEarnings()}

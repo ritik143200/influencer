@@ -9,7 +9,9 @@ const {
   searchArtists,
   getMyProfile,
   updateMyProfile,
-  upload
+  upload,
+  getMyInquiries,
+  respondToInquiry
 } = require('../controllers/artistController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -26,6 +28,10 @@ router.get('/search', searchArtists);
 // Protected: logged-in artist's own profile
 router.get('/me', protect, getMyProfile);
 router.put('/me', protect, updateMyProfile);
+
+// Protected: inquiry management for artists
+router.get('/inquiries', protect, getMyInquiries);
+router.patch('/inquiries/:id/respond', protect, respondToInquiry);
 
 // Other routes
 router.get('/:id', getArtistById);
