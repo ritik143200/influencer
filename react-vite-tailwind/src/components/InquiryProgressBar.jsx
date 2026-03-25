@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InquiryProgressBar = ({ status, progressPercentage }) => {
+const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'sent':
@@ -55,6 +55,16 @@ const InquiryProgressBar = ({ status, progressPercentage }) => {
 
   const stages = getStages();
   const currentStageIndex = stages.findIndex(stage => stage.completed.includes(status));
+
+  // Helper function to get artist name with fallbacks
+  const getArtistName = (artist) => {
+    return artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
+  };
+
+  // Helper function to get artist category with fallbacks
+  const getArtistCategory = (artist) => {
+    return artist.category || artist.profileType || artist.artistType || 'N/A';
+  };
 
   return (
     <div className="w-full">
@@ -112,6 +122,45 @@ const InquiryProgressBar = ({ status, progressPercentage }) => {
           {getStatusText(status)}
         </span>
       </div>
+
+      {/* Forwarded Artists Information */}
+      {forwardedTo && forwardedTo.length > 0 && status === 'forwarded' && (
+        <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="text-sm font-medium text-purple-800 mb-2">Forwarded to:</div>
+          <div className="space-y-2">
+            {forwardedTo.map((artist, index) => {
+              const artistName = getArtistName(artist);
+              const artistEmail = artist.email || 'No email';
+              const artistCategory = getArtistCategory(artist);
+              
+              return (
+                <div key={index} className="flex items-center justify-between p-2 bg-white rounded-lg border border-purple-100">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-purple-200 rounded-full flex items-center justify-center font-medium text-purple-700 text-xs">
+                      {artistName?.charAt(0).toUpperCase() || 'A'}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-semibold text-purple-800">{artistName}</span>
+                        <span className="text-xs text-purple-600">({artistCategory})</span>
+                      </div>
+                      <span className="text-xs text-purple-500">{artistEmail}</span>
+                    </div>
+                  </div>
+                  {onViewArtist && (
+                    <button
+                      onClick={() => onViewArtist(artist)}
+                      className="text-xs px-2 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-medium"
+                    >
+                      View Details
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

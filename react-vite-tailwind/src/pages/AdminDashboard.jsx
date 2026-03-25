@@ -26,6 +26,12 @@ const AdminDashboard = ({ config }) => {
   // Artist detail modal state
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [showArtistModal, setShowArtistModal] = useState(false);
+  const [selectedForwardedArtist, setSelectedForwardedArtist] = useState(null);
+  const [showArtistDetailsModal, setShowArtistDetailsModal] = useState(false);
+  const [loadingArtistDetails, setLoadingArtistDetails] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [showInquiryDetailsModal, setShowInquiryDetailsModal] = useState(false);
+  
   // Forward inquiry modal state
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardInquiryId, setForwardInquiryId] = useState(null);
@@ -224,22 +230,53 @@ const AdminDashboard = ({ config }) => {
   };
 
   const handleViewInquiryDetails = (inquiry) => {
-    // For now, just show an alert with inquiry details
-    // In a real implementation, this would open a modal with full details
-    const details = `
-Inquiry Details:
-- ID: ${inquiry._id?.slice(-6)}
-- Name: ${inquiry.name}
-- Email: ${inquiry.email}
-- Phone: ${inquiry.phone}
-- Category: ${inquiry.category}
-- Event: ${inquiry.eventType}
-- Date: ${inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString() : 'Not specified'}
-- Budget: ₹${inquiry.budget ? Number(inquiry.budget).toLocaleString('en-IN') : 'Not specified'}
-- Status: ${inquiry.status}
-- Progress: ${inquiry.progressPercentage || 10}%
-    `;
-    alert(details.trim());
+    setSelectedInquiry(inquiry);
+    setShowInquiryDetailsModal(true);
+  };
+
+  const handleViewArtistDetails = async (artist) => {
+    setLoadingArtistDetails(true);
+    
+    try {
+      const artistId = artist._id || artist.id;
+      let fullArtistData = artist;
+      
+      // If we have minimal artist data, try multiple approaches to get full details
+      if (!artist.email || !artist.phone || artist.email === 'N/A' || !artist.categories) {
+        
+        // First try to find in existing artists array
+        const existingArtist = artists.find(a => (a._id || a.id) === artistId);
+        if (existingArtist && (existingArtist.email || existingArtist.phone)) {
+          fullArtistData = { ...artist, ...existingArtist };
+        } else {
+          // Then try API call
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${artistId}`, {
+            headers: { 
+              'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              fullArtistData = data.data;
+            }
+          }
+        }
+      }
+      
+      setSelectedForwardedArtist(fullArtistData);
+      setShowArtistDetailsModal(true);
+    } catch (error) {
+      console.error('Error fetching artist details:', error);
+      // Show error message to user and fallback to available data
+      alert('Failed to fetch complete artist details. Showing available information.');
+      setSelectedForwardedArtist(artist);
+      setShowArtistDetailsModal(true);
+    } finally {
+      setLoadingArtistDetails(false);
+    }
   };
 
   const handleAssignToArtist = async (inquiryId) => {
@@ -624,6 +661,7 @@ Inquiry Details:
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forwarded To</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
@@ -665,6 +703,47 @@ Inquiry Details:
                       <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
                     </div>
                   </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {inquiry.forwardedTo && inquiry.forwardedTo.length > 0 ? (
+                    <div className="space-y-1">
+                      {inquiry.forwardedTo.slice(0, 2).map((artist, index) => {
+                        // Handle multiple field name variations for artist name
+                        const artistName = artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
+                        const artistCategory = artist.category || artist.profileType || artist.artistType || 'N/A';
+                        
+                        return (
+                          <div key={index} className="flex items-center gap-2 group">
+                            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-medium text-purple-700 border border-purple-200">
+                              {artistName?.charAt(0).toUpperCase() || 'A'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs font-medium text-gray-700 group-hover:text-purple-600 transition-colors">
+                                  {artistName}
+                                </span>
+                                <button
+                                  onClick={() => handleViewArtistDetails(artist)}
+                                  className="text-xs text-purple-600 hover:text-purple-800 underline font-medium"
+                                  title="View Artist Details"
+                                >
+                                  View
+                                </button>
+                              </div>
+                              <span className="text-xs text-gray-500">({artistCategory})</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {inquiry.forwardedTo.length > 2 && (
+                        <div className="text-xs text-purple-600 font-medium cursor-pointer hover:text-purple-800">
+                          +{inquiry.forwardedTo.length - 2} more artists
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-xs">Not forwarded</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -1373,6 +1452,351 @@ Inquiry Details:
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Inquiry Details Modal */}
+      {showInquiryDetailsModal && selectedInquiry && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 rounded-t-2xl`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Inquiry Details</h2>
+                  <p className="text-white/80 mt-1">
+                    Inquiry ID: #{(selectedInquiry._id || selectedInquiry.id || 'N/A')?.slice(-6)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowInquiryDetailsModal(false)}
+                  className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* User Information */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    User Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.userId?.name || selectedInquiry.name || 'Not provided'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.userId?.email || selectedInquiry.email || 'Not provided'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.phone || 'Not provided'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Event Information */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Event Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-500">Category</p>
+                      <p className="font-medium text-gray-900 capitalize">
+                        {selectedInquiry.hiringFor || selectedInquiry.category || 'Not specified'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Event Type</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.eventType || 'Not specified'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Event Date</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.eventDate ? new Date(selectedInquiry.eventDate).toLocaleDateString('en-IN') : 'Not specified'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Location</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.location || 'Not specified'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Budget</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedInquiry.budget ? `₹${Number(selectedInquiry.budget).toLocaleString('en-IN')}` : 'Not specified'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Requirements */}
+                <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Requirements
+                  </h3>
+                  <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                    {selectedInquiry.requirements || 'No specific requirements mentioned'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress Section */}
+              <div className="mt-6">
+                <InquiryProgressBar 
+                  status={selectedInquiry.status || 'sent'} 
+                  progressPercentage={selectedInquiry.progressPercentage || 10}
+                  forwardedTo={selectedInquiry.forwardedTo || []}
+                  onViewArtist={handleViewArtistDetails}
+                />
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <button
+                  onClick={() => setShowInquiryDetailsModal(false)}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Artist Details Modal */}
+      {showArtistDetailsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          {loadingArtistDetails ? (
+            <div className="p-12 flex flex-col items-center justify-center">
+              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+              <p className="text-gray-600 font-medium">Loading artist details...</p>
+            </div>
+          ) : selectedForwardedArtist ? (
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className={`bg-gradient-to-r ${getCategoryColors(2)} p-6 rounded-t-2xl`}>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                      <span className="text-white text-2xl font-bold">
+                        {(selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Unknown')?.charAt(0)?.toUpperCase() || 'A'}
+                      </span>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">
+                        {selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Unknown Artist'}
+                      </h2>
+                      <p className="text-white/80 mt-1">
+                        {selectedForwardedArtist.profileType || selectedForwardedArtist.artistType || 'Professional Artist'}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium bg-white/20 text-white">
+                          Artist ID: #{(selectedForwardedArtist._id || selectedForwardedArtist.id || 'N/A')?.slice(-6)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowArtistDetailsModal(false)}
+                    className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Personal Information */}
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Personal Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-500">Full Name</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Not provided'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Email Address</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedForwardedArtist.email || 'Not provided'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Phone Number</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedForwardedArtist.phone || 'Not provided'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Location</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedForwardedArtist.location || 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Professional Information */}
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Professional Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm text-gray-500">Profile Type</p>
+                        <p className="font-medium text-gray-900 capitalize">
+                          {selectedForwardedArtist.profileType || selectedForwardedArtist.artistType || 'Not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Categories</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedForwardedArtist.categories && selectedForwardedArtist.categories.length > 0 ? (
+                            selectedForwardedArtist.categories.map((cat, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                                {cat}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium capitalize">
+                              {selectedForwardedArtist.category || 'General'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Experience</p>
+                        <p className="font-medium text-gray-900">
+                          {selectedForwardedArtist.experience ? `${selectedForwardedArtist.experience} years` : 'Not specified'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      Bio / Description
+                    </h3>
+                    <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                      {selectedForwardedArtist.bio || 'No bio provided'}
+                    </p>
+                  </div>
+
+                  {/* Social Links */}
+                  <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                      Social Media Links
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+                      {selectedForwardedArtist.socialLinks?.instagram && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-pink-600">📷</span>
+                          <a href={selectedForwardedArtist.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            Instagram
+                          </a>
+                        </div>
+                      )}
+                      {selectedForwardedArtist.socialLinks?.youtube && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-600">📺</span>
+                          <a href={selectedForwardedArtist.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
+                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            YouTube
+                          </a>
+                        </div>
+                      )}
+                      {selectedForwardedArtist.socialLinks?.facebook && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-blue-600">📘</span>
+                          <a href={selectedForwardedArtist.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
+                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            Facebook
+                          </a>
+                        </div>
+                      )}
+                      {selectedForwardedArtist.socialLinks?.website && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-600">🌐</span>
+                          <a href={selectedForwardedArtist.socialLinks.website} target="_blank" rel="noopener noreferrer"
+                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            Website
+                          </a>
+                        </div>
+                      )}
+                      {(!selectedForwardedArtist.socialLinks?.instagram && !selectedForwardedArtist.socialLinks?.youtube && 
+                        !selectedForwardedArtist.socialLinks?.facebook && !selectedForwardedArtist.socialLinks?.website) && (
+                        <span className="text-gray-500 text-sm">No social links provided</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowArtistDetailsModal(false)}
+                    className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-12 text-center">
+              <p className="text-gray-600">No artist data available</p>
+            </div>
+          )}
         </div>
       )}
     </div>
