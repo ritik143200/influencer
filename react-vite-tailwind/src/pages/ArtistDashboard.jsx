@@ -18,6 +18,110 @@ const ArtistDashboard = ({ config }) => {
     pending: 0
   });
 
+  // Fetch inquiries for this artist (moved outside useEffect)
+  const fetchInquiries = async () => {
+    setLoadingInquiries(true);
+    console.log('🎨 Starting real-time artist inquiries fetch');
+    
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const artistData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null;
+      const artistId = artistData?._id || artistData?.id;
+      
+      console.log('🎨 Current artist data:', artistData);
+      console.log('🎨 Artist ID for filtering:', artistId);
+      
+      if (!artistId) {
+        console.error('🎨 No artist ID found, cannot fetch inquiries');
+        setLoadingInquiries(false);
+        return;
+      }
+      
+      // Try admin inquiries endpoint to get all inquiries, then filter
+      console.log('🎨 Fetching from admin inquiries endpoint...');
+      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        console.log('🎨 Raw inquiries data:', data);
+        
+        let allInquiries = [];
+        if (data.success && data.data) {
+          allInquiries = Array.isArray(data.data) ? data.data : [];
+        } else if (data.data) {
+          allInquiries = Array.isArray(data.data) ? data.data : [];
+        } else if (Array.isArray(data)) {
+          allInquiries = data;
+        }
+        
+        console.log('🎨 Total inquiries fetched:', allInquiries.length);
+        
+        // Filter inquiries that are forwarded to this artist
+        const forwardedInquiries = allInquiries.filter(inquiry => {
+          const forwardedTo = inquiry.forwardedTo || [];
+          console.log(`🎨 Checking inquiry ${inquiry._id}:`, {
+            forwardedTo,
+            artistId
+          });
+          
+          const isForwardedToMe = forwardedTo.some(forwarded => 
+            forwarded._id === artistId || 
+            forwarded.id === artistId || 
+            forwarded.artistId === artistId ||
+            forwarded.email === artistData.email
+          );
+          
+          if (isForwardedToMe) {
+            console.log('✅ Inquiry forwarded to this artist:', inquiry._id);
+          }
+          
+          return isForwardedToMe;
+        });
+        
+        console.log(`🎨 Found ${forwardedInquiries.length} inquiries forwarded to this artist`);
+        console.log('🎨 Forwarded inquiries:', forwardedInquiries);
+        
+        // Enrich with artist details if needed
+        const enrichedInquiries = forwardedInquiries.map(inquiry => {
+          const enrichedForwardedTo = inquiry.forwardedTo.map(forwarded => {
+            if (forwarded._id === artistId && artistData) {
+              return {
+                ...forwarded,
+                fullName: artistData.fullName || artistData.name || 'Current Artist',
+                email: artistData.email,
+                phone: artistData.phone,
+                location: artistData.location,
+                categories: artistData.categories || [artistData.category],
+                profileType: artistData.profileType || 'artist'
+              };
+            }
+            return forwarded;
+          });
+          
+          return {
+            ...inquiry,
+            forwardedTo: enrichedForwardedTo
+          };
+        });
+        
+        console.log('🎨 Setting enriched inquiries:', enrichedInquiries);
+        setInquiries(enrichedInquiries);
+        
+      } else {
+        console.error('🎨 Failed to fetch inquiries:', res.status);
+        setInquiries([]);
+      }
+      
+    } catch (error) {
+      console.error('🎨 Error fetching real-time inquiries:', error);
+      setInquiries([]);
+    } finally {
+      setLoadingInquiries(false);
+    }
+  };
+
   useEffect(() => {
     // Load artist data from localStorage
     const storedUser = localStorage.getItem('userData');
@@ -69,25 +173,6 @@ const ArtistDashboard = ({ config }) => {
 
     fetchArtistData();
 
-    // Fetch inquiries for this artist
-    const fetchInquiries = async () => {
-      setLoadingInquiries(true);
-      try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-        const res = await fetch(`${API_BASE_URL}/api/artist/inquiries`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setInquiries(data.data || data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching inquiries:', error);
-      } finally {
-        setLoadingInquiries(false);
-      }
-    };
-
     fetchInquiries();
 
     setPortfolio([
@@ -96,6 +181,13 @@ const ArtistDashboard = ({ config }) => {
       { id: 3, title: 'Studio Session', type: 'video', thumbnail: '🎤', date: '2024-03-01' }
     ]);
   }, []);
+
+  // Debug useEffect to monitor inquiries state (real-time only)
+  useEffect(() => {
+    console.log('🎨 Real-time inquiries state updated:', inquiries);
+    console.log('🎨 Real-time inquiries length:', inquiries.length);
+    console.log('🎨 Loading state:', loadingInquiries);
+  }, [inquiries, loadingInquiries]);
 
   const handleBookingAction = async (bookingId, action) => {
     try {
@@ -421,7 +513,18 @@ const ArtistDashboard = ({ config }) => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-gray-800">Inquiries Forwarded to You</h3>
-        <p className="text-sm text-gray-500">{inquiries.length} total</p>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => {
+              console.log('🎨 Debug: Refreshing real-time inquiries');
+              fetchInquiries();
+            }}
+            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+          >
+            Refresh Real-time
+          </button>
+          <p className="text-sm text-gray-500">{inquiries.length} total</p>
+        </div>
       </div>
 
       {loadingInquiries ? (
