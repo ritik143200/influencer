@@ -69,27 +69,9 @@ const HeroSlider = ({ config }) => {
                 <div className="hidden lg:flex justify-center">
                   <div className="relative">
                     <div className="w-80 h-80 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 opacity-20 blur-3xl absolute -inset-10" />
-                    {/* <div className="relative grid grid-cols-2 gap-4">
-                      {['🎸', '📷', '🖼️', '🩰'].map((emoji, i) => (
-                        <div 
-                          key={i}
-                          className="bg-white rounded-2xl p-4 shadow-xl card-hover"
-                          style={{ animationDelay: `${i * 0.1}s` }}
-                        >
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center text-3xl mb-3">
-                            {emoji}
-                          </div>
-                          <div className="font-semibold text-gray-900 text-sm">Artist Name</div>
-                          <div className="text-xs text-gray-500">Specialty</div>
-                          <div className="flex items-center gap-1 mt-2">
-                            <span className="text-yellow-500">⭐</span>
-                            <span className="text-sm font-medium">4.9</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div> */}
+                    
                     <div>
-                      <img src='../public/hero.png' alt='Hero'/>
+                      <img src='/hero.png' alt='Hero'/>
                     </div>
                   </div>
                 </div>

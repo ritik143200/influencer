@@ -647,14 +647,18 @@ const ArtistRegistrationPage = ({ config }) => {
                   <label className="block text-xs font-bold text-textSecondary uppercase tracking-wider mb-2">Personal Information</label>
                   <div className="space-y-4">
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
+                      <label htmlFor="fullName" className="block text-sm font-medium text-textSecondary mb-2">
+                        Full Name
+                      </label>
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary mt-8">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                       </span>
                       <input
+                        id="fullName"
                         type="text"
-                        placeholder="Full Name"
+                        placeholder="Enter your full name"
                         value={formData.fullName}
                         onChange={(e) => handleInputChange('fullName', e.target.value)}
                         className="w-full pl-12 pr-4 py-4 bg-background border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all placeholder-black text-black text-lg"
@@ -662,14 +666,18 @@ const ArtistRegistrationPage = ({ config }) => {
                     </div>
 
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
+                      <label htmlFor="email" className="block text-sm font-medium text-textSecondary mb-2">
+                        Email Address
+                      </label>
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary mt-8">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                       </span>
                       <input
+                        id="email"
                         type="email"
-                        placeholder="Email Address"
+                        placeholder="Enter your email address"
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
                         className="w-full pl-12 pr-4 py-4 bg-background border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all placeholder-black text-black text-lg"
@@ -677,14 +685,18 @@ const ArtistRegistrationPage = ({ config }) => {
                     </div>
 
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
+                      <label htmlFor="phone" className="block text-sm font-medium text-textSecondary mb-2">
+                        Phone Number
+                      </label>
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary mt-8">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       </span>
                       <input
+                        id="phone"
                         type="tel"
-                        placeholder="+91 00000 00000"
+                        placeholder="Enter your phone number"
                         value={formData.phone}
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         className="w-full pl-12 pr-4 py-4 bg-background border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all placeholder-black text-black text-lg"
@@ -692,12 +704,16 @@ const ArtistRegistrationPage = ({ config }) => {
                     </div>
 
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
+                      <label htmlFor="password" className="block text-sm font-medium text-textSecondary mb-2">
+                        Password
+                      </label>
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary mt-8">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
                       </span>
                       <input
+                        id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a password"
                         value={formData.password}
@@ -707,7 +723,7 @@ const ArtistRegistrationPage = ({ config }) => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-orange-500 transition-colors"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-orange-500 transition-colors mt-8"
                       >
                         {showPassword ? (
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -718,14 +734,18 @@ const ArtistRegistrationPage = ({ config }) => {
                     </div>
 
                     <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
+                      <label htmlFor="confirmPassword" className="block text-sm font-medium text-textSecondary mb-2">
+                        Confirm Password
+                      </label>
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary mt-8">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
                       </span>
                       <input
+                        id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Confirm password"
+                        placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                         className="w-full pl-12 pr-12 py-4 bg-background border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all placeholder-black text-black text-lg"
@@ -733,7 +753,7 @@ const ArtistRegistrationPage = ({ config }) => {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-orange-500 transition-colors"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-orange-500 transition-colors mt-8"
                       >
                         {showConfirmPassword ? (
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -892,7 +912,7 @@ const ArtistRegistrationPage = ({ config }) => {
                 </div>
 
                 {/* Location & Social Links Section */}
-                <div className="pt-4 border-t border-border space-y-8">
+                <div className=" border-border space-y-8">
                   <div>
                     <div className="relative group">
                       <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary group-focus-within:text-orange-500 transition-colors">
