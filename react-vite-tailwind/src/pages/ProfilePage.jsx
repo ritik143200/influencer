@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import ProfileEditForm from '../components/profile/ProfileEditForm';
 import { 
   CheckCircle2, 
-  MapPin, 
+  MapPin,
   ExternalLink, 
   ChevronRight,
   Briefcase,
@@ -45,8 +45,6 @@ const ProfilePage = ({ config }) => {
   // Helper to normalize raw API/user data into formData shape
   const normalizeProfile = (src) => ({
     fullName: src.fullName || src.name || `${src.firstName || ''} ${src.lastName || ''}`.trim() || '',
-    firstName: src.firstName || src.name?.split(' ')[0] || '',
-    lastName: src.lastName || src.name?.split(' ').slice(1).join(' ') || '',
     username: src.username || '',
     email: src.email || '',
     phone: src.phone || '',
@@ -61,7 +59,7 @@ const ProfilePage = ({ config }) => {
     category: src.category || '',
     experience: src.experience || '',
     previousCollaborations: src.previousCollaborations || '',
-    skills: src.skills || [],
+    subcategories: src.subcategories || [],
     portfolio: src.portfolio || [],
     availability: src.availability || 'available',
     role: src.role || 'user',
@@ -155,7 +153,7 @@ const ProfilePage = ({ config }) => {
         bio: formData.bio,
         location: formData.location,
         experience: formData.experience,
-        skills: formData.skills,
+        skills: formData.subcategories,
         budgetMin: formData.budgetMin,
         budgetMax: formData.budgetMax,
         budget: formData.budget,
@@ -257,7 +255,7 @@ const ProfilePage = ({ config }) => {
     location: formattedLocation,
     status: formData.availability?.toUpperCase() || 'AVAILABLE',
     bio: formData.bio || 'Passionate professional ready for the next big project.',
-    tags: formData.skills?.length ? formData.skills : ["Creator", "Tech", "Lifestyle"],
+    tags: formData.subcategories?.length ? formData.subcategories : ["Creator", "Tech", "Lifestyle"],
     stats: {
       totalReach: (Number(formData.platforms?.instagram?.followers || 0) + Number(formData.platforms?.youtube?.followers || 0)).toLocaleString() || '0',
       instagram: { followers: formData.platforms?.instagram?.followers || '0', engagement: formData.platforms?.instagram?.engagementRate ? `${formData.platforms.instagram.engagementRate}%` : 'N/A' },
