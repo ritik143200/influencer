@@ -62,7 +62,7 @@ const CategoryCircles = ({ config }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl lg:text-3xl font-bold" style={{ color: config.text_color }}>
-            Artist Categories
+            Influencer Categories
           </h2>
           <div className="hidden sm:flex gap-2">
             <button 
@@ -126,7 +126,7 @@ const CategoryCircles = ({ config }) => {
                 Connect with talented artists
               </h3>
               <p className="text-sm lg:text-base mt-2" style={{ color: config.secondary_action }}>
-                Register as an artist or sign in to access our artist booking platform.
+                Register as an influencer or sign in to access our influencer booking platform.
               </p>
             </div>
 
@@ -149,7 +149,7 @@ const CategoryCircles = ({ config }) => {
                   borderColor: `${config.primary_action}35`
                 }}
               >
-                {totalArtists.toLocaleString()} Artists
+                {totalArtists.toLocaleString()} Influencers
               </span>
             </div>
           </div>

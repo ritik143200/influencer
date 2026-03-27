@@ -28,7 +28,7 @@ const AboutInfluencersPage = ({ config }) => {
               Our Mission for Influencers
             </h2>
             <p className="text-gray-600 leading-relaxed">
-              ArtistHub is dedicated to creating a seamless platform where talented influencers can showcase their content, 
+              InfluencerHub is dedicated to creating a seamless platform where talented influencers can showcase their content, 
               connect with brands, and grow their digital presence. We believe in empowering influencers and providing 
               them with the tools they need to succeed in the social media age.
             </p>
@@ -139,7 +139,7 @@ const AboutInfluencersPage = ({ config }) => {
             </h2>
             <p className="text-lg mb-6 opacity-90">
               Whether you're an influencer looking for brand partnerships or a company seeking creative talent, 
-              ArtistHub is your perfect platform.
+              InfluencerHub is your perfect platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 

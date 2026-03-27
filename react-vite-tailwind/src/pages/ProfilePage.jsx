@@ -102,7 +102,7 @@ const ProfilePage = ({ config }) => {
       try {
         const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
         const token = localStorage.getItem('userToken');
-        const res = await fetch(`${API_BASE_URL}/api/artist/me`, {
+        const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
@@ -174,7 +174,7 @@ const ProfilePage = ({ config }) => {
         payload.password = formData.password;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/artist/me`, {
+      const response = await fetch(`${API_BASE_URL}/api/influencer/me`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ const ProfilePage = ({ config }) => {
     : [locCity, locCountry].filter(Boolean).join(', ') || 'Global';
 
   const nicheOrCategory = formData.niche || formData.category;
-  const displayRole = formData.role === 'artist' ? 'Artist' : formData.role === 'influencer' ? 'Influencer' : 'User';
+  const displayRole = (formData.role === 'artist' || formData.role === 'influencer') ? 'Influencer' : 'User';
 
   const userData = {
     name: formData.fullName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Your Name',

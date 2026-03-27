@@ -51,10 +51,10 @@ const Navbar = ({ config }) => {
           >
             <img 
               src="/IndoriArtist_Logo.avif" 
-              alt="Indori Artist" 
+              alt="Indori Influencer" 
               className="h-8 w-auto sm:h-10 lg:h-12"
               onError={(e) => {
-                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='%233b82f6'%3EIndori Artist%3C/text%3E%3C/svg%3E";
+                e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='%233b82f6'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
               }}
             />
           </div>
@@ -99,56 +99,7 @@ const Navbar = ({ config }) => {
                 {/* Services Dropdown */}
                 {showServicesDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[100]">
-                    {!isAuthenticated && (
-                      <>
-                        <button
-                          onClick={() => {
-                            navigate('artist-registration');
-                            setShowServicesDropdown(false);
-                          }}
-                          className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.55c-.9.35-1.45-1.97-1.45H13c-.55 0-1.05.45-1.05 1.45v1c0 1.1.9 2 2 2h3c.55 0 1.05-.45 1.05-1.45v-1c0-1.1-.9-2-2-2z"/>
-                          </svg>
-                          <div>
-                            <div className="font-medium">Artist Registration</div>
-                            <div className="text-xs text-gray-500">Create your artist profile</div>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigate('auth');
-                            setShowServicesDropdown(false);
-                          }}
-                          className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <div>
-                            <div className="font-medium">Sign In</div>
-                            <div className="text-xs text-gray-500">Access your account</div>
-                          </div>
-                        </button>
-                      </>
-                    )}
                     <div className="border-t border-gray-200 mt-2 pt-2">
-                      <button
-                        onClick={() => {
-                          navigate('services-artists');
-                          setShowServicesDropdown(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.55c-.9.35-1.45-1.97-1.45H13c-.55 0-1.05.45-1.05 1.45v1c0 1.1.9 2 2 2h3c.55 0 1.05-.45 1.05-1.45v-1c0-1.1-.9-2-2-2z"/>
-                        </svg>
-                        <div>
-                          <div className="font-medium">Artist Services</div>
-                          <div className="text-xs text-gray-500">Portfolio, bookings & more</div>
-                        </div>
-                      </button>
                       <button
                         onClick={() => {
                           navigate('services-influencers');
@@ -162,21 +113,6 @@ const Navbar = ({ config }) => {
                         <div>
                           <div className="font-medium">Influencer Services</div>
                           <div className="text-xs text-gray-500">Brand partnerships & tools</div>
-                        </div>
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigate('services');
-                          setShowServicesDropdown(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div>
-                          <div className="font-medium">All Services</div>
-                          <div className="text-xs text-gray-500">Complete overview</div>
                         </div>
                       </button>
                     </div>
@@ -199,37 +135,23 @@ const Navbar = ({ config }) => {
                 {/* About Dropdown */}
                 {showAboutDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[100]">
-                    <button
-                      onClick={() => {
-                        navigate('about');
-                        setShowAboutDropdown(false);
-                      }}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div>
-                        <div className="font-medium">Platform Overview</div>
-                        <div className="text-xs text-gray-500">Learn about ArtistHub</div>
-                      </div>
-                    </button>
-                    <div className="border-t border-gray-200 mt-2 pt-2">
                       <button
                         onClick={() => {
-                          navigate('about-artists');
+                          navigate('about');
                           setShowAboutDropdown(false);
                         }}
                         className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.55c-.9.35-1.45-1.97-1.45H13c-.55 0-1.05.45-1.05 1.45v1c0 1.1.9 2 2 2h3c.55 0 1.05-.45 1.05-1.45v-1c0-1.1-.9-2-2-2z"/>
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <div>
-                          <div className="font-medium">For Artists</div>
-                          <div className="text-xs text-gray-500">Showcase talent & grow career</div>
+                          <div className="font-medium">Platform Overview</div>
+                          <div className="text-xs text-gray-500">Learn about InfluencerHub</div>
                         </div>
                       </button>
+                    <div className="border-t border-gray-200 mt-2 pt-2">
+                      {/* Removed 'For Artists' — keeping influencer content only */}
                       <button
                         onClick={() => {
                           navigate('about-influencers');
@@ -274,6 +196,7 @@ const Navbar = ({ config }) => {
               >
                 FAQ
               </button>
+
 
               {/* Inquiry Link */}
               <button 
@@ -331,10 +254,10 @@ const Navbar = ({ config }) => {
                       </button>
                     )}
                     
-                    {user?.role === 'artist' && (
+                    {(user?.role === 'artist' || user?.role === 'influencer') && (
                       <button
                         onClick={() => {
-                          navigate('artist-dashboard');
+                          navigate('influencer-dashboard');
                           setShowDashboardMenu(false);
                         }}
                         className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
@@ -343,7 +266,7 @@ const Navbar = ({ config }) => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.707.293.707.293V17a2 2 0 01-2 2H8a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                         <div>
-                          <div className="font-medium">Artist Dashboard</div>
+                          <div className="font-medium">Influencer Dashboard</div>
                           <div className="text-xs text-gray-500">Manage your portfolio</div>
                         </div>
                       </button>
@@ -390,19 +313,23 @@ const Navbar = ({ config }) => {
               </div>
             )}
 
-            {/* Artist Registration Link - Hidden for authenticated users */}
+            {/* Registration CTA - Hidden for authenticated users */}
             {!isAuthenticated && (
-              <button 
-                onClick={() => navigate('artist-registration')}
-                className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap flex items-center gap-2"
-                style={{ backgroundColor: config.primary_action }}
-              >
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                </span>
-                Artist/Influencer Registration
-              </button>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => navigate('auth')}
+                  className="font-medium text-gray-700 hover:text-brand-600 transition-colors whitespace-nowrap"
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => navigate('registration')}
+                  className="px-4 xl:px-5 py-2.5 rounded-full font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 whitespace-nowrap flex items-center gap-2"
+                  style={{ backgroundColor: config.primary_action }}
+                >
+                  Registration
+                </button>
+              </div>
             )}
           </div>
 
@@ -446,7 +373,7 @@ const Navbar = ({ config }) => {
               </button>
               <button
                 onClick={() => {
-                  navigate('services');
+                  navigate('services-influencers');
                   setMobileMenuOpen(false);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
@@ -513,22 +440,46 @@ const Navbar = ({ config }) => {
                 </>
               )}
               
-              {/* Artist Registration Link - Hidden for authenticated users */}
               {!isAuthenticated && (
-                <button
-                  onClick={() => {
-                    navigate('artist-registration');
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                  style={{ backgroundColor: config.primary_action }}
-                >
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
-                  </span>
-                  Artist/Influencer Registration
-                </button>
+                <div className="space-y-2 px-2 mt-2">
+                  <button
+                    onClick={() => {
+                      navigate('auth');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium"
+                  >
+                    <span>Sign In</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('registration', { type: 'user' });
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 rounded-xl font-semibold border-2 transition-all flex items-center justify-center gap-2"
+                    style={{ 
+                      color: config.primary_action, 
+                      borderColor: config.primary_action,
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate('registration');
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 rounded-xl font-semibold text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+                    style={{ backgroundColor: config.primary_action }}
+                  >
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    Registration
+                  </button>
+                </div>
               )}
             </div>
           </div>

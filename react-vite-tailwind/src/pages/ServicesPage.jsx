@@ -13,92 +13,73 @@ const ServicesPage = ({ config }) => {
             Our Services
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Comprehensive platform solutions designed for both artists and influencers to showcase their talent 
+            Comprehensive platform solutions designed for influencers to showcase their talent 
             and grow their careers
           </p>
         </div>
 
-        {/* Service Categories */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Artists Services Card */}
-          <div 
-            onClick={() => navigate('services-artists')}
-            className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-8 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">🎨</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold">Artist Services</h2>
-                <p className="text-white/80">For creative performers and artists</p>
-              </div>
-            </div>
-            
-            <p className="text-white/90 mb-6 leading-relaxed">
-              Comprehensive services for artists including portfolio showcase, booking management, 
-              secure payments, and talent discovery tools.
+        {/* Platform Overview (independent section) */}
+        <section className="mb-12">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <h2 className="text-3xl font-bold text-center mb-4" style={{ color: config.text_color }}>
+              Platform Overview
+            </h2>
+            <p className="text-center max-w-3xl mx-auto text-gray-600 mb-6">
+              Our platform brings together creators and brands with a modern, secure, and data-driven experience. From campaign management to payment reconciliation,
+              we provide an end-to-end toolkit that helps influencers grow sustainably while keeping operations simple and transparent.
             </p>
-            
-            <div className="space-y-2">
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
-                '🎤 Portfolio Showcase',
-                '📅 Booking Management',
-                '💳 Secure Payments'
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-white/90">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {item}
+                { title: 'Campaigns', desc: 'Create, manage, and measure brand collaborations with intuitive workflows.' },
+                { title: 'Payments', desc: 'Fast, reliable payouts with clear transaction records and protections.' },
+                { title: 'Insights', desc: 'Actionable analytics to optimize content performance and audience growth.' }
+              ].map((item, idx) => (
+                <div key={idx} className="p-6">
+                  <h3 className="font-semibold text-lg mb-2" style={{ color: config.text_color }}>{item.title}</h3>
+                  <p className="text-sm text-gray-600">{item.desc}</p>
                 </div>
               ))}
             </div>
-            
-            <button className="mt-6 px-6 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
-              Explore Artist Services →
-            </button>
           </div>
+        </section>
 
-          {/* Influencers Services Card */}
-          <div 
-            onClick={() => navigate('services-influencers')}
-            className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-8 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">📱</span>
+        {/* Service Categories - Influencer focused */}
+        <div className="mb-12">
+          <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-10 text-white hover:shadow-xl transition-all duration-300">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-6">
+              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
+                <span className="text-4xl">📱</span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold">Influencer Services</h2>
-                <p className="text-white/80">For social media influencers</p>
+                <h2 className="text-3xl lg:text-4xl font-bold">Influencer Services</h2>
+                <p className="text-white/90 mt-2 max-w-3xl">Tailored tools for creators to scale their content business: find brand deals, track performance, manage campaigns, and receive secure payouts — all in one place.</p>
               </div>
             </div>
-            
-            <p className="text-white/90 mb-6 leading-relaxed">
-              Advanced platform features for influencers including brand partnerships, audience analytics, 
-              monetization tools, and content creation resources.
-            </p>
-            
-            <div className="space-y-2">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                '🤝 Brand Partnerships',
-                '📈 Audience Analytics',
-                '💰 Monetization Tools',
-                '📱 Social Media Integration'
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-white/90">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {item}
+                { icon: '🤝', title: 'Brand Partnerships', desc: 'Match with vetted brands and streamlined campaign workflows.' },
+                { icon: '📈', title: 'Audience Analytics', desc: 'Deep insights into follower growth, reach, and engagement.' },
+                { icon: '💰', title: 'Monetization Tools', desc: 'Multiple revenue options and fast, transparent payouts.' },
+                { icon: '📱', title: 'Content Tools', desc: 'Scheduling, collaboration, and creative resources.' }
+              ].map((svc, idx) => (
+                <div key={idx} className="bg-white/10 rounded-xl p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="text-3xl">{svc.icon}</div>
+                    <div>
+                      <h3 className="font-semibold text-lg">{svc.title}</h3>
+                      <p className="text-white/90 text-sm mt-1">{svc.desc}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-            
-            <button className="mt-6 px-6 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
-              Explore Influencer Services →
-            </button>
+
+            <div className="mt-8 text-center">
+              <button onClick={() => navigate('services-influencers')} className="px-8 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
+                Explore Influencer Services
+              </button>
+            </div>
           </div>
         </div>
 
@@ -163,12 +144,12 @@ const ServicesPage = ({ config }) => {
               Choose Your Path to Success
             </h2>
             <p className="text-lg mb-6 opacity-90">
-              Whether you're an artist looking to showcase your talent or an influencer ready to 
-              amplify your reach, we have the right tools and services for you.
+              Whether you're an influencer looking to amplify your reach or a content creator ready to 
+              showcase your talent, we have the right tools and services for you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => navigate('artist-registration')}
+                onClick={() => navigate('influencer-registration')}
                 className="px-8 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
               >
                 Get Started

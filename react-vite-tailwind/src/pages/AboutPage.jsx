@@ -10,96 +10,59 @@ const AboutPage = ({ config }) => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
-            About ArtistHub
+            About InfluencerHub
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Discover our platform dedicated to empowering artists and influencers to showcase their talent 
-            and grow their careers worldwide
+            Discover our platform dedicated to empowering influencers and creators to showcase their talent 
+            and grow their brands worldwide
           </p>
         </div>
 
         {/* Platform Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Artists Section */}
-          <div 
-            onClick={() => navigate('about-artists')}
-            className="bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl p-8 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-          >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">🎨</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold">For Artists</h2>
-                <p className="text-white/80">Creative performers & talent</p>
-              </div>
-            </div>
-            
-            <p className="text-white/90 mb-6 leading-relaxed">
-              ArtistHub is dedicated to creating a seamless platform where talented artists can showcase their skills, 
-              connect with clients, and grow their careers in the digital age.
-            </p>
-            
-            <div className="space-y-2">
-              {[
-                '🎯 Showcase your talent globally',
-                '📅 Streamlined booking management',
-                '💳 Secure payment protection',
-                '⭐ Build professional reputation'
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-white/90">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {item}
-                </div>
-              ))}
-            </div>
-            
-            <button className="mt-6 px-6 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
-              Explore Artist Platform →
-            </button>
-          </div>
-
-          {/* Influencers Section */}
+        <div className="mb-12">
           <div 
             onClick={() => navigate('about-influencers')}
-            className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-8 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+            className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-10 text-white cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                <span className="text-3xl">📱</span>
+            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-6">
+              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
+                <span className="text-4xl">📱</span>
               </div>
               <div>
-                <h2 className="text-2xl font-bold">For Influencers</h2>
-                <p className="text-white/80">Social media creators</p>
+                <h2 className="text-3xl lg:text-4xl font-bold">For Influencers</h2>
+                <p className="text-white/90 mt-2 max-w-3xl">InfluencerHub is designed to empower social media creators and influencers with industry-leading tools to grow audiences, secure brand partnerships, and monetize content at scale. Our platform centralizes campaign management, analytics, and payment workflows so you can focus on creating.</p>
               </div>
             </div>
-            
-            <p className="text-white/90 mb-6 leading-relaxed">
-              ArtistHub empowers influencers to monetize their content, connect with brands, and grow their 
-              digital presence through powerful tools and strategic partnerships.
-            </p>
-            
-            <div className="space-y-2">
-              {[
-                '🤝 Brand partnership opportunities',
-                '📈 Advanced audience analytics',
-                '💰 Multiple monetization streams',
-                '📱 Social media integration'
-              ].map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-white/90">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {item}
-                </div>
-              ))}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">What we offer</h3>
+                <ul className="list-disc list-inside space-y-2 text-white/90">
+                  <li>Brand Partnership Marketplace and campaign management</li>
+                  <li>Advanced audience insights & performance analytics</li>
+                  <li>Multiple monetization channels and payout tools</li>
+                  <li>Content planning, collaboration, and scheduling tools</li>
+                </ul>
+              </div>
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">Why creators choose us</h3>
+                <ul className="list-disc list-inside space-y-2 text-white/90">
+                  <li>Transparent campaign briefs and secure payments</li>
+                  <li>Direct brand communication with negotiation support</li>
+                  <li>Data-driven recommendations to increase engagement</li>
+                  <li>Dedicated creator support and growth programs</li>
+                </ul>
+              </div>
             </div>
-            
-            <button className="mt-6 px-6 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
-              Explore Influencer Platform →
-            </button>
+
+            <div className="mt-8 flex gap-4">
+              <button className="px-6 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors" onClick={() => navigate('services-influencers')}>
+                Explore Influencer Services →
+              </button>
+              <button className="px-6 py-3 bg-white/20 border border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-colors" onClick={() => navigate('faq')}>
+                Learn More
+              </button>
+            </div>
           </div>
         </div>
 
@@ -185,7 +148,7 @@ const AboutPage = ({ config }) => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { name: 'Priya', role: 'Singer', story: '15+ gigs in first month', icon: '🎤' },
+              { name: 'Priya', role: 'Lifestyle Influencer', story: '15+ deals in first month', icon: '✨' },
               { name: 'Rahul', role: 'Painter', story: 'Doubled income through platform', icon: '�' },
               { name: 'Ananya', role: 'Fashion Influencer', story: '20+ brand collaborations', icon: '�' },
               { name: 'Rohit', role: 'Gaming Influencer', story: 'Tripled income in 6 months', icon: '🎮' }
@@ -209,12 +172,12 @@ const AboutPage = ({ config }) => {
               Join Our Creative Community
             </h2>
             <p className="text-lg mb-6 opacity-90">
-              Whether you're an artist looking to showcase your talent or an influencer ready to 
-              amplify your reach, ArtistHub is your platform for success.
+              Whether you're an influencer looking to amplify your reach or a content creator ready to 
+              showcase your talent, InfluencerHub is your platform for success.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => navigate('artist-registration')}
+                onClick={() => navigate('influencer-registration')}
                 className="px-8 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
               >
                 Get Started Today

@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const Artist = require('../models/Artist');
+const Artist = require('../models/influencer');
 const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');

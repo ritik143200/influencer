@@ -7,7 +7,7 @@ const UserDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { logout } = useAuth();
   const [userData, setUserData] = useState(null);
-  const [favoriteArtists, setFavoriteArtists] = useState([]);
+  const [favoriteInfluencers, setFavoriteInfluencers] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   // Removed bookings, bookingFilter
 
@@ -37,10 +37,10 @@ const UserDashboard = ({ config }) => {
 
     // Booking-related effect removed
 
-    setFavoriteArtists([
-      { id: 1, name: 'Melody Band', category: 'Bands', rating: 4.8, image: '🎸' },
-      { id: 2, name: 'DJ Storm', category: 'DJs', rating: 4.9, image: '🎧' },
-      { id: 3, name: 'Sara Singh', category: 'Singers', rating: 4.7, image: '🎤' }
+    setFavoriteInfluencers([
+      { id: 1, name: 'Creative Mind', category: 'Lifestyle', rating: 4.8, image: '🌟' },
+      { id: 2, name: 'Tech Guru', category: 'Tech', rating: 4.9, image: '💻' },
+      { id: 3, name: 'Fashionista', category: 'Fashion', rating: 4.7, image: '👗' }
     ]);
     
       // Fetch inquiries for the user (try API, fallback to localStorage)
@@ -144,9 +144,9 @@ const UserDashboard = ({ config }) => {
   const getStatusStyle = (status) => {
     if (status === 'admin_accepted') return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Admin Accepted' };
     if (status === 'admin_rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Admin Rejected' };
-    if (status === 'forwarded') return { bg: 'bg-purple-100', text: 'text-purple-800', label: '→ Forwarded to Artist' };
-    if (status === 'artist_accepted') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Artist Accepted' };
-    if (status === 'artist_rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Artist Rejected' };
+    if (status === 'forwarded') return { bg: 'bg-purple-100', text: 'text-purple-800', label: '→ Forwarded to Influencer' };
+    if (status === 'artist_accepted') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Influencer Accepted' };
+    if (status === 'artist_rejected') return { bg: 'bg-red-100', text: 'text-red-800', label: '✗ Influencer Rejected' };
     if (status === 'completed') return { bg: 'bg-green-100', text: 'text-green-800', label: '✓ Completed' };
     return { bg: 'bg-blue-100', text: 'text-blue-800', label: '📤 Sent' };
   };
@@ -245,10 +245,10 @@ const UserDashboard = ({ config }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-gray-800">{favoriteArtists.length}</span>
+            <span className="text-2xl font-bold text-gray-800">{favoriteInfluencers.length}</span>
           </div>
-          <h3 className="text-gray-600 text-sm font-medium">Favorite Artists</h3>
-          <p className="text-gray-500 text-xs mt-1">Artists you love</p>
+          <h3 className="text-gray-600 text-sm font-medium">Favorite Influencers</h3>
+          <p className="text-gray-500 text-xs mt-1">Influencers you love</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -373,9 +373,9 @@ const UserDashboard = ({ config }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{favoriteArtists.length}</span>
+          <span className="text-2xl font-bold text-gray-800">{favoriteInfluencers.length}</span>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Favorite Artists</h3>
+        <h3 className="text-gray-600 text-sm font-medium">Favorite Influencers</h3>
       </div>
     </div>
   );
@@ -384,23 +384,23 @@ const UserDashboard = ({ config }) => {
 
   const renderFavorites = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {favoriteArtists.map((artist) => (
-        <div key={artist.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
+      {favoriteInfluencers.map((influencer) => (
+        <div key={influencer.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
           <div className="h-48 bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
-            <span className="text-6xl">{artist.image}</span>
+            <span className="text-6xl">{influencer.image}</span>
           </div>
           <div className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">{artist.name}</h3>
-            <p className="text-gray-600 text-sm mb-3">{artist.category}</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">{influencer.name}</h3>
+            <p className="text-gray-600 text-sm mb-3">{influencer.category}</p>
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
-                <span className="text-sm text-gray-600">{artist.rating}</span>
+                <span className="text-sm text-gray-600">{influencer.rating}</span>
               </div>
               <button className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm font-medium">
-                Book Now
+                Hire Now
               </button>
             </div>
           </div>
@@ -509,7 +509,7 @@ const UserDashboard = ({ config }) => {
               <div>
                 <h1 className="text-2xl font-bold text-gray-800">User Dashboard</h1>
                 <p className="text-sm text-gray-600">Welcome back, {userData?.name || 'User'}!</p>
-                <p className="text-xs text-brand-500 mt-1">Indori Artist Platform</p>
+                <p className="text-xs text-brand-500 mt-1">Indori Influencer Platform</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
