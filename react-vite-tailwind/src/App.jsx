@@ -7,18 +7,17 @@ import NotificationToast from './components/NotificationToast';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import AboutPage from './pages/AboutPage';
-import AboutArtistsPage from './pages/AboutArtistsPage';
 import AboutInfluencersPage from './pages/AboutInfluencersPage';
 import ServicesPage from './pages/ServicesPage';
-import ServicesArtistsPage from './pages/ServicesArtistsPage';
 import ServicesInfluencersPage from './pages/ServicesInfluencersPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import ProfilePage from './pages/ProfilePage';
 import FAQPage from './pages/FAQPage';
-import ArtistRegistrationPage from './pages/ArtistRegistrationPage';
+import InfluencerRegistrationPage from './pages/InfluencerRegistrationPage';
+import RegistrationPage from './pages/RegistrationPage';
 import InquiryPage from './pages/InquiryPage';
 import UserDashboard from './pages/UserDashboard';
-import ArtistDashboard from './pages/ArtistDashboard';
+import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { defaultConfig } from './data/mockData';
 
@@ -35,7 +34,7 @@ function App() {
       <div className="h-full flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">
-            Indori Artist
+            Indori Influencer
           </div>
           <p className="text-gray-500">Loading...</p>
         </div>
@@ -58,7 +57,7 @@ const AppContent = ({ config }) => {
   const { currentPath } = useRouter();
 
   // Auth pages don't show navbar
-  const isAuthPage = currentPath === 'auth' || currentPath === 'artist-registration';
+  const isAuthPage = currentPath === 'auth' || currentPath === 'influencer-registration' || currentPath === 'registration';
 
   return (
     <div 
@@ -71,12 +70,11 @@ const AppContent = ({ config }) => {
       {!isAuthPage && <Navbar config={config} />}
       <NotificationToast />
       {currentPath === 'auth' && <AuthPage />}
-      {currentPath === 'artist-registration' && <ArtistRegistrationPage config={config} />}
+      {currentPath === 'registration' && <RegistrationPage config={config} />}
+      {currentPath === 'influencer-registration' && <InfluencerRegistrationPage config={config} />}
       {currentPath === 'about' && <AboutPage config={config} />}
-      {currentPath === 'about-artists' && <AboutArtistsPage config={config} />}
       {currentPath === 'about-influencers' && <AboutInfluencersPage config={config} />}
       {currentPath === 'services' && <ServicesPage config={config} />}
-      {currentPath === 'services-artists' && <ServicesArtistsPage config={config} />}
       {currentPath === 'services-influencers' && <ServicesInfluencersPage config={config} />}
       {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
       {currentPath === 'profile' && <ProfilePage config={config} />}
@@ -84,7 +82,7 @@ const AppContent = ({ config }) => {
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
                   {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && <UserDashboard config={config} />}
-      {currentPath === 'artist-dashboard' && <ArtistDashboard config={config} />}
+      {currentPath === 'influencer-dashboard' && <InfluencerDashboard config={config} />}
       {currentPath === 'admin-dashboard' && <AdminDashboard config={config} />}
     </div>
   );

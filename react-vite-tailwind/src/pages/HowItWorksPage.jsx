@@ -13,7 +13,7 @@ const HowItWorksPage = ({ config }) => {
             How It Works
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your simple journey to connect with talented artists and influencers
+            Your simple journey to connect with talented influencers and creators
           </p>
         </div>
 
@@ -138,16 +138,16 @@ const HowItWorksPage = ({ config }) => {
           </h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Artists/Influencers Path */}
+            {/* Influencers Path */}
             <div className="relative">
               <div className="text-center mb-8">
                 <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <span className="text-3xl">🎨</span>
+                  <span className="text-3xl">📱</span>
                 </div>
                 <h3 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
-                  For Artists & Influencers
+                  For Influencers & Creators
                 </h3>
-                <p className="text-gray-600">Showcase your talent and grow your career</p>
+                <p className="text-gray-600">Showcase your content and grow your brand</p>
               </div>
               
               {/* Hexagon Flow */}
@@ -255,11 +255,11 @@ const HowItWorksPage = ({ config }) => {
                 Ready to Get Started?
               </h2>
               <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of users already connecting through ArtistHub. Your journey is just a few clicks away.
+                Join thousands of users already connecting through InfluencerHub. Your journey is just a few clicks away.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
-                  onClick={() => navigate('artist-registration')}
+                  onClick={() => navigate('influencer-registration')}
                   className="px-8 py-4 bg-white text-brand-600 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   Create Account

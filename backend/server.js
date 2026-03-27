@@ -6,7 +6,8 @@ const fs = require('fs');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-const artistRoutes = require('./routes/artistRoutes');
+
+const influencerRoutes = require('./routes/influencerRoutes');
 // Removed artists route - artist browsing functionality removed
 // Booking routes import removed
 const adminRoutes = require('./routes/adminRoutes');
@@ -42,7 +43,8 @@ const idProofsDir = path.join(uploadsDir, 'id-proofs');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/api/artist', artistRoutes);
+
+app.use('/api/influencer', influencerRoutes);
 // Removed /api/artists route - artist browsing functionality removed
 app.use('/api/auth', authRoutes);
 // Booking routes usage removed

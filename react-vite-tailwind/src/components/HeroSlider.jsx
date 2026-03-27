@@ -61,7 +61,7 @@ const HeroSlider = ({ config }) => {
                       ))}
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900">10,000+ Artists</div>
+                      <div className="font-bold text-gray-900">10,000+ Influencers</div>
                       <div className="text-sm text-gray-500">Joined this month</div>
                     </div>
                   </div>

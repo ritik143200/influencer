@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 import InquiryProgressBar from '../components/InquiryProgressBar';
 
-import AdminArtistsManagement from '../components/AdminArtistsManagement';
+import AdminInfluencersManagement from '../components/AdminInfluencersManagement';
 
 
 
@@ -42,23 +42,23 @@ const AdminDashboard = ({ config }) => {
 
   const [users, setUsers] = useState([]);
 
-  const [artists, setArtists] = useState([]);
+  const [influencers, setInfluencers] = useState([]);
 
   const [inquiries, setInquiries] = useState([]);
 
   
 
-  // Artist detail modal state
+  // Influencer detail modal state
 
-  const [selectedArtist, setSelectedArtist] = useState(null);
+  const [selectedInfluencer, setSelectedInfluencer] = useState(null);
 
-  const [showArtistModal, setShowArtistModal] = useState(false);
+  const [showInfluencerModal, setShowInfluencerModal] = useState(false);
 
-  const [selectedForwardedArtist, setSelectedForwardedArtist] = useState(null);
+  const [selectedForwardedInfluencer, setSelectedForwardedInfluencer] = useState(null);
 
-  const [showArtistDetailsModal, setShowArtistDetailsModal] = useState(false);
+  const [showInfluencerDetailsModal, setShowInfluencerDetailsModal] = useState(false);
 
-  const [loadingArtistDetails, setLoadingArtistDetails] = useState(false);
+  const [loadingInfluencerDetails, setLoadingInfluencerDetails] = useState(false);
 
   const [selectedInquiry, setSelectedInquiry] = useState(null);
 
@@ -84,7 +84,7 @@ const AdminDashboard = ({ config }) => {
 
     totalUsers: users.length,
 
-    totalArtists: artists.length,
+    totalInfluencers: influencers.length,
 
     pendingInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length,
 
@@ -164,9 +164,9 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      // Fetch artists data
+      // Fetch influencers data
 
-      const artistsRes = await fetch(`${API_BASE_URL}/api/artist`, {
+      const influencersRes = await fetch(`${API_BASE_URL}/api/influencer`, {
 
         headers: {
 
@@ -178,59 +178,56 @@ const AdminDashboard = ({ config }) => {
 
       
 
-      console.log('Artists fetch response status:', artistsRes.status);
+      console.log('Influencers fetch response status:', influencersRes.status);
 
       
 
-      if (artistsRes.ok) {
+      if (influencersRes.ok) {
 
-        const artistsData = await artistsRes.json();
+        const influencersData = await influencersRes.json();
 
-        console.log('Artists data received:', artistsData);
+        console.log('Influencers data received:', influencersData);
 
-        const artistsArray = Array.isArray(artistsData.data) ? artistsData.data : 
+        const influencersArray = Array.isArray(influencersData.data) ? influencersData.data : 
 
-                            Array.isArray(artistsData) ? artistsData : 
+                            Array.isArray(influencersData) ? influencersData : 
 
-                            Array.isArray(artistsData.artists) ? artistsData.artists : [];
+                            Array.isArray(influencersData.artists) ? influencersData.artists : [];
 
-        console.log('Artists array after processing:', artistsArray);
+        console.log('Influencers array after processing:', influencersArray);
 
         
 
-        // Filter out artists with missing required fields and create demo artists if needed
+        // Filter out influencers with missing required fields and create demo influencers if needed
 
-        const validArtists = artistsArray.filter(artist => 
-
-          artist && (artist.fullName || artist.name) && artist.email && 
-
-          (artist.categories && artist.categories.length > 0 || artist.category)
-
+        const validInfluencers = influencersArray.filter(influencer => 
+          influencer && influencer.email && 
+          (influencer.categories && influencer.categories.length > 0 || influencer.category)
         );
 
         
 
-        console.log('Valid artists after filtering:', validArtists.length);
+        console.log('Valid influencers after filtering:', validInfluencers.length);
 
         
 
-        // If no valid artists exist, create demo artists for testing
+        // If no valid influencers exist, create demo influencers for testing
 
-        if (validArtists.length === 0) {
+        if (validInfluencers.length === 0) {
 
-          const demoArtists = [
+          const demoInfluencers = [
 
             {
 
               _id: 'demo1',
 
-              fullName: 'Demo Artist 1',
+              fullName: 'Demo Influencer 1',
 
-              email: 'artist1@example.com',
+              email: 'influencer1@example.com',
 
-              categories: ['Singer'],
+              categories: ['Lifestyle'],
 
-              profileType: 'artist'
+              profileType: 'influencer'
 
             },
 
@@ -238,43 +235,43 @@ const AdminDashboard = ({ config }) => {
 
               _id: 'demo2',
 
-              fullName: 'Demo Artist 2',
+              fullName: 'Demo Influencer 2',
 
-              email: 'artist2@example.com',
+              email: 'influencer2@example.com',
 
-              categories: ['DJ'],
+              categories: ['Fashion'],
 
-              profileType: 'artist'
+              profileType: 'influencer'
 
             }
 
           ];
 
-          console.log('Using demo artists:', demoArtists);
+          console.log('Using demo influencers:', demoInfluencers);
 
-          setArtists(demoArtists);
+          setInfluencers(demoInfluencers);
 
         } else {
 
-          console.log('Using real artists:', validArtists);
+          console.log('Using real influencers:', validInfluencers);
 
-          setArtists(validArtists);
+          setInfluencers(validInfluencers);
 
         }
 
       } else {
 
-        console.error('Failed to fetch artists:', artistsRes.status, artistsRes.statusText);
+        console.error('Failed to fetch influencers:', influencersRes.status, influencersRes.statusText);
 
         try {
 
-          const errorData = await artistsRes.json();
+          const errorData = await influencersRes.json();
 
           console.error('Error response:', errorData);
 
         } catch (e) {
 
-          const errorText = await artistsRes.text();
+          const errorText = await influencersRes.text();
 
           console.error('Error text:', errorText);
 
@@ -284,25 +281,25 @@ const AdminDashboard = ({ config }) => {
 
         // Set demo artists as fallback
 
-        const demoArtists = [
+        const demoInfluencers = [
 
           {
 
             _id: 'demo1',
 
-            fullName: 'Demo Artist 1',
+            fullName: 'Demo Influencer 1',
 
-            email: 'artist1@example.com',
+            email: 'influencer1@example.com',
 
-            categories: ['Singer'],
+            categories: ['Lifestyle'],
 
-            profileType: 'artist'
+            profileType: 'influencer'
 
           }
 
         ];
 
-        setArtists(demoArtists);
+        setInfluencers(demoInfluencers);
 
       }
 
@@ -320,7 +317,7 @@ const AdminDashboard = ({ config }) => {
 
         totalUsers: Array.isArray(users) ? users.length : 0,
 
-        totalArtists: Array.isArray(artists) ? artists.length : 0,
+        totalInfluencers: Array.isArray(influencers) ? influencers.length : 0,
 
         pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
 
@@ -470,33 +467,33 @@ const AdminDashboard = ({ config }) => {
 
 
 
-  const handleViewArtistDetails = async (artist) => {
+  const handleViewInfluencerDetails = async (influencer) => {
 
-    setLoadingArtistDetails(true);
+    setLoadingInfluencerDetails(true);
 
     
 
     try {
 
-      const artistId = artist._id || artist.id;
+      const influencerId = influencer._id || influencer.id;
 
-      let fullArtistData = artist;
+      let fullInfluencerData = influencer;
 
       
 
-      // If we have minimal artist data, try multiple approaches to get full details
+      // If we have minimal influencer data, try multiple approaches to get full details
 
-      if (!artist.email || !artist.phone || artist.email === 'N/A' || !artist.categories) {
+      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
 
         
 
-        // First try to find in existing artists array
+        // First try to find in existing influencers array
 
-        const existingArtist = artists.find(a => (a._id || a.id) === artistId);
+        const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
 
-        if (existingArtist && (existingArtist.email || existingArtist.phone)) {
+        if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
 
-          fullArtistData = { ...artist, ...existingArtist };
+          fullInfluencerData = { ...influencer, ...existingInfluencer };
 
         } else {
 
@@ -504,7 +501,7 @@ const AdminDashboard = ({ config }) => {
 
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
 
-          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${artistId}`, {
+          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
 
             headers: { 
 
@@ -534,21 +531,21 @@ const AdminDashboard = ({ config }) => {
 
       
 
-      setSelectedForwardedArtist(fullArtistData);
+      setselectedForwardedInfluencer(fullArtistData);
 
-      setShowArtistDetailsModal(true);
+      setshowInfluencerDetailsModal(true);
 
     } catch (error) {
 
-      console.error('Error fetching artist details:', error);
+      console.error('Error fetching Influencer Details:', error);
 
       // Show error message to user and fallback to available data
 
-      alert('Failed to fetch complete artist details. Showing available information.');
+      alert('Failed to fetch complete Influencer Details. Showing available information.');
 
-      setSelectedForwardedArtist(artist);
+      setselectedForwardedInfluencer(artist);
 
-      setShowArtistDetailsModal(true);
+      setshowInfluencerDetailsModal(true);
 
     } finally {
 
@@ -764,9 +761,9 @@ const AdminDashboard = ({ config }) => {
 
   const handleViewArtist = (artist) => {
 
-    setSelectedArtist(artist);
+    setselectedInfluencer(artist);
 
-    setShowArtistModal(true);
+    setshowInfluencerModal(true);
 
   };
 
@@ -774,9 +771,9 @@ const AdminDashboard = ({ config }) => {
 
   const handleCloseArtistModal = () => {
 
-    setShowArtistModal(false);
+    setshowInfluencerModal(false);
 
-    setSelectedArtist(null);
+    setselectedInfluencer(null);
 
   };
 
@@ -1136,9 +1133,9 @@ const AdminDashboard = ({ config }) => {
 
             <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl">
 
-              <span className="font-medium text-green-800">Total Artists</span>
+              <span className="font-medium text-green-800">Total Influencers</span>
 
-              <span className="text-2xl font-bold text-green-600">{analytics.totalArtists}</span>
+              <span className="text-2xl font-bold text-green-600">{analytics.totalInfluencers}</span>
 
             </div>
 
@@ -1422,7 +1419,7 @@ const AdminDashboard = ({ config }) => {
 
                         const artistName = artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
 
-                        const artistCategory = artist.category || artist.profileType || artist.artistType || 'N/A';
+                        const artistCategory = artist.category || artist.profileType || artist.InfluencerType || 'N/A';
 
                         
 
@@ -1452,7 +1449,7 @@ const AdminDashboard = ({ config }) => {
 
                                   className="text-xs text-purple-600 hover:text-purple-800 underline font-medium"
 
-                                  title="View Artist Details"
+                                  title="View Influencer Details"
 
                                 >
 
@@ -1898,7 +1895,7 @@ const AdminDashboard = ({ config }) => {
 
                   <p className="text-xs font-semibold mt-1" style={{ color: getThemeColor('primary') }}>
 
-                    Indori Artist Platform - Real-time Management
+                    Indori Influencer Platform - Real-time Management
 
                   </p>
 
@@ -2094,7 +2091,7 @@ const AdminDashboard = ({ config }) => {
 
           <div className="flex overflow-x-auto space-x-2 sm:space-x-4 scrollbar-hide">
 
-            {['overview', 'users', 'artists', 'inquiries', 'analytics', 'settings'].map((tab, index) => (
+            {['overview', 'users', 'influencers', 'inquiries', 'analytics', 'settings'].map((tab, index) => (
 
               <button
 
@@ -2132,7 +2129,7 @@ const AdminDashboard = ({ config }) => {
 
                     {tab === 'users' && '👥'}
 
-                    {tab === 'artists' && '🎨'}
+                    {tab === 'influencers' && '🎨'}
 
                     {tab === 'inquiries' && '💬'}
 
@@ -2166,13 +2163,13 @@ const AdminDashboard = ({ config }) => {
 
         {activeTab === 'users' && renderUsers()}
 
-        {activeTab === 'artists' && (
+        {activeTab === 'influencers' && (
 
-          <AdminArtistsManagement 
+          <AdminInfluencersManagement 
 
-            artists={artists} 
+            influencers={influencers} 
 
-            onRefreshArtists={fetchDashboardData}
+            onRefreshInfluencers={fetchDashboardData}
 
           />
 
@@ -2188,9 +2185,9 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      {/* Artist Detail Modal */}
+      {/* Influencer Detail Modal */}
 
-      {showArtistModal && selectedArtist && (
+      {showInfluencerModal && selectedInfluencer && (
 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
@@ -2206,15 +2203,15 @@ const AdminDashboard = ({ config }) => {
 
                   <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
 
-                    {selectedArtist.profileImage ? (
+                    {selectedInfluencer.profileImage ? (
 
-                      <img src={selectedArtist.profileImage} alt={selectedArtist.firstName} className="w-16 h-16 rounded-full object-cover" />
+                      <img src={selectedInfluencer.profileImage} alt={selectedInfluencer.firstName} className="w-16 h-16 rounded-full object-cover" />
 
                     ) : (
 
                       <span className="text-white text-2xl font-bold">
 
-                        {selectedArtist.firstName?.charAt(0)?.toUpperCase() || 'A'}
+                        {selectedInfluencer.firstName?.charAt(0)?.toUpperCase() || 'A'}
 
                       </span>
 
@@ -2226,13 +2223,13 @@ const AdminDashboard = ({ config }) => {
 
                     <h2 className="text-2xl font-bold text-white">
 
-                      {selectedArtist.firstName} {selectedArtist.lastName}
+                      {selectedInfluencer.firstName} {selectedInfluencer.lastName}
 
                     </h2>
 
                     <p className="text-white/80 mt-1">
 
-                      {selectedArtist.artistType || 'Professional Artist'}
+                      {selectedInfluencer.InfluencerType || 'Professional Artist'}
 
                     </p>
 
@@ -2240,7 +2237,7 @@ const AdminDashboard = ({ config }) => {
 
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
 
-                        selectedArtist.isActive !== false 
+                        selectedInfluencer.isActive !== false 
 
                           ? 'bg-green-100 text-green-700' 
 
@@ -2250,11 +2247,11 @@ const AdminDashboard = ({ config }) => {
 
                         <div className={`w-2 h-2 rounded-full ${
 
-                          selectedArtist.isActive !== false ? 'bg-green-500' : 'bg-red-500'
+                          selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
 
                         }`} />
 
-                        {selectedArtist.isActive !== false ? 'Active' : 'Inactive'}
+                        {selectedInfluencer.isActive !== false ? 'Active' : 'Inactive'}
 
                       </span>
 
@@ -2316,7 +2313,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="text-sm text-gray-500">First Name</p>
 
-                        <p className="font-medium text-gray-900">{selectedArtist.firstName || 'Not provided'}</p>
+                        <p className="font-medium text-gray-900">{selectedInfluencer.firstName || 'Not provided'}</p>
 
                       </div>
 
@@ -2324,7 +2321,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="text-sm text-gray-500">Last Name</p>
 
-                        <p className="font-medium text-gray-900">{selectedArtist.lastName || 'Not provided'}</p>
+                        <p className="font-medium text-gray-900">{selectedInfluencer.lastName || 'Not provided'}</p>
 
                       </div>
 
@@ -2334,7 +2331,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="text-sm text-gray-500">Email Address</p>
 
-                      <p className="font-medium text-gray-900">{selectedArtist.email || 'Not provided'}</p>
+                      <p className="font-medium text-gray-900">{selectedInfluencer.email || 'Not provided'}</p>
 
                     </div>
 
@@ -2342,7 +2339,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="text-sm text-gray-500">Phone Number</p>
 
-                      <p className="font-medium text-gray-900">{selectedArtist.phone || 'Not provided'}</p>
+                      <p className="font-medium text-gray-900">{selectedInfluencer.phone || 'Not provided'}</p>
 
                     </div>
 
@@ -2354,7 +2351,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedArtist.dateOfBirth ? new Date(selectedArtist.dateOfBirth).toLocaleDateString() : 'Not provided'}
+                          {selectedInfluencer.dateOfBirth ? new Date(selectedInfluencer.dateOfBirth).toLocaleDateString() : 'Not provided'}
 
                         </p>
 
@@ -2366,7 +2363,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900 capitalize">
 
-                          {selectedArtist.gender || 'Not specified'}
+                          {selectedInfluencer.gender || 'Not specified'}
 
                         </p>
 
@@ -2404,7 +2401,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900 capitalize">
 
-                        {selectedArtist.artistType || 'Not specified'}
+                        {selectedInfluencer.InfluencerType || 'Not specified'}
 
                       </p>
 
@@ -2416,11 +2413,11 @@ const AdminDashboard = ({ config }) => {
 
                       <div className="flex flex-wrap gap-1 mt-1">
 
-                        {selectedArtist.category ? (
+                        {selectedInfluencer.category ? (
 
                           <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
 
-                            {selectedArtist.category}
+                            {selectedInfluencer.category}
 
                           </span>
 
@@ -2440,7 +2437,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900 capitalize">
 
-                        {selectedArtist.subcategory || 'Not specified'}
+                        {selectedInfluencer.subcategory || 'Not specified'}
 
                       </p>
 
@@ -2452,9 +2449,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div className="flex flex-wrap gap-1 mt-1">
 
-                        {selectedArtist.skills?.length > 0 ? (
+                        {selectedInfluencer.skills?.length > 0 ? (
 
-                          selectedArtist.skills.map((skill, idx) => (
+                          selectedInfluencer.skills.map((skill, idx) => (
 
                             <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
 
@@ -2504,7 +2501,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900">
 
-                        {selectedArtist.experience ? `${selectedArtist.experience} years` : 'Not specified'}
+                        {selectedInfluencer.experience ? `${selectedInfluencer.experience} years` : 'Not specified'}
 
                       </p>
 
@@ -2516,7 +2513,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900 text-sm leading-relaxed">
 
-                        {selectedArtist.bio || 'No bio provided'}
+                        {selectedInfluencer.bio || 'No bio provided'}
 
                       </p>
 
@@ -2528,7 +2525,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900">
 
-                        {selectedArtist.location || 'Not specified'}
+                        {selectedInfluencer.location || 'Not specified'}
 
                       </p>
 
@@ -2540,7 +2537,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900">
 
-                        {selectedArtist.createdAt ? new Date(selectedArtist.createdAt).toLocaleDateString() : 'Not available'}
+                        {selectedInfluencer.createdAt ? new Date(selectedInfluencer.createdAt).toLocaleDateString() : 'Not available'}
 
                       </p>
 
@@ -2578,7 +2575,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedArtist.budgetMin ? `₹${selectedArtist.budgetMin}` : 'Not specified'}
+                          {selectedInfluencer.budgetMin ? `₹${selectedInfluencer.budgetMin}` : 'Not specified'}
 
                         </p>
 
@@ -2590,7 +2587,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedArtist.budgetMax ? `₹${selectedArtist.budgetMax}` : 'Not specified'}
+                          {selectedInfluencer.budgetMax ? `₹${selectedInfluencer.budgetMax}` : 'Not specified'}
 
                         </p>
 
@@ -2604,7 +2601,7 @@ const AdminDashboard = ({ config }) => {
 
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
 
-                        selectedArtist.isActive !== false 
+                        selectedInfluencer.isActive !== false 
 
                           ? 'bg-green-100 text-green-700' 
 
@@ -2614,11 +2611,11 @@ const AdminDashboard = ({ config }) => {
 
                         <div className={`w-2 h-2 rounded-full ${
 
-                          selectedArtist.isActive !== false ? 'bg-green-500' : 'bg-red-500'
+                          selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
 
                         }`} />
 
-                        {selectedArtist.isActive !== false ? 'Active' : 'Inactive'}
+                        {selectedInfluencer.isActive !== false ? 'Active' : 'Inactive'}
 
                       </span>
 
@@ -2654,9 +2651,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div className="flex flex-wrap gap-2 mt-1">
 
-                        {selectedArtist.portfolio?.length > 0 ? (
+                        {selectedInfluencer.portfolio?.length > 0 ? (
 
-                          selectedArtist.portfolio.map((file, idx) => (
+                          selectedInfluencer.portfolio.map((file, idx) => (
 
                             <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
 
@@ -2682,13 +2679,13 @@ const AdminDashboard = ({ config }) => {
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
 
-                        {selectedArtist.socialLinks?.instagram && (
+                        {selectedInfluencer.socialLinks?.instagram && (
 
                           <div className="flex items-center gap-2">
 
                             <span className="text-pink-600">📷</span>
 
-                            <a href={selectedArtist.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                            <a href={selectedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
                                className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -2700,13 +2697,13 @@ const AdminDashboard = ({ config }) => {
 
                         )}
 
-                        {selectedArtist.socialLinks?.youtube && (
+                        {selectedInfluencer.socialLinks?.youtube && (
 
                           <div className="flex items-center gap-2">
 
                             <span className="text-red-600">📺</span>
 
-                            <a href={selectedArtist.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
+                            <a href={selectedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
                                className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -2718,13 +2715,13 @@ const AdminDashboard = ({ config }) => {
 
                         )}
 
-                        {selectedArtist.socialLinks?.facebook && (
+                        {selectedInfluencer.socialLinks?.facebook && (
 
                           <div className="flex items-center gap-2">
 
                             <span className="text-blue-600">📘</span>
 
-                            <a href={selectedArtist.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
+                            <a href={selectedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
                                className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -2736,13 +2733,13 @@ const AdminDashboard = ({ config }) => {
 
                         )}
 
-                        {selectedArtist.socialLinks?.website && (
+                        {selectedInfluencer.socialLinks?.website && (
 
                           <div className="flex items-center gap-2">
 
                             <span className="text-gray-600">🌐</span>
 
-                            <a href={selectedArtist.socialLinks.website} target="_blank" rel="noopener noreferrer"
+                            <a href={selectedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
                                className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -2754,9 +2751,9 @@ const AdminDashboard = ({ config }) => {
 
                         )}
 
-                        {(!selectedArtist.socialLinks?.instagram && !selectedArtist.socialLinks?.youtube && 
+                        {(!selectedInfluencer.socialLinks?.instagram && !selectedInfluencer.socialLinks?.youtube && 
 
-                          !selectedArtist.socialLinks?.facebook && !selectedArtist.socialLinks?.website) && (
+                          !selectedInfluencer.socialLinks?.facebook && !selectedInfluencer.socialLinks?.website) && (
 
                           <span className="text-gray-500 text-sm">No social links provided</span>
 
@@ -2772,11 +2769,11 @@ const AdminDashboard = ({ config }) => {
 
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
 
-                        selectedArtist.idProof ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        selectedInfluencer.idProof ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
 
                       }`}>
 
-                        {selectedArtist.idProof ? '✓ Verified' : '⏳ Pending'}
+                        {selectedInfluencer.idProof ? '✓ Verified' : '⏳ Pending'}
 
                       </span>
 
@@ -2848,17 +2845,17 @@ const AdminDashboard = ({ config }) => {
 
             <div className="p-6 space-y-4">
 
-              <p className="text-sm text-gray-600">Select one or more artists/influencers to forward this inquiry to.</p>
+              <p className="text-sm text-gray-600">Select one or more influencers to forward this inquiry to.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-                {artists.length === 0 ? (
+                {influencers.length === 0 ? (
 
-                  <div className="text-gray-400">No artists available</div>
+                  <div className="text-gray-400">No influencers available</div>
 
-                ) : artists.map(a => {
+                ) : influencers.map(i => {
 
-                  const aid = a._id || a.id;
+                  const aid = i._id || i.id;
 
                   const checked = forwardRecipients.has(aid);
 
@@ -2872,7 +2869,7 @@ const AdminDashboard = ({ config }) => {
 
                         <div className="font-medium text-gray-800">
 
-                          {a.fullName || a.name || `Artist ${aid?.slice(-6)}`}
+                          {i.fullName || i.name || `Influencer ${aid?.slice(-6)}`}
 
                         </div>
 
@@ -3186,9 +3183,9 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      {/* Artist Details Modal */}
+      {/* Influencer Details Modal */}
 
-      {showArtistDetailsModal && (
+      {showInfluencerDetailsModal && (
 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
@@ -3198,11 +3195,11 @@ const AdminDashboard = ({ config }) => {
 
               <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
 
-              <p className="text-gray-600 font-medium">Loading artist details...</p>
+              <p className="text-gray-600 font-medium">Loading Influencer Details...</p>
 
             </div>
 
-          ) : selectedForwardedArtist ? (
+          ) : selectedForwardedInfluencer ? (
 
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
 
@@ -3218,7 +3215,7 @@ const AdminDashboard = ({ config }) => {
 
                       <span className="text-white text-2xl font-bold">
 
-                        {(selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Unknown')?.charAt(0)?.toUpperCase() || 'A'}
+                        {(selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Unknown')?.charAt(0)?.toUpperCase() || 'A'}
 
                       </span>
 
@@ -3228,13 +3225,13 @@ const AdminDashboard = ({ config }) => {
 
                       <h2 className="text-2xl font-bold text-white">
 
-                        {selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Unknown Artist'}
+                        {selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Unknown Artist'}
 
                       </h2>
 
                       <p className="text-white/80 mt-1">
 
-                        {selectedForwardedArtist.profileType || selectedForwardedArtist.artistType || 'Professional Artist'}
+                        {selectedForwardedInfluencer.profileType || selectedForwardedInfluencer.InfluencerType || 'Professional Artist'}
 
                       </p>
 
@@ -3242,7 +3239,7 @@ const AdminDashboard = ({ config }) => {
 
                         <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium bg-white/20 text-white">
 
-                          Artist ID: #{(selectedForwardedArtist._id || selectedForwardedArtist.id || 'N/A')?.slice(-6)}
+                          Artist ID: #{(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id || 'N/A')?.slice(-6)}
 
                         </span>
 
@@ -3254,7 +3251,7 @@ const AdminDashboard = ({ config }) => {
 
                   <button
 
-                    onClick={() => setShowArtistDetailsModal(false)}
+                    onClick={() => setshowInfluencerDetailsModal(false)}
 
                     className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
 
@@ -3304,7 +3301,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedForwardedArtist.fullName || selectedForwardedArtist.name || 'Not provided'}
+                          {selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Not provided'}
 
                         </p>
 
@@ -3316,7 +3313,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedForwardedArtist.email || 'Not provided'}
+                          {selectedForwardedInfluencer.email || 'Not provided'}
 
                         </p>
 
@@ -3328,7 +3325,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedForwardedArtist.phone || 'Not provided'}
+                          {selectedForwardedInfluencer.phone || 'Not provided'}
 
                         </p>
 
@@ -3340,7 +3337,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedForwardedArtist.location || 'Not specified'}
+                          {selectedForwardedInfluencer.location || 'Not specified'}
 
                         </p>
 
@@ -3376,7 +3373,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900 capitalize">
 
-                          {selectedForwardedArtist.profileType || selectedForwardedArtist.artistType || 'Not specified'}
+                          {selectedForwardedInfluencer.profileType || selectedForwardedInfluencer.InfluencerType || 'Not specified'}
 
                         </p>
 
@@ -3388,9 +3385,9 @@ const AdminDashboard = ({ config }) => {
 
                         <div className="flex flex-wrap gap-1 mt-1">
 
-                          {selectedForwardedArtist.categories && selectedForwardedArtist.categories.length > 0 ? (
+                          {selectedForwardedInfluencer.categories && selectedForwardedInfluencer.categories.length > 0 ? (
 
-                            selectedForwardedArtist.categories.map((cat, idx) => (
+                            selectedForwardedInfluencer.categories.map((cat, idx) => (
 
                               <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
 
@@ -3404,7 +3401,7 @@ const AdminDashboard = ({ config }) => {
 
                             <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium capitalize">
 
-                              {selectedForwardedArtist.category || 'General'}
+                              {selectedForwardedInfluencer.category || 'General'}
 
                             </span>
 
@@ -3420,7 +3417,7 @@ const AdminDashboard = ({ config }) => {
 
                         <p className="font-medium text-gray-900">
 
-                          {selectedForwardedArtist.experience ? `${selectedForwardedArtist.experience} years` : 'Not specified'}
+                          {selectedForwardedInfluencer.experience ? `${selectedForwardedInfluencer.experience} years` : 'Not specified'}
 
                         </p>
 
@@ -3450,7 +3447,7 @@ const AdminDashboard = ({ config }) => {
 
                     <p className="font-medium text-gray-900 text-sm leading-relaxed">
 
-                      {selectedForwardedArtist.bio || 'No bio provided'}
+                      {selectedForwardedInfluencer.bio || 'No bio provided'}
 
                     </p>
 
@@ -3476,13 +3473,13 @@ const AdminDashboard = ({ config }) => {
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
 
-                      {selectedForwardedArtist.socialLinks?.instagram && (
+                      {selectedForwardedInfluencer.socialLinks?.instagram && (
 
                         <div className="flex items-center gap-2">
 
                           <span className="text-pink-600">📷</span>
 
-                          <a href={selectedForwardedArtist.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
+                          <a href={selectedForwardedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
                              className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -3494,13 +3491,13 @@ const AdminDashboard = ({ config }) => {
 
                       )}
 
-                      {selectedForwardedArtist.socialLinks?.youtube && (
+                      {selectedForwardedInfluencer.socialLinks?.youtube && (
 
                         <div className="flex items-center gap-2">
 
                           <span className="text-red-600">📺</span>
 
-                          <a href={selectedForwardedArtist.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
+                          <a href={selectedForwardedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
                              className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -3512,13 +3509,13 @@ const AdminDashboard = ({ config }) => {
 
                       )}
 
-                      {selectedForwardedArtist.socialLinks?.facebook && (
+                      {selectedForwardedInfluencer.socialLinks?.facebook && (
 
                         <div className="flex items-center gap-2">
 
                           <span className="text-blue-600">📘</span>
 
-                          <a href={selectedForwardedArtist.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
+                          <a href={selectedForwardedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
                              className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -3530,13 +3527,13 @@ const AdminDashboard = ({ config }) => {
 
                       )}
 
-                      {selectedForwardedArtist.socialLinks?.website && (
+                      {selectedForwardedInfluencer.socialLinks?.website && (
 
                         <div className="flex items-center gap-2">
 
                           <span className="text-gray-600">🌐</span>
 
-                          <a href={selectedForwardedArtist.socialLinks.website} target="_blank" rel="noopener noreferrer"
+                          <a href={selectedForwardedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
                              className="text-purple-600 hover:text-purple-700 text-sm">
 
@@ -3548,9 +3545,9 @@ const AdminDashboard = ({ config }) => {
 
                       )}
 
-                      {(!selectedForwardedArtist.socialLinks?.instagram && !selectedForwardedArtist.socialLinks?.youtube && 
+                      {(!selectedForwardedInfluencer.socialLinks?.instagram && !selectedForwardedInfluencer.socialLinks?.youtube && 
 
-                        !selectedForwardedArtist.socialLinks?.facebook && !selectedForwardedArtist.socialLinks?.website) && (
+                        !selectedForwardedInfluencer.socialLinks?.facebook && !selectedForwardedInfluencer.socialLinks?.website) && (
 
                         <span className="text-gray-500 text-sm">No social links provided</span>
 
@@ -3570,7 +3567,7 @@ const AdminDashboard = ({ config }) => {
 
                   <button
 
-                    onClick={() => setShowArtistDetailsModal(false)}
+                    onClick={() => setshowInfluencerDetailsModal(false)}
 
                     className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
 
@@ -3590,7 +3587,7 @@ const AdminDashboard = ({ config }) => {
 
             <div className="p-12 text-center">
 
-              <p className="text-gray-600">No artist data available</p>
+              <p className="text-gray-600">No influencer data available</p>
 
             </div>
 

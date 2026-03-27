@@ -14,7 +14,7 @@ const InquiryPage = ({ config }) => {
     name: user?.name || '',
     email: user?.email || '',
     phone: user?.phone || '',
-    hiringFor: 'artist',
+    hiringFor: 'influencer',
     category: '',
     location: '',
     eventType: '',
@@ -102,7 +102,7 @@ const InquiryPage = ({ config }) => {
       setSuccess('Inquiry submitted successfully! Our admin will review it shortly.');
       setForm((prev) => ({
         ...prev,
-        hiringFor: 'artist',
+        hiringFor: 'influencer',
         category: '',
         location: '',
         eventType: '',
@@ -130,9 +130,9 @@ const InquiryPage = ({ config }) => {
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Send a Hiring Request</h1>
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Send a Collaboration Request</h1>
                 <p className="text-white/95 mt-2 max-w-2xl leading-relaxed">
-                  Send a hiring request for an artist or influencer. Your inquiry will be reviewed by the admin and marked as <span className="font-semibold">Pending</span> by default.
+                  Send a collaboration request for an influencer. Your inquiry will be reviewed by the admin and marked as <span className="font-semibold">Pending</span> by default.
                 </p>
               </div>
               <div className="bg-white/15 backdrop-blur-md rounded-2xl px-5 py-4 border border-white/20">
@@ -238,8 +238,8 @@ const InquiryPage = ({ config }) => {
                         onChange={onChange('hiringFor')}
                         className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 appearance-none cursor-pointer"
                       >
-                        <option value="artist">Artist</option>
                         <option value="influencer">Influencer</option>
+                        <option value="creator">Creator</option>
                       </select>
                     </div>
                     <div>
@@ -254,7 +254,7 @@ const InquiryPage = ({ config }) => {
                           value={form.category}
                           onChange={onChange('category')}
                           className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-                          placeholder="e.g. Singer, Makeup Artist, Tech"
+                          placeholder="e.g. Lifestyle, Fitness, Tech"
                         />
                       </div>
                     </div>
@@ -324,7 +324,7 @@ const InquiryPage = ({ config }) => {
                       onChange={onChange('requirements')}
                       rows={4}
                       className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                      placeholder="Describe the artist/influencer style, duration, deliverables, audience size, etc."
+                      placeholder="Describe the influencer style, duration, deliverables, audience size, etc."
                     />
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 // Booking import removed
 const User = require('../models/User');
-const Artist = require('../models/Artist');
+const Artist = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
 
 // @desc    Update artist status (activate/deactivate)

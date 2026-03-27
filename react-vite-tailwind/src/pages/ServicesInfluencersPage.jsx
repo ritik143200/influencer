@@ -17,6 +17,30 @@ const ServicesInfluencersPage = ({ config }) => {
           </p>
         </div>
 
+        {/* Platform Overview (independent section) */}
+        <section className="mb-12">
+          <div className="bg-white rounded-2xl p-8 shadow-lg">
+            <h2 className="text-3xl font-bold text-center mb-4" style={{ color: config.text_color }}>
+              Platform Overview
+            </h2>
+            <p className="text-center max-w-3xl mx-auto text-gray-600 mb-6">
+              Our influencer toolkit centralizes campaign workflows, analytics, and payments in a single, secure platform. We help creators streamline collaborations, understand performance, and scale monetization with transparency.
+            </p>
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+              {[
+                { title: 'Campaign Management', desc: 'Create, track, and optimize brand campaigns with easy briefs and centralized assets.' },
+                { title: 'Payouts & Finance', desc: 'Reliable payouts, clear transaction history, and tax-ready reports.' },
+                { title: 'Creator Insights', desc: 'Actionable analytics to improve reach, engagement, and conversion.' }
+              ].map((item, idx) => (
+                <div key={idx} className="p-6">
+                  <h3 className="font-semibold text-lg mb-2" style={{ color: config.text_color }}>{item.title}</h3>
+                  <p className="text-sm text-gray-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {[
@@ -121,7 +145,7 @@ const ServicesInfluencersPage = ({ config }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
-                onClick={() => navigate('artist-registration')}
+                onClick={() => navigate('influencer-registration')}
                 className="px-8 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
               >
                 Register as Influencer
