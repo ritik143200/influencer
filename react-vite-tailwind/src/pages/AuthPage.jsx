@@ -275,27 +275,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                 </>
               )}
 
-              {/* Tab Navigation */}
-              <div className="flex mb-8 bg-gray-100 rounded-xl p-1">
-                <button
-                  onClick={() => toggleMode('login')}
-                  className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${activeTab === 'login'
-                    ? 'bg-white text-brand-500 shadow-md'
-                    : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => toggleMode('register')}
-                  className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${activeTab === 'register'
-                    ? 'bg-white text-brand-500 shadow-md'
-                    : 'text-gray-600 hover:text-gray-800'
-                    }`}
-                >
-                  Register Profile
-                </button>
-              </div>
+
 
               {/* Form Title */}
               <h2 className="text-3xl font-bold text-gray-800 mb-2">
@@ -344,6 +324,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                     />
                   </div>
                 )}
+
 
                 {!isResetPassword && (
                   <div>

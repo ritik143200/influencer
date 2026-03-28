@@ -1,6 +1,7 @@
 import React from 'react';
 
 const AuthButton = ({ 
+  text,
   children, 
   loading = false,
   disabled = false,
@@ -35,7 +36,7 @@ const AuthButton = ({
         {loading && (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
         )}
-        {children}
+        {children || text}
       </span>
     </button>
   );
