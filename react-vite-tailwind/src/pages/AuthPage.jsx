@@ -206,60 +206,50 @@ const AuthPage = ({ initialTab, embedded = false }) => {
         <div className="w-full max-w-6xl flex items-center justify-center">
           {/* Left Side - Brand Content */}
           <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-center p-12">
-            <div className="mb-8">
+            <div className="mb-6 max-w-lg">
               <div className="mb-6">
-                <h1 className="text-5xl font-bold text-brand-500 mb-4">Indori Influencer</h1>
-                <h2 className="text-2xl text-gray-800">
-                  Welcome to <span className="text-brand-500">Indori Influencer</span>
+                <h1 className="text-4xl font-medium text-brand-500 mb-4 tracking-tight drop-shadow-sm">Indori Influencer</h1>
+                <h2 className="text-2xl text-gray-800 font-medium leading-tight">
+                  Hire the <span className="bg-gradient-to-r from-brand-500 to-orange-500 bg-clip-text text-transparent">Crème de la Crème</span> of Indore's Talent
                 </h2>
               </div>
-              <p className="text-xl text-gray-600 mb-8">
-                Connect with talented influencers and bring your brand to life
+              <p className="text-lg text-gray-600 leading-relaxed mb-4">
+                Direct access to the city's most influential creators and storytellers
               </p>
+              
+              {/* Trust Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur rounded-full border border-white/40 shadow-sm mb-8 scale-105 transition-transform hover:scale-110">
+                <div className="flex -space-x-2">
+                  {[1, 2, 3, 4].map(i => <div key={i} className="w-6 h-6 rounded-full bg-brand-100 border-2 border-white" />)}
+                </div>
+                <span className="text-sm font-medium text-gray-800">★ 4.9/5 Rating by 100+ Brands</span>
+              </div>
             </div>
 
-            <div className="space-y-6 text-left">
-              <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
+            <div className="w-full max-w-md bg-white/40 backdrop-blur-md rounded-[32px] p-8 border border-white/60 shadow-xl space-y-8">
+              {[
+                { title: 'Find Amazing Influencers', subtitle: 'Discover talented creators for your brand', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /> },
+                { title: 'Verified Professionals', subtitle: 'All influencers are verified and reviewed', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+                { title: 'Easy Booking', subtitle: 'Simple and secure booking process', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center space-x-4 group cursor-default">
+                  <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {item.icon}
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-lg font-medium text-gray-900 leading-none mb-1">{item.title}</h3>
+                    <p className="text-gray-600 text-sm">{item.subtitle}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Find Amazing Influencers</h3>
-                  <p className="text-gray-600">Discover talented creators for your brand</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Verified Professionals</h3>
-                  <p className="text-gray-600">All influencers are verified and reviewed</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800">Easy Booking</h3>
-                  <p className="text-gray-600">Simple and secure booking process</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
           {/* Right Side - Auth Form */}
-          <div className="w-full lg:w-1/2 max-w-md">
-            <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
+          <div className="w-full lg:w-1/2 max-w-2xl">
+            <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-6 sm:p-10 border border-white/20">
               {!embedded && (
                 <>
                   {/* Back Button */}
@@ -278,8 +268,8 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
 
               {/* Form Title */}
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : 'Create Your Profile'))}
+              <h2 className="text-3xl font-medium text-gray-800 mb-2">
+                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : 'I want to Hire'))}
               </h2>
               <p className="text-gray-600 mb-8">
                 {isResetPassword
@@ -288,7 +278,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                     ? 'Enter your email to receive a password reset link'
                     : (isLogin
                       ? 'Sign in to manage your influencer profile'
-                      : 'Join our platform as a talented influencer. Create your profile to showcase your skills and connect with opportunities.'
+                      : 'Discover, book, and collaborate with verified local influencers for your campaigns.'
                     )
                   )
                 }
@@ -387,12 +377,38 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   </div>
                 )}
 
-                <AuthButton
+                {/* Submit */}
+                <button
                   type="submit"
                   disabled={isLoading}
-                  loading={isLoading}
-                  text={isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Create Profile')}
-                />
+                  className={`w-full py-4 font-medium text-lg text-white rounded-[20px] transition-all duration-300 shadow-xl shadow-orange-200/50 flex items-center justify-center gap-2
+                    ${isLogin || isForgotPassword 
+                      ? 'bg-gradient-to-r from-brand-500 to-brand-600 hover:shadow-brand-500/30 hover:scale-[1.02]' 
+                      : 'bg-[#e65c00] hover:bg-[#d45500] hover:-translate-y-1 hover:scale-[1.01]'
+                    }
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  `}
+                >
+                  {isLoading && (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  )}
+                  {isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Register as a Brand →')}
+                </button>
+
+                {!isLogin && !isForgotPassword && (
+                  <div className="text-center mt-6">
+                    <p className="text-gray-500 font-medium">
+                      Already have an account?{' '}
+                      <button
+                        type="button"
+                        onClick={() => navigate('auth')}
+                        className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
+                      >
+                        Sign In
+                      </button>
+                    </p>
+                  </div>
+                )}
 
                 {isLogin && !isResetPassword && (
                   <div className="flex justify-between items-center">

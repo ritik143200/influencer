@@ -318,7 +318,12 @@ const Navbar = ({ config }) => {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => navigate('auth')}
-                  className="font-medium text-gray-700 hover:text-brand-600 transition-colors whitespace-nowrap"
+                  className="px-4 xl:px-5 py-2.5 rounded-full font-semibold border-2 transition-all hover:scale-105 whitespace-nowrap"
+                  style={{ 
+                    color: config.primary_action, 
+                    borderColor: config.primary_action,
+                    backgroundColor: '#ffffff'
+                  }}
                 >
                   Sign In
                 </button>
@@ -447,7 +452,12 @@ const Navbar = ({ config }) => {
                       navigate('auth');
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 font-medium"
+                    className="w-full px-4 py-3 rounded-xl font-semibold border-2 transition-all flex items-center justify-center gap-2"
+                    style={{ 
+                      color: config.primary_action, 
+                      borderColor: config.primary_action,
+                      backgroundColor: '#ffffff'
+                    }}
                   >
                     <span>Sign In</span>
                   </button>
