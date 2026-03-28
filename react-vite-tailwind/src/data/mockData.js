@@ -1,12 +1,22 @@
 export const categories = [
   { id: 1, name: 'Lifestyle', icon: '🌟', color: 'from-purple-500 to-indigo-600', count: 2450 },
-  { id: 2, name: 'Fitness', icon: '💪', color: 'from-pink-500 to-rose-600', count: 1820 },
-  { id: 3, name: 'Tech', icon: '💻', color: 'from-blue-500 to-cyan-600', count: 3100 },
-  { id: 4, name: 'Fashion', icon: '👗', color: 'from-amber-500 to-orange-600', count: 980 },
+  { id: 2, name: 'UGC Creator', icon: '📱', color: 'from-orange-400 to-red-500', count: 1540 },
+  { id: 3, name: 'Fashion', icon: '👗', color: 'from-amber-500 to-orange-600', count: 980 },
+  { id: 4, name: 'Fitness', icon: '💪', color: 'from-pink-500 to-rose-600', count: 1820 },
   { id: 5, name: 'Travel', icon: '✈️', color: 'from-emerald-500 to-teal-600', count: 540 },
-  { id: 6, name: 'Beauty', icon: '💄', color: 'from-violet-500 to-purple-600', count: 1650 },
-  { id: 7, name: 'Food', icon: '🍕', color: 'from-red-500 to-pink-600', count: 890 },
-  { id: 8, name: 'Gaming', icon: '🎮', color: 'from-yellow-500 to-amber-600', count: 620 },
+  { id: 6, name: 'Food', icon: '🍔', color: 'from-red-500 to-pink-600', count: 890 },
+  { id: 7, name: 'Tech', icon: '💻', color: 'from-blue-500 to-cyan-600', count: 3100 },
+  { id: 8, name: 'Finance', icon: '💰', color: 'from-green-500 to-emerald-600', count: 1200 },
+  { id: 9, name: 'Gaming', icon: '🎮', color: 'from-yellow-500 to-amber-600', count: 620 },
+  { id: 10, name: 'Education', icon: '📚', color: 'from-blue-600 to-indigo-700', count: 2100 },
+  { id: 11, name: 'Motivation', icon: '🔥', color: 'from-orange-500 to-red-600', count: 1450 },
+  { id: 12, name: 'Spiritual', icon: '🧘', color: 'from-violet-400 to-purple-500', count: 780 },
+  { id: 13, name: 'Actor', icon: '🎬', color: 'from-slate-600 to-slate-800', count: 1150 },
+  { id: 14, name: 'Comedian', icon: '😄', color: 'from-yellow-400 to-orange-500', count: 920 },
+  { id: 15, name: 'Model', icon: '👤', color: 'from-gray-400 to-gray-600', count: 1340 },
+  { id: 16, name: 'Filmmaker', icon: '🎥', color: 'from-red-600 to-red-900', count: 670 },
+  { id: 17, name: 'Influencer', icon: '🌟', color: 'from-brand-500 to-brand-600', count: 5400 },
+  { id: 18, name: 'Historical', icon: '📜', color: 'from-amber-700 to-amber-900', count: 320 },
 ];
 
 export const influencers = [

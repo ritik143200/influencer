@@ -23,7 +23,11 @@ const updateMyProfile = async (req, res) => {
   try {
     const allowedFields = [
       'email', 'phone', 'location', 'categories',
-      'socialLinks', 'profileImage'
+      'socialLinks', 'profileImage', 'fullName', 'username',
+      'bio', 'experience', 'niche', 'category',
+      'previousCollaborations', 'pricing',
+      'portfolio', 'platforms', 'subcategories', 'skills',
+      'profilePicture', 'budget', 'budgetMin', 'budgetMax'
     ];
 
     const updateData = {};

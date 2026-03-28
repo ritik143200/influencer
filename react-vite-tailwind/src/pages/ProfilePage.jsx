@@ -12,6 +12,7 @@ import {
   Layout,
   Instagram,
   Youtube,
+  Facebook,
   MessageSquare,
   Edit3
 } from 'lucide-react';
@@ -33,9 +34,7 @@ const ProfilePage = ({ config }) => {
     },
     experience: '', previousCollaborations: '',
     portfolio: [], skills: [],
-    audienceType: { ageGroup: '', region: '', interests: [] },
-    pricing: { collaborationCharges: '', pricingModel: 'fixed' },
-    availability: 'available', role: 'user',
+    role: 'user',
     verificationStatus: 'pending', budget: 0,
     socialLinks: { instagram: '', youtube: '', facebook: '', website: '' }
   });
@@ -61,17 +60,6 @@ const ProfilePage = ({ config }) => {
     previousCollaborations: src.previousCollaborations || '',
     subcategories: src.subcategories || [],
     portfolio: src.portfolio || [],
-    availability: src.availability || 'available',
-    role: src.role || 'user',
-    verificationStatus: src.verificationStatus || 'pending',
-    budget: src.budget || 0,
-    budgetMin: src.budgetMin || '',
-    budgetMax: src.budgetMax || '',
-    audienceType: {
-      ageGroup: src?.audienceType?.ageGroup || '',
-      region: src?.audienceType?.region || '',
-      interests: src?.audienceType?.interests || []
-    },
     pricing: {
       collaborationCharges: src?.pricing?.collaborationCharges || '',
       pricingModel: src?.pricing?.pricingModel || 'fixed'
@@ -161,10 +149,8 @@ const ProfilePage = ({ config }) => {
         platforms: formData.platforms,
         niche: formData.niche,
         category: formData.category,
-        availability: formData.availability,
         previousCollaborations: formData.previousCollaborations,
         pricing: formData.pricing,
-        audienceType: formData.audienceType,
         profileImage: formData.profileImage,
         profilePicture: formData.profilePicture,
       };
@@ -196,7 +182,7 @@ const ProfilePage = ({ config }) => {
       setSaveMessage('Network error. Changes saved locally only.');
       updateUser(formData);
     }
-    setIsEditing(false);
+    // Removed setIsEditing(false) to allow individual updates without closing the interface
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
@@ -231,7 +217,14 @@ const ProfilePage = ({ config }) => {
   if (isEditing) {
     return (
       <div className="pt-20 pb-16 min-h-screen bg-[#F8F9FA]" style={{ backgroundColor: config.background_color }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          {saveMessage && (
+            <div className="mb-6">
+              <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-slideDown shadow-sm">
+                ✅ {saveMessage}
+              </div>
+            </div>
+          )}
           <ProfileEditForm formData={formData} onChange={handleInputChange} onSave={handleSave} onCancel={() => setIsEditing(false)} />
         </div>
       </div>
@@ -253,14 +246,29 @@ const ProfilePage = ({ config }) => {
     title: displayRole,
     handle2: nicheOrCategory,
     location: formattedLocation,
-    status: formData.availability?.toUpperCase() || 'AVAILABLE',
     bio: formData.bio || 'Passionate professional ready for the next big project.',
     tags: formData.subcategories?.length ? formData.subcategories : ["Creator", "Tech", "Lifestyle"],
     stats: {
-      totalReach: (Number(formData.platforms?.instagram?.followers || 0) + Number(formData.platforms?.youtube?.followers || 0)).toLocaleString() || '0',
-      instagram: { followers: formData.platforms?.instagram?.followers || '0', engagement: formData.platforms?.instagram?.engagementRate ? `${formData.platforms.instagram.engagementRate}%` : 'N/A' },
-      youtube: { subs: formData.platforms?.youtube?.followers || '0', avgViews: 'N/A' },
-      engagement: { overall: 'N/A', audience: formData.audienceType?.ageGroup || 'All', region: formData.audienceType?.region || 'Global' }
+      totalReach: (() => {
+        const ig = parseInt(formData.platforms?.instagram?.followers) || 0;
+        const yt = parseInt(formData.platforms?.youtube?.followers) || 0;
+        const fb = parseInt(formData.platforms?.facebook?.followers) || 0;
+        return (ig + yt + fb || 0).toLocaleString();
+      })(),
+      instagram: { 
+        followers: formData.platforms?.instagram?.followers || '0', 
+        engagement: formData.platforms?.instagram?.engagementRate ? `${formData.platforms.instagram.engagementRate}%` : 'N/A',
+        url: formData.platforms?.instagram?.url || formData.socialLinks?.instagram || ''
+      },
+      youtube: { 
+        subs: formData.platforms?.youtube?.followers || '0', 
+        avgViews: 'N/A',
+        url: formData.platforms?.youtube?.url || formData.socialLinks?.youtube || ''
+      },
+      facebook: { 
+        url: formData.platforms?.facebook?.url || formData.socialLinks?.facebook || '',
+        followers: formData.platforms?.facebook?.followers || '0'
+      }
     },
     pricing: {
       starting: formData.pricing?.collaborationCharges ? `₹${Number(formData.pricing.collaborationCharges).toLocaleString()}` : formData.budget ? `₹${Number(formData.budget).toLocaleString()}` : 'Contact for Pricing',
@@ -328,12 +336,7 @@ const ProfilePage = ({ config }) => {
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-sm md:text-base font-medium">
                 <span>{userData.username}</span>
                 <span className="flex items-center gap-1"><MapPin size={14} /> {userData.location}</span>
-                <span className="hidden md:inline">|</span>
                 <span>{userData.title} @{userData.handle2}</span>
-                <span className="hidden md:inline">|</span>
-                <span className={`flex items-center gap-1 font-bold px-2 py-0.5 rounded-full text-xs ${formData.availability === 'available' ? 'text-green-600 bg-green-50' : 'text-gray-600 bg-gray-50'}`}>
-                  {formData.availability === 'available' ? '✅' : '🔴'} {userData.status}
-                </span>
               </div>
               
               <div className="flex flex-wrap gap-2 mt-3">
@@ -377,44 +380,53 @@ const ProfilePage = ({ config }) => {
           
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center transition-all hover:border-brand-100">
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Reach</p>
               <h3 className="text-2xl font-black text-slate-900">{userData.stats.totalReach}</h3>
               <p className="text-xs text-slate-400 font-medium mt-1">Combined</p>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 rounded-xl flex items-center justify-center text-white">
-                <Instagram size={20} />
+            {/* Instagram Card */}
+            {(parseInt(userData.stats.instagram.followers.toString().replace(/,/g, '')) > 0 || userData.stats.instagram.url) && (
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#F7E7ED]">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-5 h-5 rounded-md bg-[#fceef5] flex items-center justify-center text-[#e1306c]">
+                    <Instagram size={12} />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Instagram</p>
+                </div>
+                <h3 className="text-xl font-black text-slate-900">{userData.stats.instagram.followers}</h3>
+                <p className="text-xs text-slate-400 font-medium mt-1">Followers</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">Instagram</p>
-                <p className="text-sm font-black text-slate-900 mt-1">• {userData.stats.instagram.followers} Followers</p>
-                <p className="text-sm font-black text-slate-900">• {userData.stats.instagram.engagement} Engagement</p>
-              </div>
-            </div>
+            )}
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-3">
-              <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center text-white">
-                <Youtube size={20} />
+            {/* YouTube Card */}
+            {(parseInt(userData.stats.youtube.subs.toString().replace(/,/g, '')) > 0 || userData.stats.youtube.url) && (
+              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#FEECEC]">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-5 h-5 rounded-md bg-[#feecec] flex items-center justify-center text-[#ff0000]">
+                    <Youtube size={12} />
+                  </div>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">YouTube</p>
+                </div>
+                <h3 className="text-xl font-black text-slate-900">{userData.stats.youtube.subs}</h3>
+                <p className="text-xs text-slate-400 font-medium mt-1">Subscribers</p>
               </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">YouTube</p>
-                <p className="text-sm font-black text-slate-900 mt-1">• {userData.stats.youtube.subs} Subs</p>
-                <p className="text-sm font-black text-slate-900">• {userData.stats.youtube.avgViews} Avg Views</p>
-              </div>
-            </div>
+            )}
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-start gap-3">
-              <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
-                <Users size={20} />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-slate-900">Audience</p>
-                <p className="text-[10px] text-slate-500 leading-tight">Overall reach</p>
-                <p className="text-xs font-bold text-slate-800 mt-1">Demographic: {userData.stats.engagement.audience}, {userData.stats.engagement.region}</p>
-              </div>
-            </div>
+            {/* Facebook Card */}
+            {(parseInt(userData.stats.facebook.url ? '1' : '0') > 0 || userData.stats.facebook.url) && (
+               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#EEF4FE]">
+                 <div className="flex items-center gap-2 mb-1">
+                   <div className="w-5 h-5 rounded-md bg-[#eef4fe] flex items-center justify-center text-[#1877f2]">
+                     <Facebook size={12} />
+                   </div>
+                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Facebook</p>
+                 </div>
+                 <h3 className="text-xl font-black text-slate-900">{userData.stats.facebook.url ? 'Active' : '0'}</h3>
+                 <p className="text-xs text-slate-400 font-medium mt-1">Connected</p>
+               </div>
+             )}
           </div>
 
           {/* Portfolio & Collaborations */}
@@ -496,12 +508,29 @@ const ProfilePage = ({ config }) => {
             </div>
           </div>
 
-          {/* Social Links */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="text-base font-bold text-slate-800 mb-5">Social links</h3>
-            <div className="flex items-center gap-4">
-              <a href={formData.platforms?.instagram?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#fceef5] flex items-center justify-center text-[#e1306c] hover:scale-110 transition-transform"><Instagram size={20} /></a>
-              <a href={formData.platforms?.youtube?.url || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#feecec] flex items-center justify-center text-[#ff0000] hover:scale-110 transition-transform"><Youtube size={20} /></a>
+          {/* Social Links Section */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 overflow-hidden">
+            <h3 className="text-base font-bold text-slate-800 mb-5">Social Media Links</h3>
+            <div className="flex flex-wrap items-center gap-4">
+              {userData.stats.instagram.url ? (
+                <a href={userData.stats.instagram.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#fceef5] flex items-center justify-center text-[#e1306c] hover:scale-110 transition-transform">
+                  <Instagram size={20} />
+                </a>
+              ) : null}
+              {userData.stats.youtube.url ? (
+                <a href={userData.stats.youtube.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#feecec] flex items-center justify-center text-[#ff0000] hover:scale-110 transition-transform">
+                  <Youtube size={20} />
+                </a>
+              ) : null}
+              {userData.stats.facebook.url ? (
+                <a href={userData.stats.facebook.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#eef4fe] flex items-center justify-center text-[#1877f2] hover:scale-110 transition-transform">
+                  <Facebook size={20} />
+                </a>
+              ) : null}
+              {/* Fallback msg if nothing shows */}
+              {(!userData.stats.instagram.url && !userData.stats.youtube.url && !userData.stats.facebook.url) && (
+                <p className="text-xs text-slate-400 italic">No social links connected yet.</p>
+              )}
             </div>
           </div>
 

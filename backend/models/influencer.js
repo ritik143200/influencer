@@ -2,6 +2,10 @@ const mongoose = require('mongoose');
 
 const influencerSchema = new mongoose.Schema({
   // Personal Information
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
+  fullName: { type: String, trim: true },
+  username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
   email: {
     type: String,
     required: true,
@@ -14,12 +18,14 @@ const influencerSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
- 
   password: {
     type: String,
     required: true,
     minlength: 6
   },
+  dateOfBirth: { type: Date },
+  gender: { type: String, enum: ['male', 'female', 'other'], default: 'other' },
+
   // Professional Information
   profileType: {
     type: String,
@@ -27,33 +33,54 @@ const influencerSchema = new mongoose.Schema({
     required: true,
     default: 'influencer'
   },
+  role: { type: String, default: 'user' },
   categories: [{
     type: String,
-    required: true
+    required: false
   }],
+  category: { type: String },
+  subcategory: { type: String },
+  subcategories: [{ type: String }],
+  niche: { type: String },
   location: {
-    type: String,
-    required: false,
-    trim: true
+    type: mongoose.Schema.Types.Mixed,
+    required: false
   },
+  bio: { type: String, trim: true, maxlength: 1000 },
+  experience: { type: String },
+  skills: [{ type: String }],
+  artistType: { type: String },
 
   // Portfolio & Social
   profileImage: {
     type: String,
     default: 'https://picsum.photos/seed/artist-avatar/400/400.jpg'
   },
+  profilePicture: { type: String },
   socialLinks: {
-    instagram: {
-      type: String,
-      default: ''
-    },
-    youtube: {
-      type: String,
-      default: ''
-    }
+    instagram: { type: String, default: '' },
+    youtube: { type: String, default: '' },
+    facebook: { type: String, default: '' },
+    website: { type: String, default: '' }
   },
+  platforms: {
+    instagram: { hasAccount: Boolean, url: String, followers: String, engagementRate: String },
+    youtube: { hasAccount: Boolean, url: String, followers: String, engagementRate: String },
+    facebook: { hasAccount: Boolean, url: String, followers: String, engagementRate: String }
+  },
+  portfolio: [{ type: String }],
+  previousCollaborations: { type: String },
 
-  // Verification
+  // Pricing
+  pricing: {
+    collaborationCharges: { type: Number },
+    pricingModel: { type: String, default: 'fixed' }
+  },
+  budget: { type: Number, default: 0 },
+  budgetMin: { type: Number },
+  budgetMax: { type: Number },
+
+  // Stats & Status
   verificationStatus: {
     type: String,
     enum: ['pending', 'verified', 'rejected'],
@@ -64,8 +91,6 @@ const influencerSchema = new mongoose.Schema({
     required: true,
     default: false
   },
-
-  // System Fields
   registrationDate: {
     type: Date,
     default: Date.now
@@ -82,6 +107,10 @@ const influencerSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  trending: { type: Boolean, default: false },
+  completedEvents: { type: Number, default: 0 },
+  responseTime: { type: String },
+  genre: { type: String },
   rating: {
     average: {
       type: Number,
