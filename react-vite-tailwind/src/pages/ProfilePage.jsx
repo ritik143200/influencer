@@ -300,72 +300,90 @@ const ProfilePage = ({ config }) => {
         </div>
       )}
 
-      {/* Hero Section */}
-      <div className="max-w-6xl mx-auto px-4 mt-6">
-        <div className="relative bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
-          {/* Banner */}
-          <div className="h-48 md:h-64 overflow-hidden relative bg-gradient-to-r from-brand-500 to-indigo-600">
+      {/* Full-Width Hero Section */}
+      <div className="w-full mt-6">
+        <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl border-0 mx-4 lg:mx-6">
+          {/* Enhanced Banner */}
+          <div className="h-48 md:h-64 overflow-hidden relative bg-gradient-to-br from-brand-500 via-indigo-600 to-purple-700">
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+              <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+            </div>
+            
             <img 
               src="https://images.unsplash.com/photo-1572508589584-94d778209da9?auto=format&fit=crop&q=80&w=1200" 
               alt="Profile Cover"
               className="w-full h-full object-cover mix-blend-overlay"
             />
-            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent"></div>
           </div>
 
-          {/* Profile Basic Info */}
-          <div className="p-6 md:p-8 pt-0 flex flex-col md:flex-row gap-6 relative">
-            {/* Avatar */}
-            <div className="relative -mt-16 md:-mt-20 shrink-0">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl overflow-hidden bg-white">
+          {/* Enhanced Profile Basic Info */}
+          <div className="p-6 md:p-8 pt-0 flex flex-col lg:flex-row gap-6 relative">
+            {/* Enhanced Avatar */}
+            <div className="relative -mt-16 md:-mt-20 shrink-0 order-1 lg:order-1">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white relative group">
                 <img 
                   src={formData.profileImage || formData.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=400"} 
                   alt={userData.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
+                {/* Avatar Status Badge */}
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 mt-2">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
+            <div className="flex-1 mt-2 order-2 lg:order-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <h1 className="text-2xl md:text-3xl font-black tracking-tight">{userData.name}</h1>
                 {formData.verificationStatus === 'verified' && (
-                  <CheckCircle2 className="text-blue-500 fill-blue-500" size={22} strokeWidth={2.5} />
+                  <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
+                    <CheckCircle2 className="text-blue-500 fill-blue-500" size={18} strokeWidth={2.5} />
+                    <span className="text-xs font-bold text-blue-600">VERIFIED</span>
+                  </div>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-500 text-sm md:text-base font-medium">
-                <span>{userData.username}</span>
-                <span className="flex items-center gap-1"><MapPin size={14} /> {userData.location}</span>
-                <span>{userData.title} @{userData.handle2}</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600 text-sm md:text-base font-medium">
+                <span className="bg-slate-100 px-2 py-1 rounded-lg font-semibold">{userData.username}</span>
+                <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
+                  <MapPin size={14} className="text-slate-500" />
+                  {userData.location}
+                </span>
+                <span className="bg-gradient-to-r from-purple-100 to-pink-100 px-2 py-1 rounded-lg font-semibold text-purple-700">
+                  {userData.title} @{userData.handle2}
+                </span>
               </div>
               
               <div className="flex flex-wrap gap-2 mt-3">
                 {userData.tags.map(tag => (
-                  <span key={tag} className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-slate-200 cursor-default">
+                  <span key={tag} className="bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold hover:from-slate-100 hover:to-slate-200 cursor-default transition-all">
                     {tag}
                   </span>
                 ))}
               </div>
             </div>
 
-            {/* Editing Card - Desktop Right */}
-            <div className="hidden lg:block w-72 bg-white border border-slate-100 shadow-sm rounded-2xl p-5 self-start">
-              <h3 className="text-sm font-bold text-slate-800 mb-3">Profile Actions</h3>
-              <div className="space-y-3">
-                <button onClick={() => setIsEditing(true)} className="w-full flex items-center justify-center gap-2 bg-[#3078F1] text-white font-bold py-2.5 rounded-xl hover:bg-blue-600 transition-all shadow-md active:scale-[0.98]">
-                  <Edit3 size={18} /> EDIT PROFILE
-                </button>
-                <button className="w-full bg-white border border-slate-200 text-slate-700 font-bold py-2.5 rounded-xl hover:bg-slate-50 transition-all">
-                  VIEW MEDIA KIT
-                </button>
-              </div>
-            </div>
+            {/* Edit Profile Button - Floating */}
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98] group z-50 flex items-center gap-2"
+            >
+              <Edit3 size={18} className="group-hover:rotate-12 transition-transform" />
+              <span>EDIT PROFILE</span>
+            </button>
           </div>
 
-          {/* Bio */}
+          {/* Bio Section */}
           <div className="px-6 md:px-8 pb-8">
-            <h4 className="font-bold text-slate-900 mb-2">Bio</h4>
-            <p className="text-slate-600 leading-relaxed max-w-3xl whitespace-pre-wrap">
+            <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+              Bio
+            </h4>
+            <p className="text-slate-600 leading-relaxed max-w-3xl whitespace-pre-wrap bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
               {userData.bio}
             </p>
           </div>
