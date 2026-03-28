@@ -217,7 +217,7 @@ const ProfilePage = ({ config }) => {
   if (isEditing) {
     return (
       <div className="pt-20 pb-16 min-h-screen bg-[#F8F9FA]" style={{ backgroundColor: config.background_color }}>
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           {saveMessage && (
             <div className="mb-6">
               <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-slideDown shadow-sm">

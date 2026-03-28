@@ -3147,6 +3147,8 @@ const AdminDashboard = ({ config }) => {
 
                   onViewArtist={handleViewInfluencerDetails}
 
+                  influencers={influencers}
+
                 />
 
               </div>
