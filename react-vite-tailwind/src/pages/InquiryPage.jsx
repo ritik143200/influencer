@@ -119,55 +119,67 @@ const InquiryPage = ({ config }) => {
   };
 
   return (
-    <div className="min-h-screen pt-12" style={{ backgroundColor: getThemeColor('background_color') }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-white/20" style={{ backgroundColor: getThemeColor('surface') || '#ffffff' }}>
+    <div className="min-h-screen pt-20 lg:pt-24" style={{ backgroundColor: getThemeColor('background_color') }}>
+      <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 py-0">
+        <div className="w-full" style={{ backgroundColor: getThemeColor('surface') || 'transparent' }}>
           <div
-            className="px-6 sm:px-10 py-8 bg-gradient-to-br rounded-t-3xl"
+            className="w-full px-6 sm:px-8 py-6 bg-gradient-to-br"
             style={{
               backgroundImage: `linear-gradient(135deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)`
             }}
           >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 max-w-6xl mx-auto">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Send a Collaboration Request</h1>
-                <p className="text-white/95 mt-2 max-w-2xl leading-relaxed">
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">Send a Collaboration Request</h1>
+                <p className="text-white/95 mt-2 max-w-2xl leading-tight text-sm md:text-base">
                   Send a collaboration request for an influencer. Your inquiry will be reviewed by the admin and marked as <span className="font-semibold">Pending</span> by default.
                 </p>
               </div>
-              <div className="bg-white/15 backdrop-blur-md rounded-2xl px-5 py-4 border border-white/20">
-                <p className="text-white/90 text-sm font-semibold">Status Workflow</p>
-                <p className="text-white/80 text-xs mt-1">Pending → Accepted / Rejected</p>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10 text-sm text-white/90">
+                <p className="font-semibold">Status Workflow</p>
+                <p className="mt-1 text-xs">Pending → Accepted / Rejected</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 px-6 sm:px-10 pb-10 relative z-10">
+          <div className="mt-8 px-0 sm:px-0 pb-8 relative z-10">
             {!isAuthenticated && (
-              <div className="mb-8 rounded-2xl border border-yellow-200 bg-yellow-50 px-5 py-4">
-                <p className="text-sm font-semibold text-yellow-900">Sign in required</p>
-                <p className="text-sm text-yellow-800 mt-1">Please sign in to submit an inquiry.</p>
+              <div className="mb-8 rounded-lg border border-yellow-200 bg-yellow-50 pl-4 pr-5 py-3 flex items-start gap-3 border-l-4 border-yellow-400">
+                <div className="flex-shrink-0 mt-1 w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                <div>
+                  <p className="text-sm font-semibold text-yellow-900">Sign in required</p>
+                  <p className="text-sm text-yellow-800 mt-1">Please sign in to submit an inquiry.</p>
+                </div>
               </div>
             )}
 
             {error && (
-              <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
-                <p className="text-sm font-semibold text-red-900">Submission failed</p>
-                <p className="text-sm text-red-800 mt-1">{error}</p>
+              <div className="mb-8 rounded-lg border border-red-200 bg-red-50 pl-4 pr-5 py-3 flex items-start gap-3 border-l-4 border-red-400">
+                <div className="flex-shrink-0 mt-1 w-2.5 h-2.5 rounded-full bg-red-400" />
+                <div>
+                  <p className="text-sm font-semibold text-red-900">Submission failed</p>
+                  <p className="text-sm text-red-800 mt-1">{error}</p>
+                </div>
               </div>
             )}
 
             {success && (
-              <div className="mb-8 rounded-2xl border border-green-200 bg-green-50 px-5 py-4">
-                <p className="text-sm font-semibold text-green-900">Submitted</p>
-                <p className="text-sm text-green-800 mt-1">{success}</p>
+              <div className="mb-8 rounded-lg border border-green-200 bg-green-50 pl-4 pr-5 py-3 flex items-start gap-3 border-l-4 border-green-400">
+                <div className="flex-shrink-0 mt-1 w-2.5 h-2.5 rounded-full bg-green-400" />
+                <div>
+                  <p className="text-sm font-semibold text-green-900">Submitted</p>
+                  <p className="text-sm text-green-800 mt-1">{success}</p>
+                </div>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
-                  <h2 className="text-lg font-semibold text-gray-900">Your Details</h2>
+                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
+                    <h2 className="text-lg font-semibold text-gray-900">Your Details</h2>
+                  </div>
                   <p className="text-sm text-gray-500 mt-1">So the admin can contact you quickly.</p>
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -226,8 +238,11 @@ const InquiryPage = ({ config }) => {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
-                  <h2 className="text-lg font-semibold text-gray-900">Requirement</h2>
+                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+                  <div className="flex items-center gap-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
+                    <h2 className="text-lg font-semibold text-gray-900">Requirement</h2>
+                  </div>
                   <p className="text-sm text-gray-500 mt-1">Tell us what you want to hire.</p>
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -294,8 +309,11 @@ const InquiryPage = ({ config }) => {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-white p-6 shadow-lg border border-transparent hover:shadow-2xl transition">
-                <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+                <div className="flex items-center gap-3">
+                  <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
+                  <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+                </div>
                 <p className="text-sm text-gray-500 mt-1">Help us understand the timeline and context.</p>
 
                 <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
