@@ -43,24 +43,33 @@ const RegistrationPage = ({ config }) => {
               <p className="text-gray-600 mt-1">Choose your registration type to get started</p>
             </div>
 
-            <div className="inline-flex bg-white/80 backdrop-blur rounded-2xl p-1.5 border border-white/40 shadow-sm">
+            <div className="relative inline-flex bg-gray-100 rounded-[20px] p-1.5 border border-gray-200 shadow-inner overflow-hidden">
+              {/* Sliding Background Pill */}
+              <div 
+                className="absolute inset-y-1.5 rounded-2xl bg-orange-500 shadow-lg shadow-orange-200/50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-0"
+                style={{ 
+                  left: selected === 'user' ? '6px' : 'calc(50% + 3px)',
+                  width: 'calc(50% - 9px)'
+                }}
+              />
+              
               <button
                 type="button"
                 onClick={() => setSelected('user')}
-                className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 ${selected === 'user'
-                  ? 'bg-white text-brand-600 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                className={`relative z-10 px-8 py-3 rounded-2xl font-bold text-base transition-colors duration-500 ${selected === 'user' 
+                  ? 'text-white scale-105' 
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
                 User
               </button>
               <button
                 type="button"
                 onClick={() => setSelected('influencer')}
-                className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-300 ${selected === 'influencer'
-                  ? 'bg-white text-brand-600 shadow'
-                  : 'text-gray-600 hover:text-gray-900'
-                  }`}
+                className={`relative z-10 px-8 py-3 rounded-2xl font-bold text-base transition-colors duration-500 ${selected === 'influencer' 
+                  ? 'text-white scale-105' 
+                  : 'text-gray-500 hover:text-gray-700'
+                }`}
               >
                 Influencer
               </button>
