@@ -84,14 +84,14 @@ const inquirySchema = new mongoose.Schema({
         enum: ['pending', 'accepted', 'rejected'],
         default: 'pending'
     },
-    assignedArtist: {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedInfluencer: {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Influencer' },
         assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         assignedAt: { type: Date }
     },
     forwardedTo: [
         {
-            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Artist' },
+            userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Influencer' },
             forwardedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
             forwardedAt: { type: Date, default: Date.now }
         }

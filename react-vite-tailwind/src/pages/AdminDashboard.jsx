@@ -471,8 +471,6 @@ const AdminDashboard = ({ config }) => {
 
     setLoadingInfluencerDetails(true);
 
-    
-
     try {
 
       const influencerId = influencer._id || influencer.id;
@@ -519,7 +517,7 @@ const AdminDashboard = ({ config }) => {
 
             if (data.success && data.data) {
 
-              fullArtistData = data.data;
+              fullInfluencerData = data.data;
 
             }
 
@@ -531,9 +529,9 @@ const AdminDashboard = ({ config }) => {
 
       
 
-      setselectedForwardedInfluencer(fullArtistData);
+      setSelectedForwardedInfluencer(fullInfluencerData);
 
-      setshowInfluencerDetailsModal(true);
+      setShowInfluencerDetailsModal(true);
 
     } catch (error) {
 
@@ -543,13 +541,13 @@ const AdminDashboard = ({ config }) => {
 
       alert('Failed to fetch complete Influencer Details. Showing available information.');
 
-      setselectedForwardedInfluencer(artist);
+      setSelectedForwardedInfluencer(influencer);
 
-      setshowInfluencerDetailsModal(true);
+      setShowInfluencerDetailsModal(true);
 
     } finally {
 
-      setLoadingArtistDetails(false);
+      setLoadingInfluencerDetails(false);
 
     }
 
@@ -1408,85 +1406,80 @@ const AdminDashboard = ({ config }) => {
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(() => {
+                    const isBeingForwarded = (inquiryId === forwardInquiryId);
+                    const currentForwarded = Array.isArray(inquiry.forwardedTo) ? inquiry.forwardedTo : [];
+                    const selectingIds = isBeingForwarded ? Array.from(forwardRecipients) : [];
+                    
+                    // Filter out selectingIds that are already in currentForwarded
+                    const extraSelectingIds = selectingIds.filter(id => 
+                      !currentForwarded.some(f => (typeof f === 'string' ? f : (f._id || f.id)) === id)
+                    );
 
-                  {inquiry.forwardedTo && inquiry.forwardedTo.length > 0 ? (
+                    const allItemsToDisplay = [...currentForwarded, ...extraSelectingIds];
 
-                    <div className="space-y-1">
+                    if (allItemsToDisplay.length === 0) {
+                      return <span className="text-gray-400 text-xs italic">Not forwarded</span>;
+                    }
 
-                      {inquiry.forwardedTo.slice(0, 2).map((artist, index) => {
+                    return (
+                      <div className="space-y-1.5">
+                        {allItemsToDisplay.slice(0, 3).map((item, index) => {
+                          const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
+                          const influencerId = typeof item === 'string' ? item : (item._id || item.id);
+                          
+                          const influencer = (typeof item === 'object' && item !== null && (item.fullName || item.name)) 
+                            ? item 
+                            : influencers.find(i => (i._id === influencerId || i.id === influencerId));
 
-                        // Handle multiple field name variations for artist name
+                          const name = influencer?.fullName || influencer?.name || influencer?.artistName || `Influencer ${String(influencerId).slice(-4)}`;
+                          const category = (influencer?.categories && influencer?.categories.length > 0) 
+                            ? influencer.categories[0] 
+                            : (influencer?.category || influencer?.profileType || 'N/A');
 
-                        const artistName = artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
-
-                        const artistCategory = artist.category || artist.profileType || artist.InfluencerType || 'N/A';
-
-                        
-
-                        return (
-
-                          <div key={index} className="flex items-center gap-2 group">
-
-                            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center text-xs font-medium text-purple-700 border border-purple-200">
-
-                              {artistName?.charAt(0).toUpperCase() || 'A'}
-
-                            </div>
-
-                            <div className="flex-1">
-
-                              <div className="flex items-center gap-1">
-
-                                <span className="text-xs font-medium text-gray-700 group-hover:text-purple-600 transition-colors">
-
-                                  {artistName}
-
-                                </span>
-
-                                <button
-
-                                  onClick={() => handleViewArtistDetails(artist)}
-
-                                  className="text-xs text-purple-600 hover:text-purple-800 underline font-medium"
-
-                                  title="View Influencer Details"
-
-                                >
-
-                                  View
-
-                                </button>
-
+                          return (
+                            <div key={influencerId || index} className={`flex items-center gap-2 group ${isSelecting ? 'animate-pulse' : ''}`}>
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${
+                                isSelecting 
+                                  ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                                  : 'bg-purple-100 text-purple-700 border-purple-200'
+                              }`}>
+                                {name.charAt(0).toUpperCase()}
                               </div>
-
-                              <span className="text-xs text-gray-500">({artistCategory})</span>
-
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-[11px] font-semibold truncate ${
+                                    isSelecting ? 'text-blue-600' : 'text-gray-700 group-hover:text-purple-600'
+                                  }`}>
+                                    {name}
+                                    {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
+                                  </span>
+                                  {!isSelecting && influencer && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleViewInfluencerDetails(influencer);
+                                      }}
+                                      className="text-[9px] text-purple-600 hover:text-purple-800 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      VIEW
+                                    </button>
+                                  )}
+                                </div>
+                                <div className="text-[9px] text-gray-400 font-medium uppercase truncate tracking-wider">{category}</div>
+                              </div>
                             </div>
-
+                          );
+                        })}
+                        {allItemsToDisplay.length > 3 && (
+                          <div className="text-[10px] text-purple-600 font-bold pl-8 pt-0.5 hover:text-purple-800 cursor-help flex items-center gap-1">
+                            <span className="w-1 h-1 bg-purple-400 rounded-full"></span>
+                            +{allItemsToDisplay.length - 3} more artists
                           </div>
-
-                        );
-
-                      })}
-
-                      {inquiry.forwardedTo.length > 2 && (
-
-                        <div className="text-xs text-purple-600 font-medium cursor-pointer hover:text-purple-800">
-
-                          +{inquiry.forwardedTo.length - 2} more artists
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  ) : (
-
-                    <span className="text-gray-400 text-xs">Not forwarded</span>
-
-                  )}
-
+                        )}
+                      </div>
+                    );
+                  })()}
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -2875,7 +2868,7 @@ const AdminDashboard = ({ config }) => {
 
                         <div className="text-xs text-gray-500">
 
-                          {a.categories?.join(', ') || a.category || 'General'} · {a.email}
+                          {i.categories?.join(', ') || i.category || 'General'} · {i.email}
 
                         </div>
 
@@ -3147,7 +3140,7 @@ const AdminDashboard = ({ config }) => {
 
                   forwardedTo={selectedInquiry.forwardedTo || []}
 
-                  onViewArtist={handleViewArtistDetails}
+                  onViewArtist={handleViewInfluencerDetails}
 
                 />
 
@@ -3189,7 +3182,7 @@ const AdminDashboard = ({ config }) => {
 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
-          {loadingArtistDetails ? (
+          {loadingInfluencerDetails ? (
 
             <div className="p-12 flex flex-col items-center justify-center">
 
@@ -3251,7 +3244,7 @@ const AdminDashboard = ({ config }) => {
 
                   <button
 
-                    onClick={() => setshowInfluencerDetailsModal(false)}
+                    onClick={() => setShowInfluencerDetailsModal(false)}
 
                     className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
 
@@ -3567,7 +3560,7 @@ const AdminDashboard = ({ config }) => {
 
                   <button
 
-                    onClick={() => setshowInfluencerDetailsModal(false)}
+                    onClick={() => setShowInfluencerDetailsModal(false)}
 
                     className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
 

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const Artist = require('../models/influencer');
+const Influencer = require('../models/influencer');
 
 const protect = async (req, res, next) => {
     let token;
@@ -20,7 +20,7 @@ const protect = async (req, res, next) => {
             // Get user from the token, checking both collections
             let user = await User.findById(decoded.id).select('-password');
             if (!user) {
-                user = await Artist.findById(decoded.id).select('-password');
+                user = await Influencer.findById(decoded.id).select('-password');
             }
 
             if (!user) {

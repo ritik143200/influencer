@@ -270,7 +270,7 @@ const updateInfluencer = async (req, res) => {
 // Delete influencer (admin only)
 const deleteInfluencer = async (req, res) => {
   try {
-    const influencer = await Artist.findById(req.params.id);
+    const influencer = await Influencer.findById(req.params.id);
     
     if (!influencer) {
       return res.status(404).json({

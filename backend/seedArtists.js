@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Artist = require('./models/Artist');
+const Artist = require('./models/influencer');
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/artisthub', {
