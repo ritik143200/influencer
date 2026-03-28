@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const Artist = require('../models/influencer');
+const Influencer = require('../models/influencer');
 const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -73,7 +73,7 @@ const loginUser = async (req, res) => {
 
     // If not found in User collection, check Artist collection
     if (!user) {
-      user = await Artist.findOne({ email });
+      user = await Influencer.findOne({ email });
       userType = 'artist';
     }
 
@@ -99,7 +99,7 @@ const loginUser = async (req, res) => {
 
     // For artists, return the FULL profile document so client has all data immediately
     if (userType === 'artist') {
-      const fullArtist = await Artist.findById(user._id).select('-password');
+      const fullArtist = await Influencer.findById(user._id).select('-password');
       return res.json({
         ...(fullArtist ? fullArtist.toObject() : {}),
         token,
@@ -137,7 +137,7 @@ const forgotPassword = async (req, res) => {
     // Check for user/artist in database
     let userRecord = await User.findOne({ email });
     if (!userRecord) {
-      userRecord = await Artist.findOne({ email });
+      userRecord = await Influencer.findOne({ email });
     }
 
     // SECURITY: Always return the same message to prevent email enumeration
@@ -221,7 +221,7 @@ const resetPassword = async (req, res) => {
     });
 
     if (!userRecord) {
-      userRecord = await Artist.findOne({
+      userRecord = await Influencer.findOne({
         resetPasswordToken: hashedToken,
         resetPasswordExpires: { $gt: Date.now() }
       });
@@ -273,7 +273,7 @@ const changePassword = async (req, res) => {
     let userType = 'user';
 
     if (!userRecord) {
-      userRecord = await Artist.findById(userId);
+      userRecord = await Influencer.findById(userId);
       userType = 'artist';
     }
 

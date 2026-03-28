@@ -1,6 +1,6 @@
 // Booking import removed
 const User = require('../models/User');
-const Artist = require('../models/influencer');
+const Influencer = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
 
 // @desc    Update artist status (activate/deactivate)
@@ -11,12 +11,12 @@ const updateArtistStatus = async (req, res) => {
         const { id } = req.params;
         const { isActive } = req.body;
 
-        const artist = await Artist.findById(id);
-        if (!artist) {
+        const influencer = await Influencer.findById(id);
+        if (!influencer) {
             return res.status(404).json({ success: false, message: 'Artist not found' });
         }
 
-        artist.isActive = isActive;
+        influencer.isActive = isActive;
         await artist.save();
 
         res.status(200).json({ 
@@ -183,7 +183,7 @@ const forwardInquiry = async (req, res) => {
         console.log('Admin forwarding inquiry', { inquiryId: id, recipients, forwardedBy: req.user?._id });
 
         // Validate recipients exist and are artists/influencers
-        const validArtists = await Artist.find({ _id: { $in: recipients } }).select('_id role firstName lastName email name profileType');
+        const validArtists = await Influencer.find({ _id: { $in: recipients } }).select('_id role firstName lastName email name profileType');
         const validIds = validArtists.map(u => String(u._id));
         const invalid = recipients.filter(r => !validIds.includes(String(r)));
         if (invalid.length > 0) {
@@ -265,7 +265,7 @@ const assignInquiryToArtist = async (req, res) => {
             });
         } else {
             // Validate artist exists
-            const artist = await Artist.findById(artistId);
+            const artist = await Influencer.findById(artistId);
             if (!artist) {
                 return res.status(404).json({ success: false, message: 'Artist not found' });
             }

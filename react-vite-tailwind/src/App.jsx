@@ -21,38 +21,6 @@ import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { defaultConfig } from './data/mockData';
 
-function App() {
-  const [config, setConfig] = useState(defaultConfig);
-  const [isReady, setIsReady] = useState(false);
-
-  useEffect(() => {
-    setIsReady(true);
-  }, []);
-
-  if (!isReady) {
-    return (
-      <div className="h-full flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">
-            Indori Influencer
-          </div>
-          <p className="text-gray-500">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <AuthProvider>
-      <NotificationProvider>
-        <RouterProvider>
-          <AppContent config={config} />
-        </RouterProvider>
-      </NotificationProvider>
-    </AuthProvider>
-  );
-}
-
 const AppContent = ({ config }) => {
   const { currentPath } = useRouter();
 
@@ -87,5 +55,37 @@ const AppContent = ({ config }) => {
     </div>
   );
 };
+
+function App() {
+  const [config, setConfig] = useState(defaultConfig);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+
+  if (!isReady) {
+    return (
+      <div className="h-full flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">
+            Indori Influencer
+          </div>
+          <p className="text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <AuthProvider>
+      <NotificationProvider>
+        <RouterProvider>
+          <AppContent config={config} />
+        </RouterProvider>
+      </NotificationProvider>
+    </AuthProvider>
+  );
+}
 
 export default App;
