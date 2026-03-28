@@ -1413,7 +1413,7 @@ const AdminDashboard = ({ config }) => {
                     
                     // Filter out selectingIds that are already in currentForwarded
                     const extraSelectingIds = selectingIds.filter(id => 
-                      !currentForwarded.some(f => (typeof f === 'string' ? f : (f._id || f.id)) === id)
+                      !currentForwarded.some(f => (typeof f === 'string' ? f : (f.userId?._id || f.userId || f._id || f.id)) === id)
                     );
 
                     const allItemsToDisplay = [...currentForwarded, ...extraSelectingIds];
@@ -1426,13 +1426,18 @@ const AdminDashboard = ({ config }) => {
                       <div className="space-y-1.5">
                         {allItemsToDisplay.slice(0, 3).map((item, index) => {
                           const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
-                          const influencerId = typeof item === 'string' ? item : (item._id || item.id);
+                          const influencerId = (typeof item === 'object' && item !== null) 
+                            ? (item.userId?._id || item.userId || item._id || item.id) 
+                            : item;
                           
-                          const influencer = (typeof item === 'object' && item !== null && (item.fullName || item.name)) 
-                            ? item 
-                            : influencers.find(i => (i._id === influencerId || i.id === influencerId));
+                          // Try to get influencer details from populated field first, otherwise look in influencers array
+                          const influencer = (typeof item === 'object' && item !== null && item.userId && typeof item.userId === 'object' && (item.userId.fullName || item.userId.name))
+                            ? item.userId
+                            : (typeof item === 'object' && item !== null && (item.fullName || item.name))
+                              ? item
+                              : influencers.find(i => (i._id === influencerId || i.id === influencerId));
 
-                          const name = influencer?.fullName || influencer?.name || influencer?.artistName || `Influencer ${String(influencerId).slice(-4)}`;
+                          const name = influencer?.fullName || influencer?.name || influencer?.artistName || (influencerId ? `Influencer ${String(influencerId).slice(-4)}` : 'Unknown');
                           const category = (influencer?.categories && influencer?.categories.length > 0) 
                             ? influencer.categories[0] 
                             : (influencer?.category || influencer?.profileType || 'N/A');
@@ -1474,7 +1479,7 @@ const AdminDashboard = ({ config }) => {
                         {allItemsToDisplay.length > 3 && (
                           <div className="text-[10px] text-purple-600 font-bold pl-8 pt-0.5 hover:text-purple-800 cursor-help flex items-center gap-1">
                             <span className="w-1 h-1 bg-purple-400 rounded-full"></span>
-                            +{allItemsToDisplay.length - 3} more artists
+                            +{allItemsToDisplay.length - 3} more influencers
                           </div>
                         )}
                       </div>
