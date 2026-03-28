@@ -643,9 +643,23 @@ const InfluencerDashboard = ({ config }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
                 <select className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all">
                   <option>Lifestyle</option>
-                  <option>Fitness</option>
-                  <option>Tech</option>
+                  <option>UGC Creator</option>
                   <option>Fashion</option>
+                  <option>Fitness</option>
+                  <option>Travel</option>
+                  <option>Food</option>
+                  <option>Tech</option>
+                  <option>Finance</option>
+                  <option>Gaming</option>
+                  <option>Education</option>
+                  <option>Motivation</option>
+                  <option>Spiritual</option>
+                  <option>Actor</option>
+                  <option>Comedian</option>
+                  <option>Model</option>
+                  <option>Filmmaker</option>
+                  <option>Influencer</option>
+                  <option>Historical</option>
                 </select>
               </div>
               <div>
@@ -661,10 +675,36 @@ const InfluencerDashboard = ({ config }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                 <input
                   type="text"
-                  defaultValue="Delhi, India"
+                  defaultValue={influencerData?.location || 'Delhi, India'}
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition-all"
                 />
               </div>
+
+              {/* Social Media Links */}
+              <div className="md:col-span-2 mt-4">
+                <h4 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">Social Media Connections</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1">Instagram</label>
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={influencerData?.platforms?.instagram?.url || influencerData?.socialLinks?.instagram || 'Not connected'} 
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-600 italic"
+                    />
+                  </div>
+                  <div className="relative">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1">YouTube</label>
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={influencerData?.platforms?.youtube?.url || influencerData?.socialLinks?.youtube || 'Not connected'} 
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-600 italic"
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
                 <textarea

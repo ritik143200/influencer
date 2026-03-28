@@ -124,6 +124,10 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         location: formData.location,
         categories: formData.categories,
         socialLinks: formData.socialLinks,
+        platforms: {
+          instagram: { hasAccount: !!formData.socialLinks.instagram, url: formData.socialLinks.instagram || '' },
+          youtube: { hasAccount: !!formData.socialLinks.youtube, url: formData.socialLinks.youtube || '' }
+        },
         profileType: 'influencer',
         termsAccepted: formData.termsAccepted
       };

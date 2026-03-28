@@ -365,7 +365,7 @@ const generateRandomArtist = (index) => {
     subcategory,
     experience: ['0-1', '1-3', '3-5', '5-10', '10+'][Math.floor(Math.random() * 5)],
     skills: [subcategory, 'Professional', 'Experienced', 'Event Performance'],
-    bio: `Professional ${subcategory} artist with over ${Math.floor(Math.random() * 10) + 1} years of experience. Specialized in ${subcategory} performances and events. Available for weddings, parties, and corporate events.`,
+    bio: `Professional ${subcategory} artist with over ${Math.floor(Math.random() * 10) + 1} years of experience. Specialized in ${subcategory} performances and events.`,
     location: city,
     budgetMin: Math.floor(Math.random() * 30000) + 10000, // Starting from ₹10,000 - ₹40,000
     budgetMax: Math.floor(Math.random() * 50000) + 40000, // Upto ₹40,000 - ₹90,000
