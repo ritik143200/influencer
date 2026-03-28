@@ -100,6 +100,7 @@ const getAllInquiries = async (req, res) => {
     try {
         const inquiries = await Inquiry.find()
             .populate('userId', 'name email phone')
+            .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: inquiries.length, data: inquiries });
@@ -155,6 +156,7 @@ const updateInquiryStatus = async (req, res) => {
 
         const populated = await Inquiry.findById(id)
             .populate('userId', 'name email phone')
+            .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
             .populate('workflowHistory.updatedBy', 'name email');
 
         res.status(200).json({ success: true, data: populated });
@@ -248,7 +250,7 @@ const assignInquiryToArtist = async (req, res) => {
         // Handle demo case - use a dummy artist ID
         if (artistId === 'demo') {
             console.log('Demo completion for inquiry:', id);
-            inquiry.assignedArtist = {
+            inquiry.assignedInfluencer = {
                 userId: null, // No specific artist for demo
                 assignedBy: req.user._id,
                 assignedAt: new Date()
@@ -270,7 +272,7 @@ const assignInquiryToArtist = async (req, res) => {
                 return res.status(404).json({ success: false, message: 'Artist not found' });
             }
 
-            inquiry.assignedArtist = {
+            inquiry.assignedInfluencer = {
                 userId: artistId,
                 assignedBy: req.user._id,
                 assignedAt: new Date()
@@ -292,7 +294,8 @@ const assignInquiryToArtist = async (req, res) => {
 
         const populated = await Inquiry.findById(id)
             .populate('userId', 'name email phone')
-            .populate('assignedArtist.userId', 'name email fullName')
+            .populate('assignedInfluencer.userId', 'name email fullName')
+            .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
             .populate('workflowHistory.updatedBy', 'name email');
 
         res.status(200).json({ success: true, data: populated });
