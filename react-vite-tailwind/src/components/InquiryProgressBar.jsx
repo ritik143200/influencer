@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist }) => {
+const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist, influencers = [] }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'sent':
@@ -129,9 +129,35 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
           <div className="text-sm font-medium text-purple-800 mb-2">Forwarded to:</div>
           <div className="space-y-2">
             {forwardedTo.map((artist, index) => {
-              const artistName = getArtistName(artist);
-              const artistEmail = artist.email || 'No email';
-              const artistCategory = getArtistCategory(artist);
+              // Resolve artist which may be:
+              // - an id string/number
+              // - an object with `userId` (string or object)
+              // - a populated artist object
+              let resolved = artist;
+
+              // If it's an object with nested userId, prefer that
+              if (artist && typeof artist === 'object' && (artist.userId !== undefined)) {
+                if (typeof artist.userId === 'string' || typeof artist.userId === 'number') {
+                  const found = influencers.find(i => (i._id === artist.userId || i.id === artist.userId || String(i._id) === String(artist.userId)));
+                  resolved = found || { _id: artist.userId };
+                } else if (typeof artist.userId === 'object' && artist.userId !== null) {
+                  resolved = artist.userId;
+                }
+              } else if (typeof artist === 'string' || typeof artist === 'number') {
+                const found = influencers.find(i => (i._id === artist || i.id === artist || String(i._id) === String(artist)));
+                resolved = found || { _id: artist };
+              } else if (artist && typeof artist === 'object') {
+                // If object has only id fields, try to find fuller object
+                const idCandidate = artist._id || artist.id;
+                if (idCandidate && !(artist.fullName || artist.name || artist.artistName)) {
+                  const found = influencers.find(i => (i._id === idCandidate || i.id === idCandidate || String(i._id) === String(idCandidate)));
+                  if (found) resolved = found;
+                }
+              }
+
+              const artistName = getArtistName(resolved);
+              const artistEmail = resolved.email || 'No email';
+              const artistCategory = getArtistCategory(resolved);
               
               return (
                 <div key={index} className="flex items-center justify-between p-2 bg-white rounded-lg border border-purple-100">
@@ -149,7 +175,7 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
                   </div>
                   {onViewArtist && (
                     <button
-                      onClick={() => onViewArtist(artist)}
+                      onClick={() => onViewArtist(resolved)}
                       className="text-xs px-2 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors font-medium"
                     >
                       View Details
