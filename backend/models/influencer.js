@@ -33,7 +33,7 @@ const influencerSchema = new mongoose.Schema({
     required: true,
     default: 'influencer'
   },
-  role: { type: String, default: 'user' },
+  role: { type: String, default: 'influencer' },
   categories: [{
     type: String,
     required: false
