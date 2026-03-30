@@ -504,8 +504,8 @@ const InfluencerDashboard = ({ config }) => {
                   <div className="flex items-center gap-3 mt-2 sm:mt-0">
                     <span className={`px-2 py-1 text-xs rounded-full ${
                       status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
-                      status === 'influencer_accepted' ? 'bg-green-100 text-green-800' :
-                      status === 'influencer_rejected' ? 'bg-red-100 text-red-800' :
+                      status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
+                      status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
                       'bg-blue-100 text-blue-800'
                     }`}>
                       {status.replace('_', ' ')}
@@ -553,7 +553,7 @@ const InfluencerDashboard = ({ config }) => {
                   </div>
                 )}
 
-                {(status === 'influencer_accepted' || status === 'influencer_rejected') && (
+                {(status === 'artist_accepted' || status === 'artist_rejected') && (
                   <div className="text-center text-sm text-gray-500 mt-2">
                     You have already {status.includes('accepted') ? 'accepted' : 'declined'} this inquiry
                   </div>

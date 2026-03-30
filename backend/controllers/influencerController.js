@@ -345,17 +345,20 @@ const searchInfluencers = async (req, res) => {
   }
 };
 
-// Get influencer's inquiries
+// Get influencer's inquiries (forwarded to them)
 const getMyInquiries = async (req, res) => {
   try {
-    const inquiries = await Inquiry.find({ artistId: req.user._id })
-      .sort({ createdAt: -1 });
+    // Search within the forwardedTo array for the logged-in influencer's ID
+    const inquiries = await Inquiry.find({ 
+      'forwardedTo.userId': req.user._id 
+    }).sort({ createdAt: -1 });
     
     res.status(200).json({
       success: true,
       data: inquiries
     });
   } catch (error) {
+    console.error('Error fetching influencer inquiries:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch inquiries',
@@ -378,22 +381,39 @@ const respondToInquiry = async (req, res) => {
       });
     }
 
-    if (inquiry.artistId.toString() !== req.user._id.toString()) {
+    // Check if this inquiry was actually forwarded to this influencer
+    const isForwardedToMe = inquiry.forwardedTo && inquiry.forwardedTo.some(
+      f => f.userId && f.userId.toString() === req.user._id.toString()
+    );
+
+    if (!isForwardedToMe) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to respond to this inquiry'
+        message: 'Not authorized to respond to this inquiry (not forwarded to you)'
       });
     }
 
-    inquiry.status = status;
-    inquiry.responseMessage = responseMessage;
-    inquiry.respondedAt = new Date();
+    // Map incoming simplified status to model's status enum
+    // Model expects 'artist_accepted' or 'artist_rejected'
+    const newStatus = status === 'accepted' ? 'artist_accepted' : 'artist_rejected';
+    
+    inquiry.status = newStatus;
+    inquiry.artistStatus = status === 'accepted' ? 'accepted' : 'rejected';
+    inquiry.progressPercentage = status === 'accepted' ? 70 : 100;
+
+    // Add to workflow history
+    inquiry.workflowHistory.push({
+      stage: 'artist_review',
+      status: newStatus,
+      updatedBy: req.user._id,
+      notes: responseMessage || `Influencer ${status}ed the inquiry`
+    });
 
     await inquiry.save();
 
     res.status(200).json({
       success: true,
-      message: 'Inquiry response submitted successfully',
+      message: `Inquiry ${status}ed successfully`,
       data: inquiry
     });
   } catch (error) {
