@@ -401,6 +401,15 @@ const respondToInquiry = async (req, res) => {
     inquiry.artistStatus = status === 'accepted' ? 'accepted' : 'rejected';
     inquiry.progressPercentage = status === 'accepted' ? 70 : 100;
 
+    // If accepted, also set as assigned influencer
+    if (status === 'accepted') {
+      inquiry.assignedInfluencer = {
+        userId: req.user._id,
+        assignedBy: req.user._id, // Self-assigned by acceptance
+        assignedAt: new Date()
+      };
+    }
+
     // Add to workflow history
     inquiry.workflowHistory.push({
       stage: 'artist_review',

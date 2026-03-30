@@ -1458,6 +1458,20 @@ const AdminDashboard = ({ config }) => {
                                   }`}>
                                     {name}
                                     {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
+                                    {(() => {
+                                      const assignedId = inquiry.assignedInfluencer?.userId?._id || inquiry.assignedInfluencer?.userId;
+                                      const influencerStatus = (inquiry.status === 'artist_accepted' || inquiry.status === 'completed');
+                                      if (influencerStatus && String(assignedId) === String(influencerId)) {
+                                        return (
+                                          <span className="ml-1 text-green-500" title="Accepted inquiry">
+                                            <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 20 20">
+                                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                            </svg>
+                                          </span>
+                                        );
+                                      }
+                                      return null;
+                                    })()}
                                   </span>
                                   {!isSelecting && influencer && (
                                     <button

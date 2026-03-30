@@ -6,7 +6,7 @@ import AuthButton from '../components/AuthButton';
 
 const AuthPage = ({ initialTab, embedded = false }) => {
   const { login } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(initialTab !== 'register');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,7 +18,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  const [activeTab, setActiveTab] = useState(initialTab === 'register' ? 'register' : 'login');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false);
@@ -401,7 +401,13 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                       Already have an account?{' '}
                       <button
                         type="button"
-                        onClick={() => navigate('auth')}
+                        onClick={() => {
+                          if (embedded) {
+                            toggleMode('login');
+                          } else {
+                            navigate('auth');
+                          }
+                        }}
                         className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
                       >
                         Sign In
@@ -411,23 +417,46 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                 )}
 
                 {isLogin && !isResetPassword && (
-                  <div className="flex justify-between items-center">
-                    {isForgotPassword ? (
-                      <button
-                        type="button"
-                        onClick={() => toggleMode('login')}
-                        className="text-brand-600 hover:text-brand-700 font-medium text-sm transition-colors"
-                      >
-                        Back to Sign In
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => toggleMode('forgot-password')}
-                        className="ml-auto text-brand-600 hover:text-brand-700 font-medium text-sm transition-colors"
-                      >
-                        Forgot Password?
-                      </button>
+                  <div className="flex flex-col space-y-4">
+                    <div className="flex justify-between items-center">
+                      {isForgotPassword ? (
+                        <button
+                          type="button"
+                          onClick={() => toggleMode('login')}
+                          className="text-brand-600 hover:text-brand-700 font-medium text-sm transition-colors"
+                        >
+                          Back to Sign In
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => toggleMode('forgot-password')}
+                          className="ml-auto text-brand-600 hover:text-brand-700 font-medium text-sm transition-colors"
+                        >
+                          Forgot Password?
+                        </button>
+                      )}
+                    </div>
+                    
+                    {!isForgotPassword && (
+                      <div className="text-center pt-2">
+                        <p className="text-gray-500 font-medium whitespace-nowrap">
+                          Don't have an account?{' '}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (embedded) {
+                                toggleMode('register');
+                              } else {
+                                navigate('registration');
+                              }
+                            }}
+                            className="text-orange-500 hover:text-orange-600 font-medium transition-colors"
+                          >
+                            Sign Up
+                          </button>
+                        </p>
+                      </div>
                     )}
                   </div>
                 )}

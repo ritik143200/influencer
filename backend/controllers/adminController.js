@@ -100,6 +100,7 @@ const getAllInquiries = async (req, res) => {
     try {
         const inquiries = await Inquiry.find()
             .populate('userId', 'name email phone')
+            .populate('assignedInfluencer.userId', 'firstName lastName email name profileType fullName')
             .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
             .sort({ createdAt: -1 });
 
