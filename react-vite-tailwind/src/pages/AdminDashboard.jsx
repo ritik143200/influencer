@@ -94,6 +94,16 @@ const AdminDashboard = ({ config }) => {
 
   });
 
+  // Filter states for Users
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter states for Inquiries
+  const [filterStatusInquiry, setFilterStatusInquiry] = useState('all');
+  const [filterDate, setFilterDate] = useState('');
+  const [searchTermInquiry, setSearchTermInquiry] = useState('');
+
 
 
   // Check admin role
@@ -1159,253 +1169,319 @@ const AdminDashboard = ({ config }) => {
 
   // Keep all other existing functions unchanged but with theme consistency
 
-  const renderUsers = () => (
-
-    <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-
-      style={{ backgroundColor: getThemeColor('surface') }}>
-
-      <div className={`bg-gradient-to-r ${getCategoryColors(1)} p-6 flex justify-between items-center`}>
-
-        <h3 className="text-xl font-bold text-white">User Management</h3>
-
-        <button className="px-4 py-2 bg-white text-green-600 rounded-xl font-medium hover:bg-green-50 transition-colors">
-
-          Add New User
-
-        </button>
-
-      </div>
-
-      <div className="overflow-x-auto">
-
-        <table className="w-full">
-
-          <thead className="bg-gray-50 border-b border-gray-200">
-
-            <tr>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-
-            </tr>
-
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-
-            {users.length === 0 ? (
-
-              <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-400">No users found.</td></tr>
-
-            ) : users.map((user) => (
-
-              <tr key={user._id || user.id} className="hover:bg-gray-50 transition-colors">
-
-                <td className="px-6 py-4 whitespace-nowrap">
-
-                  <div className="flex items-center">
-
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-
-                      {user.name?.charAt(0).toUpperCase()}
-
-                    </div>
-
-                    <div className="ml-4">
-
-                      <div className="text-sm font-medium" style={{ color: getThemeColor('text') }}>{user.name}</div>
-
-                    </div>
-
-                  </div>
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>
-
-                <td className="px-6 py-4 whitespace-nowrap">
-
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-
-                    {user.role}
-
-                  </span>
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap">
-
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-
-                    Active
-
-                  </span>
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-
-                  <button className="text-indigo-600 hover:text-indigo-900 mr-3">Edit</button>
-
-                  <button className="text-red-600 hover:text-red-900">Delete</button>
-
-                </td>
-
-              </tr>
-
-            ))}
-
-          </tbody>
-
-        </table>
-
-      </div>
-
-    </div >
-
-  );
-
-
-
-
-
-
-
-
-
-  const renderInquiries = () => (
-
-    <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-
-      style={{ backgroundColor: getThemeColor('surface') }}>
-
-      <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 flex justify-between items-center`}>
-
-        <h3 className="text-xl font-bold text-white">Inquiry Management</h3>
-
-        <div className="text-white/90 text-sm font-semibold">
-
-          Total: {Array.isArray(inquiries) ? inquiries.length : 0}
-
+  const renderUsers = () => {
+  // Filter users based on filters
+  const filteredUsers = users.filter(user => {
+    const matchesRole = filterRole === 'all' || user.role === filterRole;
+    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+    const matchesSearch = searchTerm === '' || 
+      (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       user.email?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesRole && matchesStatus && matchesSearch;
+  });
+
+  return (
+    <div className="w-full">
+      {/* Full Page Header */}
+      <div className={`bg-gradient-to-r ${getCategoryColors(1)} p-6 shadow-lg`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-2xl font-bold text-white">User Management</h3>
+            <button className="px-4 py-2 bg-white text-green-600 rounded-xl font-medium hover:bg-green-50 transition-colors">
+              Add New User
+            </button>
+          </div>
+          
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+              />
+            </div>
+            
+            {/* Role Filter */}
+            <select
+              value={filterRole}
+              onChange={(e) => setFilterRole(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="all" className="text-gray-900">All Roles</option>
+              <option value="user" className="text-gray-900">User</option>
+              <option value="admin" className="text-gray-900">Admin</option>
+              <option value="artist" className="text-gray-900">Artist</option>
+              <option value="influencer" className="text-gray-900">Influencer</option>
+            </select>
+            
+            {/* Status Filter */}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="all" className="text-gray-900">All Status</option>
+              <option value="active" className="text-gray-900">Active</option>
+              <option value="inactive" className="text-gray-900">Inactive</option>
+              <option value="suspended" className="text-gray-900">Suspended</option>
+            </select>
+            
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setFilterRole('all');
+                setFilterStatus('all');
+                setSearchTerm('');
+              }}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
         </div>
-
       </div>
 
-      <div className="overflow-x-auto">
-
-        <table className="w-full">
-
-          <thead className="bg-gray-50 border-b border-gray-200">
-
-            <tr>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requirement</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forwarded To</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-
-            </tr>
-
-          </thead>
-
-          <tbody className="divide-y divide-gray-200">
-
-            {(Array.isArray(inquiries) ? inquiries : []).map((inquiry) => {
-
-              const inquiryId = inquiry._id || inquiry.id;
-
-              const status = inquiry.status || 'sent';
-
-              return (
-
-              <tr key={inquiryId} className="hover:bg-gray-50 transition-colors">
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm" style={{ color: getThemeColor('text') }}>#{String(inquiryId).slice(-6)}</td>
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-
-                  {inquiry.userId?.name || inquiry.name}
-
-                  <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
-
-                </td>
-
-                <td className="px-6 py-4 text-sm text-gray-500">
-
-                  <div className="font-semibold text-gray-700 capitalize">{inquiry.hiringFor}</div>
-
-                  <div className="text-xs text-gray-500">{inquiry.category} · {inquiry.location}</div>
-
-                  {inquiry.budget !== undefined && inquiry.budget !== null && (
-
-                    <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
-
-                  )}
-
-                </td>
-
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-
-                  <div className="font-medium text-gray-700">{inquiry.eventType}</div>
-
-                  <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-
-                  {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap">
-
-                  <div className="w-24">
-
-                    <div className="flex items-center gap-2 mb-1">
-
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-
-                        <div 
-
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-
-                          style={{ width: `${inquiry.progressPercentage || 10}%` }}
-
-                        ></div>
-
-                      </div>
-
-                      <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
-
+      {/* Full Page Content */}
+      <div className="w-full p-6">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {filteredUsers.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="text-gray-400">No users found matching your filters.</div>
+            </div>
+          ) : filteredUsers.map((user) => (
+            <div key={user._id || user.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+              {/* User Header Row */}
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    {/* User Avatar */}
+                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                      {user.name?.charAt(0).toUpperCase()}
                     </div>
-
+                    
+                    {/* User Info */}
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {user.role}
+                        </span>
+                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          {user.status || 'Active'}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <div className="font-medium">{user.email}</div>
+                      </div>
+                    </div>
                   </div>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                <button className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                  Manage User
+                </button>
+                <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                  View Details
+                </button>
+                <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                  Activate
+                </button>
+                <button className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">
+                  Deactivate
+                </button>
+                <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
-                </td>
 
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+
+
+
+
+
+
+
+  const renderInquiries = () => {
+  // Filter inquiries based on filters
+  const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
+    const status = inquiry.status || 'sent';
+    const matchesStatus = filterStatusInquiry === 'all' || status === filterStatusInquiry;
+    const matchesSearch = searchTermInquiry === '' || 
+      (inquiry.hiringFor?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+       inquiry.userId?.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+       inquiry.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+       inquiry.email?.toLowerCase().includes(searchTermInquiry.toLowerCase()));
+    
+    return matchesStatus && matchesSearch;
+  });
+
+  return (
+    <div className="w-full">
+      {/* Full Page Header */}
+      <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 shadow-lg`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-2xl font-bold text-white">Inquiry Management</h3>
+            <div className="text-white/90 text-sm font-semibold">
+              Total: {filteredInquiries.length} / {Array.isArray(inquiries) ? inquiries.length : 0}
+            </div>
+          </div>
+          
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+              <input
+                type="text"
+                placeholder="Search inquiries..."
+                value={searchTermInquiry}
+                onChange={(e) => setSearchTermInquiry(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+              />
+            </div>
+            
+            {/* Status Filter */}
+            <select
+              value={filterStatusInquiry}
+              onChange={(e) => setFilterStatusInquiry(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+            >
+              <option value="all" className="text-gray-900">All Status</option>
+              <option value="sent" className="text-gray-900">Sent</option>
+              <option value="admin_accepted" className="text-gray-900">Accepted</option>
+              <option value="admin_rejected" className="text-gray-900">Rejected</option>
+              <option value="forwarded" className="text-gray-900">Forwarded</option>
+              <option value="artist_accepted" className="text-gray-900">Artist Accepted</option>
+              <option value="artist_rejected" className="text-gray-900">Artist Rejected</option>
+              <option value="completed" className="text-gray-900">Completed</option>
+            </select>
+            
+            {/* Date Filter */}
+            <input
+              type="date"
+              value={filterDate}
+              onChange={(e) => setFilterDate(e.target.value)}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+            />
+            
+            {/* Clear Filters */}
+            <button
+              onClick={() => {
+                setFilterStatusInquiry('all');
+                setFilterDate('');
+                setSearchTermInquiry('');
+              }}
+              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Full Page Content */}
+      <div className="w-full p-6">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {filteredInquiries.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="text-gray-400">No inquiries found matching your filters.</div>
+            </div>
+          ) : filteredInquiries.map((inquiry) => {
+            const inquiryId = inquiry._id || inquiry.id;
+            const status = inquiry.status || 'sent';
+            
+            return (
+              <div key={inquiryId} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+                {/* Header Row */}
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        #{String(inquiryId).slice(-6)}
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        status === 'admin_accepted' ? 'bg-yellow-100 text-yellow-800' :
+                        status === 'admin_rejected' ? 'bg-red-100 text-red-800' :
+                        status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
+                        status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
+                        status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
+                        status === 'completed' ? 'bg-green-100 text-green-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {status.replace('_', ' ')}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* User Info */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium">{inquiry.userId?.name || inquiry.name}</div>
+                          <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Requirement */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Requirement</h4>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium text-gray-700 capitalize">{inquiry.hiringFor}</div>
+                          <div className="text-xs text-gray-500">{inquiry.category} · {inquiry.location}</div>
+                          {inquiry.budget !== undefined && inquiry.budget !== null && (
+                            <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Event Details */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Event Details</h4>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium text-gray-700">{inquiry.eventType}</div>
+                          <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
+                          <div className="text-xs text-gray-500">
+                            {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Progress */}
+                  <div className="lg:w-32">
+                    <h4 className="font-semibold text-gray-900 text-sm mb-2">Progress</h4>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex-1 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${inquiry.progressPercentage || 10}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Forwarded To Section */}
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Forwarded To</h4>
                   {(() => {
                     const isBeingForwarded = (inquiryId === forwardInquiryId);
                     const currentForwarded = Array.isArray(inquiry.forwardedTo) ? inquiry.forwardedTo : [];
@@ -1423,7 +1499,7 @@ const AdminDashboard = ({ config }) => {
                     }
 
                     return (
-                      <div className="space-y-1.5">
+                      <div className="flex flex-wrap gap-2">
                         {allItemsToDisplay.slice(0, 3).map((item, index) => {
                           const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
                           const influencerId = (typeof item === 'object' && item !== null) 
@@ -1443,7 +1519,11 @@ const AdminDashboard = ({ config }) => {
                             : (influencer?.category || influencer?.profileType || 'N/A');
 
                           return (
-                            <div key={influencerId || index} className={`flex items-center gap-2 group ${isSelecting ? 'animate-pulse' : ''}`}>
+                            <div key={influencerId || index} className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                              isSelecting 
+                                ? 'bg-blue-50 border-blue-200' 
+                                : 'bg-purple-50 border-purple-200'
+                            }`}>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${
                                 isSelecting 
                                   ? 'bg-blue-100 text-blue-700 border-blue-200' 
@@ -1454,36 +1534,11 @@ const AdminDashboard = ({ config }) => {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5">
                                   <span className={`text-[11px] font-semibold truncate ${
-                                    isSelecting ? 'text-blue-600' : 'text-gray-700 group-hover:text-purple-600'
+                                    isSelecting ? 'text-blue-600' : 'text-gray-700'
                                   }`}>
                                     {name}
                                     {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
-                                    {(() => {
-                                      const assignedId = inquiry.assignedInfluencer?.userId?._id || inquiry.assignedInfluencer?.userId;
-                                      const influencerStatus = (inquiry.status === 'artist_accepted' || inquiry.status === 'completed');
-                                      if (influencerStatus && String(assignedId) === String(influencerId)) {
-                                        return (
-                                          <span className="ml-1 text-green-500" title="Accepted inquiry">
-                                            <svg className="w-3 h-3 inline" fill="currentColor" viewBox="0 0 20 20">
-                                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                          </span>
-                                        );
-                                      }
-                                      return null;
-                                    })()}
                                   </span>
-                                  {!isSelecting && influencer && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleViewInfluencerDetails(influencer);
-                                      }}
-                                      className="text-[9px] text-purple-600 hover:text-purple-800 font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                      VIEW
-                                    </button>
-                                  )}
                                 </div>
                                 <div className="text-[9px] text-gray-400 font-medium uppercase truncate tracking-wider">{category}</div>
                               </div>
@@ -1491,141 +1546,67 @@ const AdminDashboard = ({ config }) => {
                           );
                         })}
                         {allItemsToDisplay.length > 3 && (
-                          <div className="text-[10px] text-purple-600 font-bold pl-8 pt-0.5 hover:text-purple-800 cursor-help flex items-center gap-1">
-                            <span className="w-1 h-1 bg-purple-400 rounded-full"></span>
+                          <div className="text-[10px] text-purple-600 font-bold px-3 py-2">
                             +{allItemsToDisplay.length - 3} more influencers
                           </div>
                         )}
                       </div>
                     );
                   })()}
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap">
-
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-
-                    status === 'admin_accepted' ? 'bg-yellow-100 text-yellow-800' :
-
-                    status === 'admin_rejected' ? 'bg-red-100 text-red-800' :
-
-                    status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
-
-                    status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
-
-                    status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
-
-                    status === 'completed' ? 'bg-green-100 text-green-800' :
-
-                    'bg-blue-100 text-blue-800'
-
-                  }`}>
-
-                    {status.replace('_', ' ')}
-
-                  </span>
-
-                </td>
-
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-
-                  <div className="flex items-center gap-2">
-
-                    {status === 'sent' && (
-
-                      <>
-
-                        <button
-
-                          onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
-
-                          className="text-green-600 hover:text-green-900"
-
-                        >
-
-                          Accept
-
-                        </button>
-
-                        <button
-
-                          onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
-
-                          className="text-red-600 hover:text-red-900"
-
-                        >
-
-                          Reject
-
-                        </button>
-
-                      </>
-
-                    )}
-
-                    {status === 'admin_accepted' && (
-
+                </div>
+                
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                  {status === 'sent' && (
+                    <>
                       <button
-
-                        onClick={() => handleOpenForwardModal(inquiryId)}
-
-                        className="text-indigo-600 hover:text-indigo-900"
-
+                        onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
+                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                       >
-
-                        Forward
-
+                        Accept
                       </button>
-
-                    )}
-
-                    {(status === 'artist_accepted' || status === 'artist_rejected') && (
-
                       <button
-
-                        onClick={() => handleAssignToArtist(inquiryId)}
-
-                        className="text-green-600 hover:text-green-900"
-
+                        onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
+                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
                       >
-
-                        Complete
-
+                        Reject
                       </button>
+                    </>
+                  )}
 
-                    )}
-
+                  {(status === 'admin_accepted' || status === 'forwarded') && (
                     <button
-
-                      onClick={() => handleViewInquiryDetails(inquiry)}
-
-                      className="text-blue-600 hover:text-blue-900"
-
+                      onClick={() => handleOpenForwardModal(inquiryId)}
+                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
                     >
-
-                      View
-
+                      Forward
                     </button>
+                  )}
 
-                  </div>
+                  {(status === 'artist_accepted' || status === 'artist_rejected') && (
+                    <button
+                      onClick={() => handleAssignToArtist(inquiryId)}
+                      className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Complete
+                    </button>
+                  )}
 
-                </td>
-
-              </tr>
-
-              );
-
-            })}
-
-          </tbody>
-
-        </table>
-
+                  <button
+                    onClick={() => handleViewInquiryDetails(inquiry)}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-
     </div>
-
   );
+};
 
 
 
