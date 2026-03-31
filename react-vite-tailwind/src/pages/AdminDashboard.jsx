@@ -64,6 +64,10 @@ const AdminDashboard = ({ config }) => {
 
   const [showInquiryDetailsModal, setShowInquiryDetailsModal] = useState(false);
 
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const [showUserModal, setShowUserModal] = useState(false);
+
   
 
   // Forward inquiry modal state
@@ -765,6 +769,134 @@ const AdminDashboard = ({ config }) => {
 
 
 
+  // User management functions
+
+  const handleViewUserDetails = (user) => {
+
+    setSelectedUser(user);
+
+    setShowUserModal(true);
+
+  };
+
+
+
+  const handleUpdateUserStatus = async (userId, action) => {
+
+    try {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/${action}`, {
+
+        method: 'POST',
+
+        headers: { 
+
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+
+          'Content-Type': 'application/json'
+
+        }
+
+      });
+
+      
+
+      if (res.ok) {
+
+        const updatedUser = await res.json();
+
+        setUsers(prev => prev.map(u => (u._id === userId || u.id === userId) ? updatedUser : u));
+
+        setSuccessMessage(`User status updated to ${updatedUser.status} successfully!`);
+
+        setTimeout(() => setSuccessMessage(null), 3000);
+
+        
+
+        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
+
+          setSelectedUser(updatedUser);
+
+        }
+
+      } else {
+
+        const errorData = await res.json();
+
+        alert(errorData.message || 'Failed to update user status');
+
+      }
+
+    } catch (err) {
+
+      console.error('Error updating user status:', err);
+
+      alert('Network error while updating user status');
+
+    }
+
+  };
+
+
+
+  const handleDeleteUser = async (userId) => {
+
+    if (!window.confirm('Are you sure you want to delete this user permanently? This action cannot be undone.')) {
+
+      return;
+
+    }
+
+    
+
+    try {
+
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+
+        method: 'DELETE',
+
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+
+      });
+
+      
+
+      if (res.ok) {
+
+        setUsers(prev => prev.filter(u => u._id !== userId && u.id !== userId));
+
+        setSuccessMessage('User deleted successfully');
+
+        setTimeout(() => setSuccessMessage(null), 3000);
+
+        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
+
+          setShowUserModal(false);
+
+          setSelectedUser(null);
+
+        }
+
+      } else {
+
+        const errorData = await res.json();
+
+        alert(errorData.message || 'Failed to delete user');
+
+      }
+
+    } catch (err) {
+
+      console.error('Error deleting user:', err);
+
+      alert('Network error while deleting user');
+
+    }
+
+  };
+
+
+
   // Artist detail view functions
 
   const handleViewArtist = (artist) => {
@@ -1285,19 +1417,34 @@ const AdminDashboard = ({ config }) => {
               
               {/* Actions */}
               <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                <button className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                <button 
+                  onClick={() => handleViewUserDetails(user)}
+                  className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                >
                   Manage User
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                <button 
+                  onClick={() => handleViewUserDetails(user)}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                >
                   View Details
                 </button>
-                <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+                <button 
+                  onClick={() => handleUpdateUserStatus(user._id || user.id, 'unblock')}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                >
                   Activate
                 </button>
-                <button className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors">
+                <button 
+                  onClick={() => handleUpdateUserStatus(user._id || user.id, 'block')}
+                  className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                >
                   Deactivate
                 </button>
-                <button className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                <button 
+                  onClick={() => handleDeleteUser(user._id || user.id)}
+                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                >
                   Delete
                 </button>
               </div>
@@ -1795,6 +1942,112 @@ const AdminDashboard = ({ config }) => {
     </div>
 
   );
+
+
+
+  const renderUserModal = () => {
+    if (!showUserModal || !selectedUser) return null;
+
+    const userColorIndex = 1; // Indigo/Blue theme
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+          {/* Modal Header */}
+          <div className={`bg-gradient-to-r ${getCategoryColors(userColorIndex)} p-6 text-white`}>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-bold">
+                  {selectedUser.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold">{selectedUser.name}</h3>
+                  <p className="text-white/80 capitalize">{selectedUser.role}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowUserModal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Body */}
+          <div className="p-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">Email Address</p>
+                <p className="text-gray-900 font-semibold">{selectedUser.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">User Status</p>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                  selectedUser.status === 'active' ? 'bg-green-100 text-green-700' :
+                  selectedUser.status === 'blocked' ? 'bg-red-100 text-red-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {selectedUser.status || 'Active'}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">Account Created</p>
+                <p className="text-gray-900 font-semibold">
+                  {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                  }) : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">User ID</p>
+                <p className="text-gray-500 font-mono text-xs">{selectedUser._id || selectedUser.id}</p>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-gray-100">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Management Actions</h4>
+              <div className="flex flex-wrap gap-3">
+                {selectedUser.status !== 'active' && (
+                  <button 
+                    onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'unblock')}
+                    className="px-6 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
+                  >
+                    Activate Account
+                  </button>
+                )}
+                {selectedUser.status !== 'blocked' && (
+                  <button 
+                    onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'block')}
+                    className="px-6 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
+                  >
+                    Deactivate Account
+                  </button>
+                )}
+                <button 
+                  onClick={() => handleDeleteUser(selectedUser._id || selectedUser.id)}
+                  className="px-6 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
+                >
+                  Delete Permanently
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 px-8 py-4 flex justify-end">
+            <button 
+              onClick={() => setShowUserModal(false)}
+              className="px-6 py-2 text-gray-600 font-bold hover:text-gray-900 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
 
 
@@ -3589,11 +3842,25 @@ const AdminDashboard = ({ config }) => {
           )}
 
         </div>
-
       )}
 
-    </div>
+      {/* Render User Details Modal */}
+      {renderUserModal()}
 
+      {/* Success Message Notification */}
+      {successMessage && (
+        <div className="fixed bottom-8 right-8 z-[100] animate-bounce-in">
+          <div className="bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
+            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="font-bold">{successMessage}</p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 
 };

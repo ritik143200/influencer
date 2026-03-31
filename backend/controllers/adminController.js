@@ -17,12 +17,12 @@ const updateArtistStatus = async (req, res) => {
         }
 
         influencer.isActive = isActive;
-        await artist.save();
+        await influencer.save();
 
         res.status(200).json({ 
             success: true, 
             message: `Artist ${isActive ? 'activated' : 'deactivated'} successfully`,
-            data: artist
+            data: influencer
         });
     } catch (error) {
         console.error('Error updating artist status:', error);

@@ -94,6 +94,21 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Check account status
+    if (userType === 'user') {
+      if (user.status === 'blocked' || user.status === 'suspended') {
+        return res.status(403).json({ 
+          message: `Your account has been ${user.status}. Please contact support.` 
+        });
+      }
+    } else if (userType === 'artist') {
+      if (user.isActive === false) {
+        return res.status(403).json({ 
+          message: 'Your account is currently inactive. Please contact support.' 
+        });
+      }
+    }
+
     // Generate token
     const token = generateToken(user._id);
 
