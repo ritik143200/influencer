@@ -74,7 +74,8 @@ const ProfilePage = ({ config }) => {
       instagram: { hasAccount: src?.platforms?.instagram?.hasAccount || false, url: src?.platforms?.instagram?.url || src?.socialLinks?.instagram || '', followers: src?.platforms?.instagram?.followers || '', engagementRate: src?.platforms?.instagram?.engagementRate || '' },
       youtube: { hasAccount: src?.platforms?.youtube?.hasAccount || false, url: src?.platforms?.youtube?.url || src?.socialLinks?.youtube || '', followers: src?.platforms?.youtube?.followers || '', engagementRate: src?.platforms?.youtube?.engagementRate || '' },
       facebook: { hasAccount: src?.platforms?.facebook?.hasAccount || false, url: src?.platforms?.facebook?.url || src?.socialLinks?.facebook || '', followers: src?.platforms?.facebook?.followers || '', engagementRate: src?.platforms?.facebook?.engagementRate || '' }
-    }
+    },
+    role: src.role || 'user'
   });
 
   // Seed from localStorage user immediately, then fetch fresh data from API
@@ -171,7 +172,7 @@ const ProfilePage = ({ config }) => {
 
       if (response.ok) {
         const result = await response.json();
-        const updatedUser = result.data || formData;
+        const updatedUser = result.data || { ...user, ...payload };
         updateUser(updatedUser);
         setSaveMessage('Profile updated successfully!');
       } else {

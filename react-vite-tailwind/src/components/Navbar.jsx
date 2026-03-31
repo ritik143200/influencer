@@ -206,108 +206,89 @@ const Navbar = ({ config }) => {
                 Inquiry
               </button>
 
-              {/* Profile Link - Only for authenticated users */}
-              {isAuthenticated && (
-                <button 
-                  onClick={() => navigate('profile')}
-                  className="font-medium text-gray-700 hover:text-brand-600 transition-colors whitespace-nowrap flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Profile
-                </button>
-              )}
             </div>
 
-                          {/* Dashboard Menu - Only for authenticated users */}
+            {/* User Menu Dropdown - Only for authenticated users */}
             {isAuthenticated && (
               <div className="relative dashboard-menu">
                 <button 
                   onClick={() => setShowDashboardMenu(!showDashboardMenu)}
-                  className="font-medium text-gray-700 hover:text-brand-600 transition-colors flex items-center gap-1 whitespace-nowrap"
+                  className="flex items-center gap-2 group p-1.5 rounded-full hover:bg-gray-100 transition-all duration-200"
                 >
-                  Dashboard
-                  <svg className="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-9 h-9 rounded-full bg-brand-50 flex items-center justify-center text-brand-600 font-bold border-2 border-brand-200 uppercase">
+                    {(user?.fullName || user?.name || user?.firstName || 'U').charAt(0)}
+                  </div>
+                  <div className="hidden xl:block text-left">
+                    <div className="text-sm font-bold text-gray-900 leading-none mb-1">
+                      {user?.fullName || user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User')}
+                    </div>
+                    <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider leading-none">
+                      {user?.role === 'artist' || user?.role === 'influencer' ? 'Influencer' : (user?.role || 'Member')}
+                    </div>
+                  </div>
+                  <svg 
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDashboardMenu ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 
-                {/* Dashboard Dropdown */}
+                {/* User Dropdown Menu */}
                 {showDashboardMenu && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[100]">
-                    {user?.role === 'user' && (
-                      <button
-                        onClick={() => {
-                          navigate('user-dashboard');
-                          setShowDashboardMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 007 7z" />
-                        </svg>
-                        <div>
-                          <div className="font-medium">User Dashboard</div>
-                          <div className="text-xs text-gray-500">Manage your bookings</div>
-                        </div>
-                      </button>
-                    )}
-                    
-                    {(user?.role === 'artist' || user?.role === 'influencer') && (
-                      <button
-                        onClick={() => {
-                          navigate('influencer-dashboard');
-                          setShowDashboardMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.707.293.707.293V17a2 2 0 01-2 2H8a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        <div>
-                          <div className="font-medium">Influencer Dashboard</div>
-                          <div className="text-xs text-gray-500">Manage your portfolio</div>
-                        </div>
-                      </button>
-                    )}
-                    
-                    {user?.role === 'admin' && (
-                      <button
-                        onClick={() => {
-                          navigate('admin-dashboard');
-                          setShowDashboardMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        </svg>
-                        <div>
-                          <div className="font-medium">Admin Dashboard</div>
-                          <div className="text-xs text-gray-500">System administration</div>
-                        </div>
-                      </button>
-                    )}
-                    
-                    <div className="border-t border-gray-200 mt-2 pt-2">
-                      <button
-                        onClick={() => {
-                          logout();
-                          navigate('home');
-                          setShowDashboardMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-900 transition-colors flex items-center gap-3"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4 4m4-4H3m2 4h6M5 12H3m2 4h6m6 4h6m2 4h6a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                        <div>
-                          <div className="font-medium">Logout</div>
-                          <div className="text-xs text-red-500">Sign out of your account</div>
-                        </div>
-                      </button>
+                  <div className="absolute top-full right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-3 z-[100] animate-fadeIn">
+                    <div className="px-4 py-2 border-b border-gray-50 mb-1 lg:hidden">
+                      <div className="text-sm font-bold text-gray-900">
+                        {user?.fullName || user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}` : 'User')}
+                      </div>
+                      <div className="text-xs text-gray-500">{user?.email}</div>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        navigate('profile');
+                        setShowDashboardMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 transition-colors flex items-center gap-3"
+                    >
+                      <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span className="font-medium">View Profile</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const dashboardRoute = user?.role === 'admin' ? 'admin-dashboard' : 
+                                              (user?.role === 'artist' || user?.role === 'influencer' ? 'influencer-dashboard' : 'user-dashboard');
+                        navigate(dashboardRoute);
+                        setShowDashboardMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-brand-600 transition-colors flex items-center gap-3"
+                    >
+                      <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                      <span className="font-medium">Dashboard</span>
+                    </button>
+
+                    <div className="border-t border-gray-100 my-2"></div>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        navigate('home');
+                        setShowDashboardMenu(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center gap-3"
+                    >
+                      <svg className="w-5 h-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4 4m4-4H3m2 4h6M5 12H3m2 4h6m6 4h6m2 4h6a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      <span className="font-semibold">Log Out</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -421,11 +402,13 @@ const Navbar = ({ config }) => {
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
                   >
-                    <span className="font-medium">Profile</span>
+                    <span className="font-medium">View Profile</span>
                   </button>
                   <button
                     onClick={() => {
-                      navigate(`${user.role}-dashboard`);
+                      const dashboardRoute = user?.role === 'admin' ? 'admin-dashboard' : 
+                                            (user?.role === 'artist' || user?.role === 'influencer' ? 'influencer-dashboard' : 'user-dashboard');
+                      navigate(dashboardRoute);
                       setMobileMenuOpen(false);
                     }}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50"
