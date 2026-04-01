@@ -351,7 +351,11 @@ const getMyInquiries = async (req, res) => {
     // Search within the forwardedTo array for the logged-in influencer's ID
     const inquiries = await Inquiry.find({ 
       'forwardedTo.userId': req.user._id 
-    }).sort({ createdAt: -1 });
+    })
+    .populate('userId', 'name email phone')
+    .populate('forwardedTo.userId', 'firstName lastName email fullName profileType')
+    .populate('forwardedTo.forwardedBy', 'name email')
+    .sort({ createdAt: -1 });
     
     res.status(200).json({
       success: true,

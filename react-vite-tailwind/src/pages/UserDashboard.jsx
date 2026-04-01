@@ -7,7 +7,6 @@ const UserDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { logout } = useAuth();
   const [userData, setUserData] = useState(null);
-  const [favoriteInfluencers, setFavoriteInfluencers] = useState([]);
   const [activeTab, setActiveTab] = useState('overview');
   // Removed bookings, bookingFilter
 
@@ -37,11 +36,6 @@ const UserDashboard = ({ config }) => {
 
     // Booking-related effect removed
 
-    setFavoriteInfluencers([
-      { id: 1, name: 'Creative Mind', category: 'Lifestyle', rating: 4.8, image: '🌟' },
-      { id: 2, name: 'Tech Guru', category: 'Tech', rating: 4.9, image: '💻' },
-      { id: 3, name: 'Fashionista', category: 'Fashion', rating: 4.7, image: '👗' }
-    ]);
     
       // Fetch inquiries for the user (try API, fallback to localStorage)
       const fetchInquiries = async () => {
@@ -245,10 +239,10 @@ const UserDashboard = ({ config }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
-            <span className="text-2xl font-bold text-gray-800">{favoriteInfluencers.length}</span>
+            <span className="text-2xl font-bold text-gray-800">0</span>
           </div>
-          <h3 className="text-gray-600 text-sm font-medium">Favorite Influencers</h3>
-          <p className="text-gray-500 text-xs mt-1">Influencers you love</p>
+          <h3 className="text-gray-600 text-sm font-medium">Saved Influencers</h3>
+          <p className="text-gray-500 text-xs mt-1">Influencers you've bookmarked</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -373,41 +367,15 @@ const UserDashboard = ({ config }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </div>
-          <span className="text-2xl font-bold text-gray-800">{favoriteInfluencers.length}</span>
+          <span className="text-2xl font-bold text-gray-800">0</span>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Favorite Influencers</h3>
+        <h3 className="text-gray-600 text-sm font-medium">Saved Influencers</h3>
       </div>
     </div>
   );
 
   // Booking-related UI removed
 
-  const renderFavorites = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {favoriteInfluencers.map((influencer) => (
-        <div key={influencer.id} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
-          <div className="h-48 bg-gradient-to-br from-brand-100 to-brand-200 flex items-center justify-center">
-            <span className="text-6xl">{influencer.image}</span>
-          </div>
-          <div className="p-6">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">{influencer.name}</h3>
-            <p className="text-gray-600 text-sm mb-3">{influencer.category}</p>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <svg className="w-4 h-4 text-yellow-400 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-sm text-gray-600">{influencer.rating}</span>
-              </div>
-              <button className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors text-sm font-medium">
-                Hire Now
-              </button>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
 
   const renderInquiries = () => (
     <div className="space-y-6">
@@ -529,7 +497,7 @@ const UserDashboard = ({ config }) => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex space-x-8 px-6">
-            {['overview', 'favorites', 'inquiries', 'user'].map((tab) => (
+            {['overview', 'inquiries', 'user'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -546,7 +514,6 @@ const UserDashboard = ({ config }) => {
 
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'favorites' && renderFavorites()}
         {activeTab === 'inquiries' && renderInquiries()}
         {activeTab === 'user' && renderUser()}
       </div>

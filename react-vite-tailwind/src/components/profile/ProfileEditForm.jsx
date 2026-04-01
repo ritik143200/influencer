@@ -37,6 +37,13 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
     </button>
   );
 
+  const CancelButton = () => (
+    <button type="button" onClick={onCancel}
+      className="px-6 py-2.5 rounded-full text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transform-gpu transition-transform hover:-translate-y-0.5 shadow-xl flex items-center gap-2">
+      ❌ Cancel
+    </button>
+  );
+
   return (
     <div className="w-full bg-transparent">
       {/* Tabs Header (full-width band) */}
@@ -96,9 +103,14 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                   <input className={inputClass} type="password" value={formData.password || ''} onChange={e => handleField('password', e.target.value)} placeholder="Leave blank to keep current" />
                 </div>
               </div>
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-between gap-3">
+                <div className="flex gap-3">
+                  <CancelButton />
+                </div>
+                <div className="flex gap-3">
                   <SaveButton label="Update Basic Info" />
                 </div>
+              </div>
               </div>
             </div>
 
@@ -124,9 +136,14 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                   <input className={inputClass} value={formData.location?.country || ''} onChange={e => handleNestedField('location.country', e.target.value)} placeholder="e.g. India" />
                 </div>
               </div>
-                <div className="mt-6 flex justify-end">
+                <div className="mt-6 flex justify-between gap-3">
+                <div className="flex gap-3">
+                  <CancelButton />
+                </div>
+                <div className="flex gap-3">
                   <SaveButton label="Update Profile Info" />
                 </div>
+              </div>
               </div>
             </div>
           </div>
@@ -251,8 +268,13 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
               )}
             </div>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-end">
-              <SaveButton label="Update Social" />
+            <div className="pt-6 border-t border-gray-100 flex justify-between gap-3">
+              <div className="flex gap-3">
+                <CancelButton />
+              </div>
+              <div className="flex gap-3">
+                <SaveButton label="Update Social" />
+              </div>
             </div>
           </div>
         )}

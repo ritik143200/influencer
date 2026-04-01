@@ -5,11 +5,6 @@ import ProfileEditForm from '../components/profile/ProfileEditForm';
 import { 
   CheckCircle2, 
   MapPin,
-  ExternalLink, 
-  ChevronRight,
-  Briefcase,
-  Users,
-  Layout,
   Instagram,
   Youtube,
   Facebook,
@@ -32,11 +27,15 @@ const ProfilePage = ({ config }) => {
       youtube: { hasAccount: false, url: '', followers: '', engagementRate: '' },
       facebook: { hasAccount: false, url: '', followers: '', engagementRate: '' }
     },
-    experience: '', previousCollaborations: '',
-    portfolio: [], skills: [],
+    experience: '',
+    portfolio: [],
     role: 'user',
     verificationStatus: 'pending', budget: 0,
-    socialLinks: { instagram: '', youtube: '', facebook: '', website: '' }
+    socialLinks: { instagram: '', youtube: '', facebook: '', website: '' },
+    pricing: {
+      collaborationCharges: '',
+      pricingModel: 'fixed'
+    }
   });
 
   const [profileLoading, setProfileLoading] = useState(false);
@@ -57,7 +56,6 @@ const ProfilePage = ({ config }) => {
     niche: src.niche || src.category || '',
     category: src.category || '',
     experience: src.experience || '',
-    previousCollaborations: src.previousCollaborations || '',
     subcategories: src.subcategories || [],
     portfolio: src.portfolio || [],
     pricing: {
@@ -143,14 +141,11 @@ const ProfilePage = ({ config }) => {
         location: formData.location,
         experience: formData.experience,
         skills: formData.subcategories,
-        budgetMin: formData.budgetMin,
-        budgetMax: formData.budgetMax,
         budget: formData.budget,
         socialLinks: formData.socialLinks,
         platforms: formData.platforms,
         niche: formData.niche,
         category: formData.category,
-        previousCollaborations: formData.previousCollaborations,
         pricing: formData.pricing,
         profileImage: formData.profileImage,
         profilePicture: formData.profilePicture,
@@ -245,25 +240,25 @@ const ProfilePage = ({ config }) => {
     name: formData.fullName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Your Name',
     username: formData.username ? `@${formData.username}` : '@username',
     title: displayRole,
-    handle2: nicheOrCategory,
-    location: formattedLocation,
-    bio: formData.bio || 'Passionate professional ready for the next big project.',
-    tags: formData.subcategories?.length ? formData.subcategories : ["Creator", "Tech", "Lifestyle"],
+    handle2: nicheOrCategory || 'Creator',
+    location: formattedLocation || 'Location',
+    bio: formData.bio || 'Tell us about yourself...',
+    tags: formData.subcategories?.length ? formData.subcategories : [],
     stats: {
       totalReach: (() => {
         const ig = parseInt(formData.platforms?.instagram?.followers) || 0;
         const yt = parseInt(formData.platforms?.youtube?.followers) || 0;
         const fb = parseInt(formData.platforms?.facebook?.followers) || 0;
-        return (ig + yt + fb || 0).toLocaleString();
+        const total = ig + yt + fb;
+        return total > 0 ? total.toLocaleString() : '0';
       })(),
       instagram: { 
         followers: formData.platforms?.instagram?.followers || '0', 
-        engagement: formData.platforms?.instagram?.engagementRate ? `${formData.platforms.instagram.engagementRate}%` : 'N/A',
+        engagement: formData.platforms?.instagram?.engagementRate ? `${formData.platforms.instagram.engagementRate}%` : '0%',
         url: formData.platforms?.instagram?.url || formData.socialLinks?.instagram || ''
       },
       youtube: { 
         subs: formData.platforms?.youtube?.followers || '0', 
-        avgViews: 'N/A',
         url: formData.platforms?.youtube?.url || formData.socialLinks?.youtube || ''
       },
       facebook: { 
@@ -272,22 +267,21 @@ const ProfilePage = ({ config }) => {
       }
     },
     pricing: {
-      starting: formData.pricing?.collaborationCharges ? `₹${Number(formData.pricing.collaborationCharges).toLocaleString()}` : formData.budget ? `₹${Number(formData.budget).toLocaleString()}` : 'Contact for Pricing',
-      responseTime: "< 24 hrs"
+      starting: formData.pricing?.collaborationCharges ? `₹${Number(formData.pricing.collaborationCharges).toLocaleString()}` : 
+                 formData.budget ? `₹${Number(formData.budget).toLocaleString()}` : 'Contact for Pricing'
     },
     professional: {
-      experience: formData.experience ? `${formData.experience} Years` : 'N/A',
-      primaryNiche: nicheOrCategory,
-      location: formattedLocation
+      experience: formData.experience ? `${formData.experience} Years` : '0 Years',
+      primaryNiche: nicheOrCategory || 'General',
+      location: formattedLocation || 'Global'
     },
-    portfolio: (formData.portfolio?.length ? formData.portfolio : [
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400",
-      "https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&q=80&w=400"
-    ]).map((item, id) => ({
+    portfolio: (formData.portfolio?.length ? formData.portfolio : []).map((item, id) => ({
       id: id + 1,
-      title: `Portfolio Work ${id + 1}`,
-      category: "(Sample)",
-      img: typeof item === 'string' && item.startsWith('http') ? item : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=400"
+      title: typeof item === 'string' ? item : item?.title || `Portfolio Work ${id + 1}`,
+      category: typeof item === 'string' ? 'Work' : item?.category || 'Portfolio',
+      img: typeof item === 'string' && item.startsWith('http') ? item : 
+           typeof item === 'object' && item?.url ? item.url : 
+           "https://via.placeholder.com/400x300/f0f0f0/666666?text=No+Image"
     }))
   };
 
@@ -319,12 +313,29 @@ const ProfilePage = ({ config }) => {
               className="w-full h-full object-cover mix-blend-overlay"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent"></div>
+            
+            {/* Overlay Text */}
+            <div className="absolute bottom-8 left-8 text-white">
+              <div className="text-sm font-medium mb-1 opacity-90">Welcome Back</div>
+              <div className="text-2xl md:text-3xl font-bold">{userData.name}</div>
+            </div>
           </div>
 
           {/* Enhanced Profile Basic Info */}
           <div className="p-6 md:p-8 pt-0 flex flex-col lg:flex-row gap-6 relative">
+            {/* Logo Above Profile Picture */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-20">
+              <div className="bg-white rounded-xl p-3 shadow-2xl border-2 border-white">
+                <img 
+                  src="https://i.ibb.co/3dC6HsJ/Untitled-design.png" 
+                  alt="Logo" 
+                  className="h-10 w-auto object-contain"
+                />
+              </div>
+            </div>
+            
             {/* Enhanced Avatar */}
-            <div className="relative -mt-16 md:-mt-20 shrink-0 order-1 lg:order-1">
+            <div className="relative -mt-16 md:-mt-20 shrink-0 order-1 lg:order-1 mt-8">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white relative group">
                 <img 
                   src={formData.profileImage || formData.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=400"} 
@@ -348,23 +359,51 @@ const ProfilePage = ({ config }) => {
                   </div>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600 text-sm md:text-base font-medium">
-                <span className="bg-slate-100 px-2 py-1 rounded-lg font-semibold">{userData.username}</span>
-                <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg">
-                  <MapPin size={14} className="text-slate-500" />
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-slate-600 text-sm md:text-base font-medium">
+                <span className="bg-gradient-to-r from-slate-100 to-slate-200 px-3 py-1.5 rounded-lg font-semibold border border-slate-300">@{userData.username}</span>
+                <span className="flex items-center gap-1 bg-gradient-to-r from-orange-50 to-red-50 px-3 py-1.5 rounded-lg border border-orange-200">
+                  <MapPin size={16} className="text-orange-500" />
                   {userData.location}
                 </span>
-                <span className="bg-gradient-to-r from-purple-100 to-pink-100 px-2 py-1 rounded-lg font-semibold text-purple-700">
+                <span className="flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 rounded-lg border border-blue-200">
+                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  {formData.email || 'email@example.com'}
+                </span>
+                <span className="bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1.5 rounded-lg font-semibold text-purple-700 border border-purple-200">
                   {userData.title} @{userData.handle2}
                 </span>
               </div>
               
+              {/* Stats Row */}
+              <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="text-center p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                  <div className="text-2xl font-bold text-blue-600">{userData.stats.totalReach}</div>
+                  <div className="text-xs text-blue-500 font-medium">Total Reach</div>
+                </div>
+                {userData.portfolio.length > 0 && (
+                  <div className="text-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                    <div className="text-2xl font-bold text-purple-600">{userData.portfolio.length}</div>
+                    <div className="text-xs text-purple-500 font-medium">Projects</div>
+                  </div>
+                )}
+                <div className="text-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                  <div className="text-2xl font-bold text-green-600">{userData.professional.experience}</div>
+                  <div className="text-xs text-green-500 font-medium">Experience</div>
+                </div>
+              </div>
+
               <div className="flex flex-wrap gap-2 mt-3">
-                {userData.tags.map(tag => (
-                  <span key={tag} className="bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold hover:from-slate-100 hover:to-slate-200 cursor-default transition-all">
-                    {tag}
-                  </span>
-                ))}
+                {userData.tags.length > 0 ? (
+                  userData.tags.map(tag => (
+                    <span key={tag} className="bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold hover:from-slate-100 hover:to-slate-200 cursor-default transition-all">
+                      {tag}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-400 text-sm italic">No tags added yet</span>
+                )}
               </div>
             </div>
 
@@ -382,10 +421,12 @@ const ProfilePage = ({ config }) => {
           <div className="px-6 md:px-8 pb-8">
             <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
               <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
-              Bio
+              About Me
             </h4>
             <p className="text-slate-600 leading-relaxed max-w-3xl whitespace-pre-wrap bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-              {userData.bio}
+              {userData.bio && userData.bio !== 'Tell us about yourself...' ? userData.bio : (
+                <span className="text-gray-400 italic">No bio added yet. Click "EDIT PROFILE" to add your bio.</span>
+              )}
             </p>
           </div>
         </div>
@@ -454,9 +495,6 @@ const ProfilePage = ({ config }) => {
               <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 Portfolio & Collaborations
               </h3>
-              <button className="text-sm font-bold text-[#3078F1] hover:underline flex items-center gap-1">
-                View All <ChevronRight size={16} />
-              </button>
             </div>
             <div className="p-6">
               {userData.portfolio.length > 0 ? (
@@ -466,8 +504,8 @@ const ProfilePage = ({ config }) => {
                       <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative">
                         <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                          <span className="text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                            View Details <ExternalLink size={10} />
+                          <span className="text-white text-[10px] font-bold uppercase tracking-widest">
+                            View Details
                           </span>
                         </div>
                       </div>
@@ -504,14 +542,14 @@ const ProfilePage = ({ config }) => {
             <h3 className="text-base font-bold text-slate-800 mb-5">Professional Details</h3>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><Briefcase size={18} /></div>
+                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Experience</p>
                   <p className="text-sm font-bold text-slate-700">{userData.professional.experience}</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><Layout size={18} /></div>
+                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
                 <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Primary Niche</p>
                   <p className="text-sm font-bold text-slate-700 leading-tight">{userData.professional.primaryNiche}</p>
@@ -556,11 +594,28 @@ const ProfilePage = ({ config }) => {
           {/* Collaboration Banner */}
           <div className="bg-gradient-to-br from-[#3078F1] to-[#6366f1] rounded-2xl p-6 text-white relative overflow-hidden group mb-6">
             <div className="relative z-10">
-              <h3 className="font-black text-xl mb-2 italic">Ready to Grind?</h3>
-              <p className="text-blue-100 text-sm mb-4 font-medium">Let&apos;s build something epic together. Contact for projects or collabs.</p>
-              <button disabled className="bg-white/90 text-[#3078F1] px-5 py-2 rounded-xl font-black text-sm transition-all shadow-md cursor-not-allowed">
-                LET&apos;S TALK
-              </button>
+              <h3 className="font-black text-xl mb-2 italic">
+                {userData.name ? `Let's Work Together, ${userData.name.split(' ')[0]}!` : 'Ready to Collaborate?'}
+              </h3>
+              <p className="text-blue-100 text-sm mb-4 font-medium">
+                {userData.bio && userData.bio !== 'Tell us about yourself...' 
+                  ? `Available for projects and collaborations. ${userData.professional.primaryNiche} specialist with ${userData.professional.experience} of experience.`
+                  : 'Available for projects and collaborations. Contact me to discuss your ideas.'
+                }
+              </p>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setIsEditing(true)}
+                  className="bg-white/90 text-[#3078F1] px-5 py-2 rounded-xl font-black text-sm transition-all shadow-md hover:bg-white hover:scale-105"
+                >
+                  GET IN TOUCH
+                </button>
+                {userData.pricing.starting !== 'Contact for Pricing' && (
+                  <span className="text-blue-100 text-sm font-medium">
+                    Starting at {userData.pricing.starting}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">
               <MessageSquare size={80} />
