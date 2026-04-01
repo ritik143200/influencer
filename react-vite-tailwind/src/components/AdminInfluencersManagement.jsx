@@ -66,7 +66,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
   const handleToggleInfluencerStatus = async (influencerId, newStatus) => {
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/admin/influencer/${influencerId}/status`, {
         method: 'PATCH',
         headers: {
@@ -77,7 +77,15 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       });
 
       if (response.ok) {
-        onRefreshInfluencers(); // Refresh influencers list
+        const data = await response.json();
+        const updatedInfluencer = data.data;
+        
+        // Update local selected influencer if open
+        if (selectedInfluencer && (selectedInfluencer._id === influencerId || selectedInfluencer.id === influencerId)) {
+          setSelectedInfluencer(updatedInfluencer);
+        }
+        
+        onRefreshInfluencers(); // Refresh influencers list from parent
       } else {
         alert('Failed to update influencer status');
       }

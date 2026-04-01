@@ -43,8 +43,9 @@ router.get('/users', getAllUsers);
 router.post('/users/:id/:action', updateUserAction);
 router.delete('/users/:id', deleteUser);
 
-// Artists Routing
+// Artists/Influencers Routing
 router.patch('/artists/:id/status', updateArtistStatus);
+router.patch('/influencer/:id/status', updateArtistStatus);
 
 // Notifications Routing
 router.get('/notifications', getAdminNotifications);
