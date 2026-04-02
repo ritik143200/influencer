@@ -4,6 +4,7 @@ const Notification = require('../models/Notification');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const sendWhatsAppMessage = require('../utils/sendWhatsApp');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -17,7 +18,7 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, phone } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -30,9 +31,14 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
+      phone,
     });
 
     if (user) {
+      // 📲 Send WhatsApp message
+      if (user.phone) {
+        await sendWhatsAppMessage(user.phone, user.name);
+      }
       try {
         await Notification.create({
           type: 'user',

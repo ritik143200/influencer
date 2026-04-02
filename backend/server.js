@@ -1,20 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
 const path = require('path');
 const fs = require('fs');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-
 const influencerRoutes = require('./routes/influencerRoutes');
-// Removed artists route - artist browsing functionality removed
-// Booking routes import removed
 const adminRoutes = require('./routes/adminRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
-
-// Load environment variables
-dotenv.config();
 
 // Connect to database
 const connectDB = require('./config/db');

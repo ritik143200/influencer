@@ -4,6 +4,7 @@ const Notification = require('../models/Notification');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const sendWhatsAppMessage = require('../utils/sendWhatsApp');
 
 // Get logged-in influencer's own profile
 const getMyProfile = async (req, res) => {
@@ -65,6 +66,8 @@ const updateMyProfile = async (req, res) => {
 const registerInfluencer = async (req, res) => {
   try {
     const {
+      firstName,
+      lastName,
       email,
       phone,
       password,
@@ -112,6 +115,9 @@ const registerInfluencer = async (req, res) => {
 
     // Create new influencer
     const newInfluencer = new Influencer({
+      firstName,
+      lastName,
+      fullName: `${firstName || ''} ${lastName || ''}`.trim() || undefined,
       email,
       phone,
       password: hashedPassword,
@@ -124,15 +130,21 @@ const registerInfluencer = async (req, res) => {
 
     await newInfluencer.save();
 
-    try {
-      await Notification.create({
-        type: 'general',
-        message: `New influencer registration: ${newInfluencer.email}`,
-        relatedId: newInfluencer._id
-      });
-    } catch (err) {
-      console.error('Failed to create notification for new influencer:', err);
-    }
+      try {
+        await Notification.create({
+          type: 'general',
+          message: `New influencer registration: ${newInfluencer.email}`,
+          relatedId: newInfluencer._id
+        });
+      } catch (err) {
+        console.error('Failed to create notification for new influencer:', err);
+      }
+
+      // 📲 Send WhatsApp message
+      if (newInfluencer.phone) {
+        const welcomeName = newInfluencer.firstName || newInfluencer.fullName || 'Creator';
+        await sendWhatsAppMessage(newInfluencer.phone, welcomeName);
+      }
 
     res.status(201).json({
       success: true,
