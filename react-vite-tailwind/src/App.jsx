@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RouterProvider, useRouter } from './contexts/RouterContext';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
 import NotificationToast from './components/NotificationToast';
@@ -21,8 +21,41 @@ import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import { defaultConfig } from './data/mockData';
 
+const ProtectedRoute = ({ children, allowedRoles }) => {
+  const { user, isAuthenticated, loading } = useAuth();
+  const { navigate } = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated) {
+        navigate('auth');
+      } else if (allowedRoles && !allowedRoles.includes(user?.role)) {
+        // Redirection logic to prevent cross-dashboard access
+        if (user?.role === 'admin') navigate('admin-dashboard');
+        else if (user?.role === 'influencer' || user?.role === 'artist') navigate('influencer-dashboard');
+        else navigate('user-dashboard');
+      }
+    }
+  }, [isAuthenticated, user, loading, allowedRoles, navigate]);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user?.role))) {
+    return null;
+  }
+
+  return children;
+};
+
 const AppContent = ({ config }) => {
   const { currentPath } = useRouter();
+  const { user } = useAuth();
 
   // Auth pages don't show navbar
   const isAuthPage = currentPath === 'auth' || currentPath === 'influencer-registration' || currentPath === 'registration';
@@ -45,13 +78,29 @@ const AppContent = ({ config }) => {
       {currentPath === 'services' && <ServicesPage config={config} />}
       {currentPath === 'services-influencers' && <ServicesInfluencersPage config={config} />}
       {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
-      {currentPath === 'profile' && <ProfilePage config={config} />}
+      {currentPath === 'profile' && (
+        <ProtectedRoute>
+          <ProfilePage config={config} />
+        </ProtectedRoute>
+      )}
       {currentPath === 'faq' && <FAQPage config={config} />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
-                  {currentPath === 'home' && <HomePage config={config} />}
-      {currentPath === 'user-dashboard' && <UserDashboard config={config} />}
-      {currentPath === 'influencer-dashboard' && <InfluencerDashboard config={config} />}
-      {currentPath === 'admin-dashboard' && <AdminDashboard config={config} />}
+      {currentPath === 'home' && <HomePage config={config} />}
+      {currentPath === 'user-dashboard' && (
+        <ProtectedRoute allowedRoles={['user']}>
+          <UserDashboard config={config} />
+        </ProtectedRoute>
+      )}
+      {currentPath === 'influencer-dashboard' && (
+        <ProtectedRoute allowedRoles={['influencer', 'artist']}>
+          <InfluencerDashboard config={config} />
+        </ProtectedRoute>
+      )}
+      {currentPath === 'admin-dashboard' && (
+        <ProtectedRoute allowedRoles={['admin']}>
+          <AdminDashboard config={config} />
+        </ProtectedRoute>
+      )}
     </div>
   );
 };

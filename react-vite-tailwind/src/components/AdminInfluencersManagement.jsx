@@ -77,9 +77,15 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       });
 
       if (response.ok) {
-        onRefreshInfluencers();
-        const action = newStatus ? 'activated' : 'deactivated';
-        alert(`Influencer successfully ${action}!`);
+        const data = await response.json();
+        const updatedInfluencer = data.data;
+        
+        // Update local selected influencer if open
+        if (selectedInfluencer && (selectedInfluencer._id === influencerId || selectedInfluencer.id === influencerId)) {
+          setSelectedInfluencer(updatedInfluencer);
+        }
+        
+        onRefreshInfluencers(); // Refresh influencers list from parent
       } else {
         const errorData = await response.json();
         alert(errorData.message || 'Failed to update influencer status');

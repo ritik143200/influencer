@@ -28,8 +28,6 @@ const getAdminOverview = async (req, res) => {
             const status = (inq.status || '').toLowerCase();
             const adminStatus = (inq.adminStatus || '').toLowerCase();
             const artistStatus = (inq.artistStatus || '').toLowerCase();
-            // Debug: Log the inquiry status values
-            console.log('Inquiry', inq._id, 'status:', status, 'adminStatus:', adminStatus, 'artistStatus:', artistStatus);
             
             // Only count inquiries that are fully completed (status === 'completed')
             return status === 'completed';

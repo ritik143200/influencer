@@ -129,11 +129,11 @@ const AdminDashboard = ({ config }) => {
 
   // Fetch dashboard data function
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isSilent = false) => {
 
     try {
 
-      setLoading(true);
+      if (!isSilent) setLoading(true);
 
       setError(null);
 
@@ -833,6 +833,52 @@ const AdminDashboard = ({ config }) => {
 
     }
 
+  };
+
+
+
+  const handleToggleInfluencerStatus = async (influencerId, currentStatus) => {
+    try {
+      const newStatus = !currentStatus;
+      const res = await fetch(`${API_BASE_URL}/api/admin/influencer/${influencerId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+        },
+        body: JSON.stringify({ isActive: newStatus })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const updatedInfluencer = data.data;
+        
+        // Update influencers list
+        setInfluencers(prev => prev.map(i => 
+          (i._id === influencerId || i.id === influencerId) ? updatedInfluencer : i
+        ));
+
+        // Update selected influencer if open in modal
+        if (selectedInfluencer && (selectedInfluencer._id === influencerId || selectedInfluencer.id === influencerId)) {
+          setSelectedInfluencer(updatedInfluencer);
+        }
+
+        // Update selected forwarded influencer if open in modal
+        if (selectedForwardedInfluencer && (selectedForwardedInfluencer._id === influencerId || selectedForwardedInfluencer.id === influencerId)) {
+          setSelectedForwardedInfluencer(updatedInfluencer);
+        }
+
+        setSuccessMessage(`Influencer ${newStatus ? 'activated' : 'deactivated'} successfully!`);
+        
+        // Don't refresh entire dashboard - just update local state
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        alert(data.message || 'Failed to update influencer status');
+      }
+    } catch (err) {
+      console.error('Error updating influencer status:', err);
+      alert('Network error while updating influencer status');
+    }
   };
 
 
@@ -2514,7 +2560,7 @@ const AdminDashboard = ({ config }) => {
 
             influencers={influencers} 
 
-            onRefreshInfluencers={fetchDashboardData}
+            onRefreshInfluencers={() => fetchDashboardData(true)}
 
           />
 
@@ -3145,6 +3191,26 @@ const AdminDashboard = ({ config }) => {
                 >
 
                   Close
+
+                </button>
+
+                <button
+
+                  onClick={() => handleToggleInfluencerStatus(selectedInfluencer._id || selectedInfluencer.id, selectedInfluencer.isActive !== false)}
+
+                  className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${
+
+                    selectedInfluencer.isActive !== false 
+
+                      ? 'bg-red-600 hover:bg-red-700' 
+
+                      : 'bg-green-600 hover:bg-green-700'
+
+                  }`}
+
+                >
+
+                  {selectedInfluencer.isActive !== false ? 'Deactivate Artist' : 'Activate Artist'}
 
                 </button>
 
@@ -3911,19 +3977,22 @@ const AdminDashboard = ({ config }) => {
                 {/* Modal Footer */}
 
                 <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
-
                   <button
-
-                    onClick={() => setShowInfluencerDetailsModal(false)}
-
-                    className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
-
+                    onClick={() => handleToggleInfluencerStatus(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id, selectedForwardedInfluencer.isActive !== false)}
+                    className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${
+                      selectedForwardedInfluencer.isActive !== false 
+                        ? 'bg-red-600 hover:bg-red-700' 
+                        : 'bg-green-600 hover:bg-green-700'
+                    }`}
                   >
-
-                    Close
-
+                    {selectedForwardedInfluencer.isActive !== false ? 'Deactivate Artist' : 'Activate Artist'}
                   </button>
-
+                  <button
+                    onClick={() => setShowInfluencerDetailsModal(false)}
+                    className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
 
               </div>
