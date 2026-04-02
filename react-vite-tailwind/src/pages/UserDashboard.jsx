@@ -16,6 +16,11 @@ const UserDashboard = ({ config }) => {
   const [inquiriesError, setInquiriesError] = useState('');
   const [expandedInquiryIds, setExpandedInquiryIds] = useState(new Set());
 
+  // Filter states for User Inquiries
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDate, setFilterDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -322,81 +327,311 @@ const UserDashboard = ({ config }) => {
     </div>
   );
 
-  const renderOverview = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+  const renderOverview = () => {
+    // Comprehensive inquiry statistics
+    const totalInquiries = inquiries.length;
+    
+    // Status-based tracking for user inquiries
+    const pendingInquiries = inquiries.filter(inq => 
+      inq.status === 'pending' || inq.status === 'sent' || 
+      (!inq.status && !inq.adminStatus)
+    ).length;
+    
+    const acceptedByInfluencer = inquiries.filter(inq => 
+      inq.status === 'accepted' || inq.status === 'artist_accepted'
+    ).length;
+    
+    const rejectedByInfluencer = inquiries.filter(inq => 
+      inq.status === 'rejected' || inq.status === 'artist_rejected'
+    ).length;
+    
+    const acceptedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'accepted' || inq.adminStatus === 'confirmed'
+    ).length;
+    
+    const rejectedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'rejected'
+    ).length;
+    
+    const completedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'completed' || inq.status === 'completed'
+    ).length;
+
+    return (
+    <>
+      {/* Comprehensive Inquiry Tracking Header */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <h3 className="text-lg font-semibold text-gray-800">📊 Complete Inquiry Tracking</h3>
+          <div className="text-sm text-gray-500">
+            Welcome, <span className="font-bold text-gray-800">{userData?.name || userData?.fullName || 'User'}</span>
           </div>
-          {/* Bookings removed */}
         </div>
-        {/* Bookings removed */}
+        
+        {/* Quick Overview Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600 mb-1">{totalInquiries}</div>
+            <div className="text-sm text-gray-600">Total Inquiries</div>
+            <div className="text-xs text-gray-500">All requests sent</div>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 mb-1">{acceptedByInfluencer + acceptedByAdmin}</div>
+            <div className="text-sm text-gray-600">Total Accepted</div>
+            <div className="text-xs text-gray-500">By influencer + admin</div>
+          </div>
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-2xl font-bold text-red-600 mb-1">{rejectedByInfluencer + rejectedByAdmin}</div>
+            <div className="text-sm text-gray-600">Total Rejected</div>
+            <div className="text-xs text-gray-500">By influencer + admin</div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      {/* Detailed Status Breakdown - 6 Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* 1. Total Inquiries */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{totalInquiries}</span>
           </div>
-          {/* Bookings removed */}
+          <h3 className="text-gray-600 text-sm font-medium">📨 Total Inquiries</h3>
+          <p className="text-xs text-gray-500 mt-1">All inquiries submitted by you</p>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Completed Events</h3>
+
+        {/* 2. Accepted by Influencer */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{acceptedByInfluencer}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">✅ Accepted by Influencer</h3>
+          <p className="text-xs text-gray-500 mt-1">Influencer approved your requests</p>
+        </div>
+
+        {/* 3. Rejected by Influencer */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{rejectedByInfluencer}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">❌ Rejected by Influencer</h3>
+          <p className="text-xs text-gray-500 mt-1">Influencer declined your requests</p>
+        </div>
+
+        {/* 4. Confirmed by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{acceptedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🎯 Confirmed by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin approved your requests</p>
+        </div>
+
+        {/* 5. Rejected by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h-6m-6 0h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{rejectedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🚫 Rejected by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin declined your requests</p>
+        </div>
+
+        {/* 6. Completed by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{completedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🎉 Completed by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin completed your inquiries</p>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      {/* Performance Metrics */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">📈 Performance Analytics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Column */}
+          <div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Influencer Acceptance Rate</span>
+                <span className="text-lg font-bold text-green-600">
+                  {totalInquiries > 0 ? Math.round((acceptedByInfluencer / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Admin Confirmation Rate</span>
+                <span className="text-lg font-bold text-indigo-600">
+                  {totalInquiries > 0 ? Math.round((acceptedByAdmin / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+            </div>
           </div>
-          {/* Bookings removed */}
-        </div>
-        {/* Bookings removed */}
-      </div>
-
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          
+          {/* Right Column */}
+          <div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Overall Success Rate</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {totalInquiries > 0 ? Math.round(((acceptedByInfluencer + acceptedByAdmin) / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Total Completed</span>
+                <span className="text-lg font-bold text-purple-600">
+                  {completedByAdmin}
+                </span>
+              </div>
+            </div>
           </div>
-          <span className="text-2xl font-bold text-gray-800">0</span>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Saved Influencers</h3>
       </div>
-    </div>
+    </>
   );
+};
 
   // Booking-related UI removed
 
 
-  const renderInquiries = () => (
+  const renderInquiries = () => {
+  // Filter inquiries based on filters
+  const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
+    const status = inquiry.status || 'sent';
+    const adminStatus = inquiry.adminStatus || '';
+    
+    // Status filter - check both user status and admin status
+    const matchesStatus = filterStatus === 'all' || 
+      (filterStatus === status) ||
+      (filterStatus === 'pending' && (status === 'pending' || status === 'sent')) ||
+      (filterStatus === 'accepted' && (status === 'accepted' || status === 'artist_accepted')) ||
+      (filterStatus === 'rejected' && (status === 'rejected' || status === 'artist_rejected')) ||
+      (filterStatus === 'admin-accepted' && (adminStatus === 'accepted' || adminStatus === 'confirmed')) ||
+      (filterStatus === 'admin-rejected' && adminStatus === 'rejected') ||
+      (filterStatus === 'completed' && (adminStatus === 'completed' || status === 'completed'));
+    
+    // Date filter
+    const matchesDate = filterDate === '' || 
+      (inquiry.date && new Date(inquiry.date).toISOString().split('T')[0] === filterDate) ||
+      (inquiry.eventDate && new Date(inquiry.eventDate).toISOString().split('T')[0] === filterDate) ||
+      (inquiry.createdAt && new Date(inquiry.createdAt).toISOString().split('T')[0] === filterDate);
+    
+    // Search filter - search in title, category, and other fields
+    const matchesSearch = searchTerm === '' || 
+      (inquiry.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.category?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.type?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.eventType?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.description?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesStatus && matchesDate && matchesSearch;
+  });
+
+  return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-gray-800">Your Inquiries</h3>
-        <p className="text-sm text-gray-500">{inquiries.length} total</p>
+        <div className="text-sm text-gray-500">
+          {filteredInquiries.length} of {inquiries.length} total
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="flex flex-wrap gap-3">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Search inquiries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </div>
+          
+          {/* Status Filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Accepted by Influencer</option>
+            <option value="rejected">Rejected by Influencer</option>
+            <option value="admin-accepted">Confirmed by Admin</option>
+            <option value="admin-rejected">Rejected by Admin</option>
+            <option value="completed">Completed</option>
+          </select>
+          
+          {/* Date Filter */}
+          <input
+            type="date"
+            placeholder="Filter by date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          />
+          
+          {/* Clear Filters */}
+          <button
+            onClick={() => {
+              setFilterStatus('all');
+              setFilterDate('');
+              setSearchTerm('');
+            }}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {loadingInquiries ? (
         <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
-      ) : inquiries.length === 0 ? (
-        <div className="p-6 text-center text-gray-500">You haven't sent any inquiries yet.</div>
-      ) : (
-        null
-      )}
+      ) : filteredInquiries.length === 0 ? (
+        <div className="p-6 text-center text-gray-500">
+          {inquiries.length === 0 ? "You haven't sent any inquiries yet." : "No inquiries found matching your filters."}
+        </div>
+      ) : null}
+      
       {inquiriesError && (
         <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{inquiriesError}</div>
       )}
-      {inquiries.length > 0 && (
+      
+      {filteredInquiries.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {inquiries.map((inq) => {
+          {filteredInquiries.map((inq) => {
             const id = inq.id || inq._id || JSON.stringify(inq).slice(0, 8);
             const statusKey = inq.status || inq.state || 'sent';
             const status = getStatusStyle(statusKey);
@@ -418,6 +653,11 @@ const UserDashboard = ({ config }) => {
                   </div>
                   <div className="flex items-center gap-3 mt-2 sm:mt-0">
                     <span className={`px-2 py-1 text-xs rounded-full ${status.bg} ${status.text}`}>{status.label}</span>
+                    {inq.adminStatus && (
+                      <span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700">
+                        Admin: {inq.adminStatus}
+                      </span>
+                    )}
                     <button onClick={() => toggleInquiryExpand(id)} className="text-sm text-brand-600 font-medium underline underline-offset-2">Details</button>
                   </div>
                 </div>
@@ -426,37 +666,6 @@ const UserDashboard = ({ config }) => {
                 <div className="mt-2">
                   <InquiryProgressBar status={statusKey} progressPercentage={progressPercentage} />
                 </div>
-
-                {/* Inquiry Details */}
-                <div className="mt-2 text-sm text-gray-700">
-                  <div className="mb-2"><span className="font-medium text-gray-600">Requirements:</span> <span className="break-words text-gray-800">{inq.message || inq.details || inq.requirements || '—'}</span></div>
-                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                    <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : (inq.budgetRange || '—')}</span>
-                    <span><strong>Location:</strong> {inq.location || '—'}</span>
-                    <span><strong>Sent:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : (inq.created ? new Date(inq.created).toLocaleString() : '—')}</span>
-                  </div>
-                </div>
-
-                {/* Expanded details */}
-                {expandedInquiryIds.has(id) && (
-                  <div className="mt-2 text-sm text-gray-600 space-y-2 border-t border-gray-100 pt-2">
-                    {inq.hiringFor && <div><strong>Hiring For:</strong> {inq.hiringFor}</div>}
-                    {inq.phone && <div><strong>Contact:</strong> {inq.phone}</div>}
-                    {inq.email && <div><strong>Email:</strong> {inq.email}</div>}
-                    {inq.workflowHistory && inq.workflowHistory.length > 0 && (
-                      <div>
-                        <strong>Workflow History:</strong>
-                        <ul className="ml-4 mt-1 space-y-1">
-                          {inq.workflowHistory.map((history, idx) => (
-                            <li key={idx} className="text-xs">
-                              {history.stage}: {history.status} ({new Date(history.updatedAt).toLocaleDateString()})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -464,6 +673,7 @@ const UserDashboard = ({ config }) => {
       )}
     </div>
   );
+};
 
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>

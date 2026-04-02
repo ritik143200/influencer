@@ -336,10 +336,10 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                       <div className="w-20 bg-gray-200 rounded-full h-2">
                         <div 
                           className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${influencer.profileCompletion}%` }}
+                          style={{ width: `${influencer.profileCompletion || 0}%` }}
                         ></div>
                       </div>
-                      <span className="text-xs font-medium">{influencer.profileCompletion}%</span>
+                      <span className="text-xs font-medium">{influencer.profileCompletion || 0}%</span>
                     </div>
                   </div>
                   

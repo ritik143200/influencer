@@ -30,7 +30,7 @@ const ProfilePage = ({ config }) => {
     experience: '',
     portfolio: [],
     role: 'user',
-    verificationStatus: 'pending', budget: 0,
+    verificationStatus: 'pending', budget: 0, budgetMin: '', budgetMax: '',
     socialLinks: { instagram: '', youtube: '', facebook: '', website: '' },
     pricing: {
       collaborationCharges: '',
@@ -62,6 +62,9 @@ const ProfilePage = ({ config }) => {
       collaborationCharges: src?.pricing?.collaborationCharges || '',
       pricingModel: src?.pricing?.pricingModel || 'fixed'
     },
+    budget: src.budget || 0,
+    budgetMin: src.budgetMin || '',
+    budgetMax: src.budgetMax || '',
     socialLinks: {
       instagram: src?.socialLinks?.instagram || '',
       youtube: src?.socialLinks?.youtube || '',
@@ -275,6 +278,10 @@ const ProfilePage = ({ config }) => {
       primaryNiche: nicheOrCategory || 'General',
       location: formattedLocation || 'Global'
     },
+    // Budget fields
+    budget: formData.budget || 0,
+    budgetMin: formData.budgetMin || '',
+    budgetMax: formData.budgetMax || '',
     portfolio: (formData.portfolio?.length ? formData.portfolio : []).map((item, id) => ({
       id: id + 1,
       title: typeof item === 'string' ? item : item?.title || `Portfolio Work ${id + 1}`,
@@ -562,6 +569,56 @@ const ProfilePage = ({ config }) => {
                   <p className="text-sm font-bold text-slate-700">{userData.pricing.starting}</p>
                 </div>
               </div>
+              
+              {/* Budget Information */}
+              <div className="flex items-start gap-3">
+                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Budget Range</p>
+                  <div className="space-y-1">
+                    {(userData.budgetMin || userData.budgetMax) ? (
+                      <p className="text-sm font-bold text-slate-700">
+                        ₹{userData.budgetMin || '0'} - ₹{userData.budgetMax || '0'}
+                      </p>
+                    ) : (
+                      <p className="text-sm font-bold text-slate-700">Not specified</p>
+                    )}
+                    {userData.budget && (
+                      <p className="text-xs text-slate-500">Default: ₹{userData.budget}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Individual Budget Breakdown */}
+              {(userData.budgetMin || userData.budgetMax || userData.budget) && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Budget Details</p>
+                    <div className="grid grid-cols-1 gap-1 text-xs text-slate-600">
+                      {userData.budgetMin && (
+                        <div className="flex justify-between">
+                          <span>Minimum:</span>
+                          <span className="font-medium">₹{userData.budgetMin}</span>
+                        </div>
+                      )}
+                      {userData.budgetMax && (
+                        <div className="flex justify-between">
+                          <span>Maximum:</span>
+                          <span className="font-medium">₹{userData.budgetMax}</span>
+                        </div>
+                      )}
+                      {userData.budget && (
+                        <div className="flex justify-between">
+                          <span>Default:</span>
+                          <span className="font-medium">₹{userData.budget}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

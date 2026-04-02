@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const Influencer = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
+const { logInquiryStatusUpdate, logInfluencerStatusUpdate } = require('../middleware/activityLogger');
 
 // @desc    Get admin overview analytics (counts + top inquirer)
 // @route   GET /api/admin/overview
@@ -85,8 +86,16 @@ const updateArtistStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Artist not found' });
         }
 
+        const oldStatus = influencer.isActive;
         influencer.isActive = isActive;
         await influencer.save();
+
+        // Log influencer status update activity
+        try {
+            await logInfluencerStatusUpdate(id, oldStatus, isActive, req.user._id);
+        } catch (err) {
+            console.error('Failed to log influencer status update activity:', err);
+        }
 
         res.status(200).json({ 
             success: true, 
@@ -197,6 +206,7 @@ const updateInquiryStatus = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Inquiry not found' });
         }
 
+        const oldStatus = inquiry.status;
         let newStatus, newProgress;
         
         if (action === 'accept') {
@@ -223,6 +233,13 @@ const updateInquiryStatus = async (req, res) => {
         });
 
         await inquiry.save();
+
+        // Log inquiry status update activity
+        try {
+            await logInquiryStatusUpdate(id, oldStatus, newStatus, req.user._id);
+        } catch (err) {
+            console.error('Failed to log inquiry status update activity:', err);
+        }
 
         const populated = await Inquiry.findById(id)
             .populate('userId', 'name email phone')

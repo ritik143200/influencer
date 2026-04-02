@@ -185,6 +185,56 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                   </div>
                 </div>
 
+                {/* Budget Section */}
+                <div className="mt-8 pt-6 border-t border-gray-100">
+                  <div className="mb-4">
+                    <h4 className="text-lg font-bold text-gray-700">💰 Budget Information</h4>
+                    <p className="text-sm text-gray-500">Set your budget preferences for collaborations</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className={labelClass}>Minimum Budget (₹)</label>
+                      <input 
+                        type="number" 
+                        className={inputClass} 
+                        value={formData.budgetMin || ''} 
+                        onChange={e => handleField('budgetMin', e.target.value)} 
+                        placeholder="5000"
+                        min="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={labelClass}>Maximum Budget (₹)</label>
+                      <input 
+                        type="number" 
+                        className={inputClass} 
+                        value={formData.budgetMax || ''} 
+                        onChange={e => handleField('budgetMax', e.target.value)} 
+                        placeholder="50000"
+                        min="0"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className={labelClass}>Default Budget (₹)</label>
+                      <input 
+                        type="number" 
+                        className={inputClass} 
+                        value={formData.budget || ''} 
+                        onChange={e => handleField('budget', e.target.value)} 
+                        placeholder="25000"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 text-xs text-gray-500">
+                    💡 Tip: Set realistic budget ranges to attract suitable collaboration opportunities
+                  </div>
+                </div>
+
                 <div className="mt-6 flex justify-end">
                   <SaveButton label="Update Professional Details" />
                 </div>

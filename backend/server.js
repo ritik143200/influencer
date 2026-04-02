@@ -13,6 +13,7 @@ const authRoutes = require('./routes/authRoutes');
 const influencerRoutes = require('./routes/influencerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
+const activityRoutes = require('./routes/activityRoutes');
 
 // Connect to database
 const connectDB = require('./config/db');
@@ -48,6 +49,7 @@ app.use('/api/auth', authRoutes);
 // Booking routes usage removed
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

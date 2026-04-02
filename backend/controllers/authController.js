@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Influencer = require('../models/influencer');
 const Notification = require('../models/Notification');
+const { logUserRegistration } = require('../middleware/activityLogger');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
@@ -47,6 +48,13 @@ const registerUser = async (req, res) => {
         });
       } catch (err) {
         console.error('Failed to create notification for new user:', err);
+      }
+
+      // Log user registration activity
+      try {
+        await logUserRegistration(user);
+      } catch (err) {
+        console.error('Failed to log user registration activity:', err);
       }
 
       res.status(201).json({
