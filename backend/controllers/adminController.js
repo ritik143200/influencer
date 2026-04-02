@@ -3,6 +3,77 @@ const User = require('../models/User');
 const Influencer = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
 
+// @desc    Get admin overview analytics (counts + top inquirer)
+// @route   GET /api/admin/overview
+// @access  Private/Admin
+const getAdminOverview = async (req, res) => {
+    try {
+        const [totalUsers, totalInfluencers, inquiries] = await Promise.all([
+            User.countDocuments(),
+            Influencer.countDocuments({ profileType: 'influencer' }),
+            Inquiry.find().select('userId status adminStatus createdAt').populate('userId', 'name email fullName')
+        ]);
+
+        const totalInquiries = inquiries.length;
+
+        const isPendingInquiry = (inq) => {
+            const status = (inq.status || '').toLowerCase();
+            const adminStatus = (inq.adminStatus || '').toLowerCase();
+            return status === 'pending' || adminStatus === 'pending' || status === 'sent';
+        };
+
+        const pendingInquiries = inquiries.filter(isPendingInquiry).length;
+        const processedInquiries = totalInquiries - pendingInquiries;
+        const completedInquiries = inquiries.filter(inq => {
+            const status = (inq.status || '').toLowerCase();
+            const adminStatus = (inq.adminStatus || '').toLowerCase();
+            const artistStatus = (inq.artistStatus || '').toLowerCase();
+            // Debug: Log the inquiry status values
+            console.log('Inquiry', inq._id, 'status:', status, 'adminStatus:', adminStatus, 'artistStatus:', artistStatus);
+            
+            // Only count inquiries that are fully completed (status === 'completed')
+            return status === 'completed';
+        }).length;
+
+        const countsByUserId = new Map();
+        for (const inq of inquiries) {
+            if (!inq.userId) continue;
+            const id = String(inq.userId._id || inq.userId);
+            countsByUserId.set(id, (countsByUserId.get(id) || 0) + 1);
+        }
+
+        let topInquirer = null;
+        for (const [userId, count] of countsByUserId.entries()) {
+            if (!topInquirer || count > topInquirer.inquiriesCount) {
+                const sampleInquiry = inquiries.find(i => String(i.userId?._id || i.userId) === userId);
+                const u = sampleInquiry?.userId;
+                topInquirer = {
+                    userId,
+                    inquiriesCount: count,
+                    name: u?.name || u?.fullName || null,
+                    email: u?.email || null
+                };
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                totalUsers,
+                totalInfluencers,
+                totalInquiries,
+                pendingInquiries,
+                processedInquiries,
+                completedInquiries,
+                topInquirer
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching admin overview:', error);
+        res.status(500).json({ success: false, message: 'Server error while fetching overview analytics', error: error.message });
+    }
+};
+
 // @desc    Update artist status (activate/deactivate)
 // @route   PATCH /api/admin/artists/:id/status
 // @access  Private/Admin
@@ -348,5 +419,6 @@ module.exports = {
     forwardInquiry,
     assignInquiryToArtist,
     getInquiryStats,
-    updateArtistStatus
+    updateArtistStatus,
+    getAdminOverview
 };

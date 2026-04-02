@@ -4,7 +4,6 @@ const Notification = require('../models/Notification');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
 
 // Get logged-in influencer's own profile
 const getMyProfile = async (req, res) => {

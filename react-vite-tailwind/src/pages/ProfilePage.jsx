@@ -335,7 +335,7 @@ const ProfilePage = ({ config }) => {
             </div>
             
             {/* Enhanced Avatar */}
-            <div className="relative -mt-16 md:-mt-20 shrink-0 order-1 lg:order-1 mt-8">
+            <div className="relative  md:-mt-20 shrink-0 order-1 lg:order-1 mt-8">
               <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white relative group">
                 <img 
                   src={formData.profileImage || formData.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=400"} 

@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
+import { Instagram, Youtube, Facebook } from 'lucide-react';
 
 const ProfileHeader = ({ formData, isEditing, onImageChange, onEditToggle }) => {
   const fileInputRef = useRef(null);
   const role = formData.role || 'user';
-  const isArtist = role === 'artist';
 
   const roleConfig = {
     artist: { label: 'Artist', gradient: 'from-brand-500 to-orange-600', badge: 'bg-brand-500' },
@@ -12,6 +12,16 @@ const ProfileHeader = ({ formData, isEditing, onImageChange, onEditToggle }) => 
     admin: { label: 'Admin', gradient: 'from-red-500 to-rose-600', badge: 'bg-red-500' }
   };
   const rc = roleConfig[role] || roleConfig.user;
+
+  // Social links: support both formData.socialLinks and formData.platforms
+  const socialLinks = {
+    instagram:
+      formData.socialLinks?.instagram || formData.platforms?.instagram?.url || '',
+    youtube:
+      formData.socialLinks?.youtube || formData.platforms?.youtube?.url || '',
+    facebook:
+      formData.socialLinks?.facebook || formData.platforms?.facebook?.url || '',
+  };
 
   return (
     <div className="relative mb-8 animate-fadeIn">
@@ -74,6 +84,24 @@ const ProfileHeader = ({ formData, isEditing, onImageChange, onEditToggle }) => 
             )}
             {formData.niche && <span className="bg-brand-50 text-brand-600 px-2 py-0.5 rounded text-xs font-semibold">{formData.niche}</span>}
           </p>
+          {/* Social Media Icons */}
+          <div className="flex gap-3 mt-3">
+            {socialLinks.instagram && socialLinks.instagram.startsWith('http') && (
+              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-[#fceef5] flex items-center justify-center text-[#e1306c] hover:scale-110 transition-transform shadow">
+                <Instagram size={20} />
+              </a>
+            )}
+            {socialLinks.youtube && socialLinks.youtube.startsWith('http') && (
+              <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-[#feecec] flex items-center justify-center text-[#ff0000] hover:scale-110 transition-transform shadow">
+                <Youtube size={20} />
+              </a>
+            )}
+            {socialLinks.facebook && socialLinks.facebook.startsWith('http') && (
+              <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-[#eef4fe] flex items-center justify-center text-[#1877f2] hover:scale-110 transition-transform shadow">
+                <Facebook size={20} />
+              </a>
+            )}
+          </div>
         </div>
         <button onClick={onEditToggle}
           className={`mt-4 sm:mt-0 px-6 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg ${isEditing ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' : 'bg-brand-500 text-white hover:bg-brand-600'}`}>

@@ -6,7 +6,8 @@ const {
     getAllBookings, updateBookingStatus,
     getAllInquiries, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
     getAllUsers, updateUserAction, deleteUser,
-    updateArtistStatus
+    updateArtistStatus,
+    getAdminOverview
 } = require('../controllers/adminController');
 const {
     getAdminNotifications, markAsRead, markAllAsRead
@@ -45,6 +46,9 @@ router.delete('/users/:id', deleteUser);
 
 // Artists Routing
 router.patch('/artists/:id/status', updateArtistStatus);
+
+// Overview analytics
+router.get('/overview', getAdminOverview);
 
 // Notifications Routing
 router.get('/notifications', getAdminNotifications);

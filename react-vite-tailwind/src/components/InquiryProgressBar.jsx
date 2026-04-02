@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist, influencers = [] }) => {
@@ -56,15 +57,9 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
   const stages = getStages();
   const currentStageIndex = stages.findIndex(stage => stage.completed.includes(status));
 
-  // Helper function to get artist name with fallbacks
-  const getArtistName = (artist) => {
-    return artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
-  };
 
-  // Helper function to get artist category with fallbacks
-  const getArtistCategory = (artist) => {
-    return artist.category || artist.profileType || artist.artistType || 'N/A';
-  };
+  const getArtistName = (artist) => artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
+  const getArtistCategory = (artist) => artist.category || artist.profileType || artist.artistType || 'N/A';
 
   return (
     <div className="w-full">
@@ -129,13 +124,7 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
           <div className="text-sm font-medium text-purple-800 mb-2">Forwarded to:</div>
           <div className="space-y-2">
             {forwardedTo.map((artist, index) => {
-              // Resolve artist which may be:
-              // - an id string/number
-              // - an object with `userId` (string or object)
-              // - a populated artist object
               let resolved = artist;
-
-              // If it's an object with nested userId, prefer that
               if (artist && typeof artist === 'object' && (artist.userId !== undefined)) {
                 if (typeof artist.userId === 'string' || typeof artist.userId === 'number') {
                   const found = influencers.find(i => (i._id === artist.userId || i.id === artist.userId || String(i._id) === String(artist.userId)));
@@ -147,18 +136,15 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
                 const found = influencers.find(i => (i._id === artist || i.id === artist || String(i._id) === String(artist)));
                 resolved = found || { _id: artist };
               } else if (artist && typeof artist === 'object') {
-                // If object has only id fields, try to find fuller object
                 const idCandidate = artist._id || artist.id;
                 if (idCandidate && !(artist.fullName || artist.name || artist.artistName)) {
                   const found = influencers.find(i => (i._id === idCandidate || i.id === idCandidate || String(i._id) === String(idCandidate)));
                   if (found) resolved = found;
                 }
               }
-
               const artistName = getArtistName(resolved);
               const artistEmail = resolved.email || 'No email';
               const artistCategory = getArtistCategory(resolved);
-              
               return (
                 <div key={index} className="flex items-center justify-between p-2 bg-white rounded-lg border border-purple-100">
                   <div className="flex items-center gap-2">

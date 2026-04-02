@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
@@ -66,7 +66,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
   const handleToggleInfluencerStatus = async (influencerId, newStatus) => {
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/admin/influencer/${influencerId}/status`, {
         method: 'PATCH',
         headers: {
@@ -77,9 +77,12 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       });
 
       if (response.ok) {
-        onRefreshInfluencers(); // Refresh influencers list
+        onRefreshInfluencers();
+        const action = newStatus ? 'activated' : 'deactivated';
+        alert(`Influencer successfully ${action}!`);
       } else {
-        alert('Failed to update influencer status');
+        const errorData = await response.json();
+        alert(errorData.message || 'Failed to update influencer status');
       }
     } catch (error) {
       console.error('Error updating influencer status:', error);
@@ -246,7 +249,6 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h3 className="text-xl font-bold text-gray-800">Influencers Management</h3>
@@ -288,14 +290,12 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         </div>
       </div>
 
-      {/* Influencers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredInfluencers.map((influencer) => {
           const verificationBadge = getVerificationBadge(influencer.verificationStatus);
           
           return (
             <div key={influencer._id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
-              {/* Influencer Header */}
               <div className="p-4 border-b border-gray-100">
                 <div className="flex items-start gap-3">
                   <img 
@@ -322,7 +322,6 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 </div>
               </div>
 
-              {/* Influencer Details */}
               <div className="p-4 space-y-3">
                 <div className="text-sm text-gray-700">
                   <div className="flex justify-between mb-2">
@@ -359,23 +358,36 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex gap-2 pt-3 border-t">
                   <button
                     onClick={() => handleViewDetails(influencer)}
-                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
                   >
                     View Details
                   </button>
                   <button
                     onClick={() => handleToggleInfluencerStatus(influencer._id, !influencer.isActive)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
                       influencer.isActive 
-                        ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
+                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg' 
+                        : 'bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg'
                     }`}
                   >
-                    {influencer.isActive ? 'Deactivate' : 'Activate'}
+                    {influencer.isActive ? (
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Deactivate
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Activate
+                      </span>
+                    )}
                   </button>
                 </div>
               </div>
@@ -384,7 +396,6 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         })}
       </div>
 
-      {/* No Influencers Message */}
       {filteredInfluencers.length === 0 && (
         <div className="text-center py-12 bg-gray-50 rounded-xl">
           <div className="text-6xl mb-4">🎭</div>
@@ -395,7 +406,6 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         </div>
       )}
 
-      {/* Details Modal */}
       {showDetailsModal && <InfluencerDetailsModal />}
     </div>
   );

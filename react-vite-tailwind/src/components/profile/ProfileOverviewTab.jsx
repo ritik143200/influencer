@@ -7,7 +7,7 @@ const InfoCard = ({ icon, label, value, color = 'brand' }) => {
     green: 'bg-green-50 text-green-600 border-green-100',
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
     orange: 'bg-orange-50 text-orange-600 border-orange-100',
-    pink: 'bg-pink-50 text-pink-600 border-pink-100',
+    pink: 'bg-pink-50 text-pink-600 border-pink-100'
   };
 
   return (
@@ -27,7 +27,6 @@ const ProfileOverviewTab = ({ formData }) => {
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Bio Section */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
           <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">📝</span>
@@ -36,7 +35,6 @@ const ProfileOverviewTab = ({ formData }) => {
         <p className="text-gray-600 leading-relaxed">{formData.bio || 'No bio added yet. Tell the world about yourself!'}</p>
       </div>
 
-      {/* Quick Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <InfoCard icon="📧" label="Email" value={formData.email} color="blue" />
         <InfoCard icon="📱" label="Phone" value={formData.phone} color="green" />
@@ -48,7 +46,6 @@ const ProfileOverviewTab = ({ formData }) => {
         <InfoCard icon="🌍" label="Audience Region" value={formData.audienceType?.region || 'Global'} color="blue" />
       </div>
 
-      {/* Social Platforms */}
       {activePlatforms.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -76,7 +73,6 @@ const ProfileOverviewTab = ({ formData }) => {
         </div>
       )}
 
-      {/* Professional Details */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
           <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600">💼</span>
@@ -104,7 +100,6 @@ const ProfileOverviewTab = ({ formData }) => {
         </div>
       </div>
 
-      {/* Portfolio Preview */}
       {formData.portfolio && formData.portfolio.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">

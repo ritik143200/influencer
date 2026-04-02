@@ -28,10 +28,7 @@ const AuthButton = ({
       `}
       {...props}
     >
-      {/* Hover Effect */}
       <div className="absolute inset-0 bg-gradient-to-r from-brand-400 to-brand-600 opacity-0 hover:opacity-100 transition-opacity duration-300" />
-      
-      {/* Content */}
       <span className="relative z-10 flex items-center justify-center gap-2">
         {loading && (
           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

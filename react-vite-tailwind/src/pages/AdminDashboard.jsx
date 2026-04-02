@@ -79,24 +79,21 @@ const AdminDashboard = ({ config }) => {
   const [forwardRecipients, setForwardRecipients] = useState(new Set());
 
   const [analytics, setAnalytics] = useState({
-
     totalRevenue: 245678,
-
     thisMonthRevenue: 45678,
-
     lastMonthRevenue: 38956,
-
     totalUsers: users.length,
-
     totalInfluencers: influencers.length,
-
+    totalInquiries: inquiries.length,
     pendingInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length,
-
+    processedInquiries: inquiries.filter(i => (i.status || '').toLowerCase() !== 'pending').length,
+    completedInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'completed').length,
+    topInquirer: null,
     activeUsers: Math.floor(users.length * 0.8),
-
     conversionRate: 12.5
-
   });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Filter states for Users
   const [filterRole, setFilterRole] = useState('all');
@@ -333,7 +330,15 @@ const AdminDashboard = ({ config }) => {
 
         totalInfluencers: Array.isArray(influencers) ? influencers.length : 0,
 
+        totalInquiries: Array.isArray(inquiries) ? inquiries.length : 0,
+
         pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
+
+        processedInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() !== 'pending').length : 0,
+
+        completedInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'completed').length : 0,
+
+        topInquirer: null,
 
         activeUsers: Array.isArray(users) ? Math.floor(users.length * 0.8) : 0,
 
@@ -374,199 +379,134 @@ const AdminDashboard = ({ config }) => {
 
 
     } catch (err) {
-
       console.error('Error fetching dashboard data:', err);
-
       setError('Failed to load dashboard data');
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
+  const fetchOverviewAnalytics = async (isManualRefresh = false) => {
+    try {
+      if (isManualRefresh) {
+        setIsRefreshing(true);
+      }
+      
+      const res = await fetch(`${API_BASE_URL}/api/admin/overview`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+      });
+      const data = await res.json();
+      if (!res.ok || !data?.success) return;
+      setAnalytics(prev => ({
+        ...prev,
+        totalUsers: data.data?.totalUsers ?? prev.totalUsers,
+        totalInfluencers: data.data?.totalInfluencers ?? prev.totalInfluencers,
+        totalInquiries: data.data?.totalInquiries ?? prev.totalInquiries,
+        pendingInquiries: data.data?.pendingInquiries ?? prev.pendingInquiries,
+        processedInquiries: data.data?.processedInquiries ?? prev.processedInquiries,
+        completedInquiries: data.data?.completedInquiries ?? prev.completedInquiries,
+        topInquirer: data.data?.topInquirer ?? prev.topInquirer
+      }));
+    } catch (e) {
+      console.error('Error fetching admin overview analytics:', e);
+    } finally {
+      if (isManualRefresh) {
+        setIsRefreshing(false);
+      }
+    }
+  };
 
   useEffect(() => {
-
     if (!adminData) return;
-
     fetchDashboardData();
-
+    fetchOverviewAnalytics();
   }, [adminData, API_BASE_URL]);
 
-
-
   const handleAdminInquiryAction = async (inquiryId, action) => {
-
     try {
-
       const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/${action}`, {
-
         method: 'PATCH',
-
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-
       });
-
       const data = await res.json();
-
       if (res.ok && data.success) {
-
         const updatedInquiry = data.data;
-
         setInquiries(prev => {
-
           return prev.map(i =>
-
             (i._id === inquiryId || i.id === inquiryId) ? updatedInquiry : i
-
           );
-
         });
-
         setSuccessMessage(`Inquiry ${action === 'accept' ? 'accepted' : 'rejected'} successfully!`);
-
         setTimeout(() => setSuccessMessage(null), 3000);
-
       } else {
-
         alert(data.message || 'Failed to update inquiry');
-
       }
-
     } catch (err) {
-
       console.error('Error updating inquiry:', err);
-
       alert('Network error while updating inquiry.');
-
     }
-
   };
-
-
 
   const handleLogout = () => {
-
     logout();
-
     navigate('home');
-
   };
-
-
 
   const handleOpenForwardModal = (inquiryId) => {
-
     setForwardInquiryId(inquiryId);
-
     setForwardRecipients(new Set());
-
     setShowForwardModal(true);
-
   };
-
-
 
   const handleViewInquiryDetails = (inquiry) => {
-
     setSelectedInquiry(inquiry);
-
     setShowInquiryDetailsModal(true);
-
   };
-
-
 
   const handleViewInfluencerDetails = async (influencer) => {
+  setLoadingInfluencerDetails(true);
+  try {
+    const influencerId = influencer._id || influencer.id;
+    let fullInfluencerData = influencer;
 
-    setLoadingInfluencerDetails(true);
+    // If we have minimal influencer data, try multiple approaches to get full details
+    if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
 
-    try {
-
-      const influencerId = influencer._id || influencer.id;
-
-      let fullInfluencerData = influencer;
-
-      
-
-      // If we have minimal influencer data, try multiple approaches to get full details
-
-      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
-
-        
-
-        // First try to find in existing influencers array
-
-        const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
-
-        if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
-
-          fullInfluencerData = { ...influencer, ...existingInfluencer };
-
-        } else {
-
-          // Then try API call
-
-          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
-
-          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
-
-            headers: { 
-
-              'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
-
-            }
-
-          });
-
-          
-
-          if (response.ok) {
-
-            const data = await response.json();
-
-            if (data.success && data.data) {
-
-              fullInfluencerData = data.data;
-
-            }
-
+      // First try to find in existing influencers array
+      const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
+      if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
+        fullInfluencerData = { ...influencer, ...existingInfluencer };
+      } else {
+        // Then try API call
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+        const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
           }
+        });
 
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            fullInfluencerData = data.data;
+          }
         }
-
       }
-
-      
-
-      setSelectedForwardedInfluencer(fullInfluencerData);
-
-      setShowInfluencerDetailsModal(true);
-
-    } catch (error) {
-
-      console.error('Error fetching Influencer Details:', error);
-
-      // Show error message to user and fallback to available data
-
-      alert('Failed to fetch complete Influencer Details. Showing available information.');
-
-      setSelectedForwardedInfluencer(influencer);
-
-      setShowInfluencerDetailsModal(true);
-
-    } finally {
-
-      setLoadingInfluencerDetails(false);
-
     }
 
-  };
+    setSelectedForwardedInfluencer(fullInfluencerData);
+    setShowInfluencerDetailsModal(true);
+  } catch (error) {
+    console.error('Error fetching Influencer Details:', error);
+    // Show error message to user and fallback to available data
+    alert('Failed to fetch complete Influencer Details. Showing available information.');
+    setSelectedForwardedInfluencer(influencer);
+    setShowInfluencerDetailsModal(true);
+  } finally {
+    setLoadingInfluencerDetails(false);
+  }
 
+  };
 
 
   const handleAssignToArtist = async (inquiryId) => {
@@ -976,11 +916,39 @@ const AdminDashboard = ({ config }) => {
   // Overview component with landing page theme
 
   const renderOverview = () => (
-
     <div className="space-y-8">
+      {/* Overview Header with Refresh Button */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold" style={{ color: getThemeColor('text') }}>
+          Overview Dashboard
+        </h2>
+        <button
+          onClick={() => fetchOverviewAnalytics(true)}
+          disabled={isRefreshing}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
+            isRefreshing 
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+              : 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md'
+          }`}
+        >
+          <svg 
+            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+            />
+          </svg>
+          {isRefreshing ? 'Refreshing...' : 'Refresh'}
+        </button>
+      </div>
 
       {/* Stats Cards - Theme Consistent */}
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <div className="group relative overflow-hidden rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
@@ -1105,19 +1073,19 @@ const AdminDashboard = ({ config }) => {
 
               <span className="text-3xl font-bold" style={{ color: getThemeColor('text') }}>
 
-                {analytics.totalBookings}
+                {analytics.totalInfluencers}
 
               </span>
 
             </div>
 
-            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Total Bookings</h3>
+            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Total Influencers</h3>
 
             <div className="flex items-center gap-2">
 
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
 
-                This month: {Math.floor(analytics.thisMonthRevenue / 25000)}
+                Verified/Pending
 
               </span>
 
@@ -1151,25 +1119,156 @@ const AdminDashboard = ({ config }) => {
 
               <span className="text-3xl font-bold" style={{ color: getThemeColor('text') }}>
 
-                {analytics.pendingInquiries}
+                {analytics.totalInquiries}
 
               </span>
 
             </div>
 
-            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Pending Inquiries</h3>
+            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Total Inquiries</h3>
 
             <div className="flex items-center gap-2">
 
               <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
 
-                Needs review
+                Pending: {analytics.pendingInquiries}
 
               </span>
 
             </div>
 
           </div>
+
+        </div>
+
+
+
+        <div className="group relative overflow-hidden rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+
+          style={{ backgroundColor: getThemeColor('surface') }}>
+
+          <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryColors(5)} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+
+          <div className="relative p-6">
+
+            <div className="flex items-center justify-between mb-4">
+
+              <div className={`w-14 h-14 bg-gradient-to-br ${getCategoryColors(5)} rounded-2xl flex items-center justify-center shadow-lg`}>
+
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2a4 4 0 014-4h4m-6 6v2a4 4 0 004 4h4m-6-6H9m8-8V7a4 4 0 00-4-4H9a4 4 0 00-4 4v2" />
+
+                </svg>
+
+              </div>
+
+              <span className="text-3xl font-bold" style={{ color: getThemeColor('text') }}>
+
+                {analytics.processedInquiries}
+
+              </span>
+
+            </div>
+
+            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Processed Inquiries</h3>
+
+            <div className="flex items-center gap-2">
+
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+
+                Active/Done
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="group relative overflow-hidden rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          style={{ backgroundColor: getThemeColor('surface') }}>
+          <div className={`absolute inset-0 bg-gradient-to-br ${getCategoryColors(7)} opacity-10 group-hover:opacity-20 transition-opacity`}></div>
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-14 h-14 bg-gradient-to-br ${getCategoryColors(7)} rounded-2xl flex items-center justify-center shadow-lg`}>
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-2.627 3.42 3.42 0 002.627 1.946 3.42 3.42 0 001.946 2.627 3.42 3.42 0 002.627-1.946 3.42 3.42 0 00-1.946-2.627 3.42 3.42 0 00-2.627-1.946 3.42 3.42 0 00-1.946 2.627z" />
+                </svg>
+              </div>
+              <span className="text-3xl font-bold" style={{ color: getThemeColor('text') }}>
+                {analytics.completedInquiries}
+              </span>
+            </div>
+            <h3 className="font-semibold mb-2" style={{ color: getThemeColor('secondary') }}>Fully Completed Inquiries</h3>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                Admin Completed
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+
+      <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
+
+        style={{ backgroundColor: getThemeColor('surface') }}>
+
+        <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6`}>
+
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+
+            </svg>
+
+            Top Inquirer
+
+          </h3>
+
+        </div>
+
+        <div className="p-6">
+
+          {analytics.topInquirer ? (
+
+            <div className="flex items-center justify-between gap-4">
+
+              <div className="min-w-0">
+
+                <div className="font-semibold text-gray-800 truncate">
+
+                  {analytics.topInquirer.name || 'Unknown user'}
+
+                </div>
+
+                <div className="text-sm text-gray-500 truncate">
+
+                  {analytics.topInquirer.email || analytics.topInquirer.userId}
+
+                </div>
+
+              </div>
+
+              <div className="shrink-0 inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+
+                {analytics.topInquirer.inquiriesCount} inquiries
+
+              </div>
+
+            </div>
+
+          ) : (
+
+            <div className="text-sm text-gray-500">No inquiry data yet</div>
+
+          )}
 
         </div>
 
