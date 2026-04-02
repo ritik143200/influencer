@@ -16,6 +16,11 @@ const UserDashboard = ({ config }) => {
   const [inquiriesError, setInquiriesError] = useState('');
   const [expandedInquiryIds, setExpandedInquiryIds] = useState(new Set());
 
+  // Filter states for User Inquiries
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDate, setFilterDate] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -518,26 +523,115 @@ const UserDashboard = ({ config }) => {
   // Booking-related UI removed
 
 
-  const renderInquiries = () => (
+  const renderInquiries = () => {
+  // Filter inquiries based on filters
+  const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
+    const status = inquiry.status || 'sent';
+    const adminStatus = inquiry.adminStatus || '';
+    
+    // Status filter - check both user status and admin status
+    const matchesStatus = filterStatus === 'all' || 
+      (filterStatus === status) ||
+      (filterStatus === 'pending' && (status === 'pending' || status === 'sent')) ||
+      (filterStatus === 'accepted' && (status === 'accepted' || status === 'artist_accepted')) ||
+      (filterStatus === 'rejected' && (status === 'rejected' || status === 'artist_rejected')) ||
+      (filterStatus === 'admin-accepted' && (adminStatus === 'accepted' || adminStatus === 'confirmed')) ||
+      (filterStatus === 'admin-rejected' && adminStatus === 'rejected') ||
+      (filterStatus === 'completed' && (adminStatus === 'completed' || status === 'completed'));
+    
+    // Date filter
+    const matchesDate = filterDate === '' || 
+      (inquiry.date && new Date(inquiry.date).toISOString().split('T')[0] === filterDate) ||
+      (inquiry.eventDate && new Date(inquiry.eventDate).toISOString().split('T')[0] === filterDate) ||
+      (inquiry.createdAt && new Date(inquiry.createdAt).toISOString().split('T')[0] === filterDate);
+    
+    // Search filter - search in title, category, and other fields
+    const matchesSearch = searchTerm === '' || 
+      (inquiry.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.category?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.type?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.eventType?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (inquiry.description?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    return matchesStatus && matchesDate && matchesSearch;
+  });
+
+  return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-gray-800">Your Inquiries</h3>
-        <p className="text-sm text-gray-500">{inquiries.length} total</p>
+        <div className="text-sm text-gray-500">
+          {filteredInquiries.length} of {inquiries.length} total
+        </div>
+      </div>
+
+      {/* Filters Section */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="flex flex-wrap gap-3">
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Search inquiries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </div>
+          
+          {/* Status Filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Accepted by Influencer</option>
+            <option value="rejected">Rejected by Influencer</option>
+            <option value="admin-accepted">Confirmed by Admin</option>
+            <option value="admin-rejected">Rejected by Admin</option>
+            <option value="completed">Completed</option>
+          </select>
+          
+          {/* Date Filter */}
+          <input
+            type="date"
+            placeholder="Filter by date"
+            value={filterDate}
+            onChange={(e) => setFilterDate(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          />
+          
+          {/* Clear Filters */}
+          <button
+            onClick={() => {
+              setFilterStatus('all');
+              setFilterDate('');
+              setSearchTerm('');
+            }}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            Clear Filters
+          </button>
+        </div>
       </div>
 
       {loadingInquiries ? (
         <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
-      ) : inquiries.length === 0 ? (
-        <div className="p-6 text-center text-gray-500">You haven't sent any inquiries yet.</div>
-      ) : (
-        null
-      )}
+      ) : filteredInquiries.length === 0 ? (
+        <div className="p-6 text-center text-gray-500">
+          {inquiries.length === 0 ? "You haven't sent any inquiries yet." : "No inquiries found matching your filters."}
+        </div>
+      ) : null}
+      
       {inquiriesError && (
         <div className="p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100">{inquiriesError}</div>
       )}
-      {inquiries.length > 0 && (
+      
+      {filteredInquiries.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {inquiries.map((inq) => {
+          {filteredInquiries.map((inq) => {
             const id = inq.id || inq._id || JSON.stringify(inq).slice(0, 8);
             const statusKey = inq.status || inq.state || 'sent';
             const status = getStatusStyle(statusKey);
@@ -559,6 +653,11 @@ const UserDashboard = ({ config }) => {
                   </div>
                   <div className="flex items-center gap-3 mt-2 sm:mt-0">
                     <span className={`px-2 py-1 text-xs rounded-full ${status.bg} ${status.text}`}>{status.label}</span>
+                    {inq.adminStatus && (
+                      <span className="px-2 py-1 text-xs rounded-full bg-indigo-100 text-indigo-700">
+                        Admin: {inq.adminStatus}
+                      </span>
+                    )}
                     <button onClick={() => toggleInquiryExpand(id)} className="text-sm text-brand-600 font-medium underline underline-offset-2">Details</button>
                   </div>
                 </div>
@@ -567,37 +666,6 @@ const UserDashboard = ({ config }) => {
                 <div className="mt-2">
                   <InquiryProgressBar status={statusKey} progressPercentage={progressPercentage} />
                 </div>
-
-                {/* Inquiry Details */}
-                <div className="mt-2 text-sm text-gray-700">
-                  <div className="mb-2"><span className="font-medium text-gray-600">Requirements:</span> <span className="break-words text-gray-800">{inq.message || inq.details || inq.requirements || '—'}</span></div>
-                  <div className="flex flex-wrap gap-4 text-xs text-gray-500">
-                    <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : (inq.budgetRange || '—')}</span>
-                    <span><strong>Location:</strong> {inq.location || '—'}</span>
-                    <span><strong>Sent:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : (inq.created ? new Date(inq.created).toLocaleString() : '—')}</span>
-                  </div>
-                </div>
-
-                {/* Expanded details */}
-                {expandedInquiryIds.has(id) && (
-                  <div className="mt-2 text-sm text-gray-600 space-y-2 border-t border-gray-100 pt-2">
-                    {inq.hiringFor && <div><strong>Hiring For:</strong> {inq.hiringFor}</div>}
-                    {inq.phone && <div><strong>Contact:</strong> {inq.phone}</div>}
-                    {inq.email && <div><strong>Email:</strong> {inq.email}</div>}
-                    {inq.workflowHistory && inq.workflowHistory.length > 0 && (
-                      <div>
-                        <strong>Workflow History:</strong>
-                        <ul className="ml-4 mt-1 space-y-1">
-                          {inq.workflowHistory.map((history, idx) => (
-                            <li key={idx} className="text-xs">
-                              {history.stage}: {history.status} ({new Date(history.updatedAt).toLocaleDateString()})
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             );
           })}
@@ -605,6 +673,7 @@ const UserDashboard = ({ config }) => {
       )}
     </div>
   );
+};
 
   return (
     <div className="min-h-full pt-20 lg:pt-24" style={{ backgroundColor: config.background_color }}>
