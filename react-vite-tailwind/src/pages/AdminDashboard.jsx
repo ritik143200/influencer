@@ -8,6 +8,8 @@ import InquiryProgressBar from '../components/InquiryProgressBar';
 
 import AdminInfluencersManagement from '../components/AdminInfluencersManagement';
 
+import RecentActivity from '../components/RecentActivity';
+
 
 
 const AdminDashboard = ({ config }) => {
@@ -16,7 +18,7 @@ const AdminDashboard = ({ config }) => {
 
   const { user, logout } = useAuth();
 
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
 
   const [adminData, setAdminData] = useState(null);
 
@@ -1327,61 +1329,18 @@ const AdminDashboard = ({ config }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-
           style={{ backgroundColor: getThemeColor('surface') }}>
-
           <div className={`bg-gradient-to-r ${getCategoryColors(4)} p-6`}>
-
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-
               </svg>
-
               Recent Activity
-
             </h3>
-
           </div>
-
-          <div className="p-6 space-y-4">
-
-            {[
-
-              { icon: '👤', text: 'New user registered', time: '2 minutes ago' },
-
-              { icon: '📅', text: 'New booking created', time: '5 minutes ago' },
-
-              { icon: '💬', text: 'New inquiry received', time: '10 minutes ago' },
-
-              { icon: '🎨', text: 'Artist profile updated', time: '15 minutes ago' }
-
-            ].map((activity, index) => (
-
-              <div key={index} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors">
-
-                <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center text-lg">
-
-                  {activity.icon}
-
-                </div>
-
-                <div className="flex-1">
-
-                  <p className="font-medium" style={{ color: getThemeColor('text') }}>{activity.text}</p>
-
-                  <p className="text-sm" style={{ color: getThemeColor('secondary') }}>{activity.time}</p>
-
-                </div>
-
-              </div>
-
-            ))}
-
+          <div className="p-6">
+            <RecentActivity API_BASE_URL={API_BASE_URL} getThemeColor={getThemeColor} />
           </div>
-
         </div>
 
 

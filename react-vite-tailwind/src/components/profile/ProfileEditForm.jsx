@@ -178,11 +178,61 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                     <label className={labelClass}>Pricing / Charges (₹)</label>
                     <input className={inputClass} type="number" value={formData.pricing?.collaborationCharges || formData.budget || ''} onChange={e => handleNestedField('pricing.collaborationCharges', e.target.value)} placeholder="e.g. 5000" />
                   </div>
+                </div>
 
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Previous Collaborations</label>
-                    <textarea className={`${inputClass} resize-none`} rows={3} value={formData.previousCollaborations || ''} onChange={e => handleField('previousCollaborations', e.target.value)} placeholder="List notable collaborations..." />
+                {/* Budget Details Section */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <span>💰</span>
+                    Budget Information
+                  </h4>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label className={labelClass}>Minimum Budget (₹)</label>
+                      <input 
+                        className={inputClass} 
+                        type="number" 
+                        value={formData.budget?.min || ''} 
+                        onChange={e => handleNestedField('budget.min', e.target.value)} 
+                        placeholder="e.g. 1000"
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Maximum Budget (₹)</label>
+                      <input 
+                        className={inputClass} 
+                        type="number" 
+                        value={formData.budget?.max || ''} 
+                        onChange={e => handleNestedField('budget.max', e.target.value)} 
+                        placeholder="e.g. 50000"
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className={labelClass}>Default Budget (₹)</label>
+                      <input 
+                        className={inputClass} 
+                        type="number" 
+                        value={formData.budget?.default || ''} 
+                        onChange={e => handleNestedField('budget.default', e.target.value)} 
+                        placeholder="e.g. 10000"
+                        min="0"
+                      />
+                    </div>
                   </div>
+
+                  <div className="mt-3 text-sm text-gray-600">
+                    <p>💡 <strong>Tip:</strong> Set your budget range to attract clients within your preferred pricing range.</p>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className={labelClass}>Previous Collaborations</label>
+                  <textarea className={`${inputClass} resize-none`} rows={3} value={formData.previousCollaborations || ''} onChange={e => handleField('previousCollaborations', e.target.value)} placeholder="List notable collaborations..." />
                 </div>
 
                 <div className="mt-6 flex justify-end">

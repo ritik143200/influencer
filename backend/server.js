@@ -6,12 +6,12 @@ const fs = require('fs');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
-
 const influencerRoutes = require('./routes/influencerRoutes');
 // Removed artists route - artist browsing functionality removed
 // Booking routes import removed
 const adminRoutes = require('./routes/adminRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
+const activityRoutes = require('./routes/activityRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -50,6 +50,7 @@ app.use('/api/auth', authRoutes);
 // Booking routes usage removed
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/activity', activityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,6 +1,7 @@
 const Influencer = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
 const Notification = require('../models/Notification');
+const { logInfluencerRegistration } = require('../middleware/activityLogger');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
@@ -134,6 +135,13 @@ const registerInfluencer = async (req, res) => {
       console.error('Failed to create notification for new influencer:', err);
     }
 
+    // Log influencer registration activity
+    try {
+      await logInfluencerRegistration(newInfluencer);
+    } catch (err) {
+      console.error('Failed to log influencer registration activity:', err);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Influencer registration successful! Your application is under review.',
@@ -158,12 +166,13 @@ const registerInfluencer = async (req, res) => {
 // Get all influencers (for admin)
 const getAllInfluencers = async (req, res) => {
   try {
-    const influencers = await Influencer.find({ profileType: 'influencer' }).sort({ registrationDate: -1 });
+    const influencers = await Influencer.find({ profileType: 'influencer' })
+      .sort({ registrationDate: -1 })
+      .select('-password'); // Exclude password but include all other fields
     
     // Transform influencers to include virtual fields
     const influencersWithCompletion = influencers.map(influencer => {
-      const influencerObj = influencer.toJSON();
-      influencerObj.profileCompletion = influencer.profileCompletion;
+      const influencerObj = influencer.toObject(); // Convert to plain object with virtuals
       return influencerObj;
     });
     
@@ -172,6 +181,7 @@ const getAllInfluencers = async (req, res) => {
       data: influencersWithCompletion
     });
   } catch (error) {
+    console.error('Error fetching all influencers:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch influencers',

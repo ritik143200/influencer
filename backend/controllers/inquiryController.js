@@ -1,5 +1,6 @@
 const Inquiry = require('../models/Inquiry');
 const Notification = require('../models/Notification');
+const { logInquirySubmission } = require('../middleware/activityLogger');
 
 exports.createInquiry = async (req, res) => {
     try {
@@ -106,6 +107,13 @@ exports.createInquiry = async (req, res) => {
             console.log('Admin notification created for inquiry:', inquiry._id);
         } catch (notifError) {
             console.error('Non-blocking error: Failed to create admin notification for inquiry', notifError);
+        }
+
+        // Log inquiry submission activity
+        try {
+            await logInquirySubmission(inquiry);
+        } catch (err) {
+            console.error('Failed to log inquiry submission activity:', err);
         }
 
         res.status(201).json({

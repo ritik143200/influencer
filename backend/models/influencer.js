@@ -150,11 +150,13 @@ influencerSchema.virtual('profileCompletion').get(function () {
 
   // Optional but important fields
   const optionalFields = [
-    this.location && this.location.length > 0,
+    this.location && (typeof this.location === 'string' ? this.location.length > 0 : Object.keys(this.location).length > 0),
     this.categories && this.categories.length > 0,
     this.profileImage && this.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg',
-    this.socialLinks.instagram && this.socialLinks.instagram.length > 0,
-    this.socialLinks.youtube && this.socialLinks.youtube.length > 0
+    this.socialLinks && this.socialLinks.instagram && this.socialLinks.instagram.length > 0,
+    this.socialLinks && this.socialLinks.youtube && this.socialLinks.youtube.length > 0,
+    this.bio && this.bio.trim().length > 0,
+    this.experience && this.experience.trim().length > 0
   ];
 
   totalFields += optionalFields.length;
