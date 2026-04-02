@@ -322,57 +322,198 @@ const UserDashboard = ({ config }) => {
     </div>
   );
 
-  const renderOverview = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+  const renderOverview = () => {
+    // Comprehensive inquiry statistics
+    const totalInquiries = inquiries.length;
+    
+    // Status-based tracking for user inquiries
+    const pendingInquiries = inquiries.filter(inq => 
+      inq.status === 'pending' || inq.status === 'sent' || 
+      (!inq.status && !inq.adminStatus)
+    ).length;
+    
+    const acceptedByInfluencer = inquiries.filter(inq => 
+      inq.status === 'accepted' || inq.status === 'artist_accepted'
+    ).length;
+    
+    const rejectedByInfluencer = inquiries.filter(inq => 
+      inq.status === 'rejected' || inq.status === 'artist_rejected'
+    ).length;
+    
+    const acceptedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'accepted' || inq.adminStatus === 'confirmed'
+    ).length;
+    
+    const rejectedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'rejected'
+    ).length;
+    
+    const completedByAdmin = inquiries.filter(inq => 
+      inq.adminStatus === 'completed' || inq.status === 'completed'
+    ).length;
+
+    return (
+    <>
+      {/* Comprehensive Inquiry Tracking Header */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+          <h3 className="text-lg font-semibold text-gray-800">📊 Complete Inquiry Tracking</h3>
+          <div className="text-sm text-gray-500">
+            Welcome, <span className="font-bold text-gray-800">{userData?.name || userData?.fullName || 'User'}</span>
           </div>
-          {/* Bookings removed */}
         </div>
-        {/* Bookings removed */}
+        
+        {/* Quick Overview Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <div className="text-2xl font-bold text-blue-600 mb-1">{totalInquiries}</div>
+            <div className="text-sm text-gray-600">Total Inquiries</div>
+            <div className="text-xs text-gray-500">All requests sent</div>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 mb-1">{acceptedByInfluencer + acceptedByAdmin}</div>
+            <div className="text-sm text-gray-600">Total Accepted</div>
+            <div className="text-xs text-gray-500">By influencer + admin</div>
+          </div>
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <div className="text-2xl font-bold text-red-600 mb-1">{rejectedByInfluencer + rejectedByAdmin}</div>
+            <div className="text-sm text-gray-600">Total Rejected</div>
+            <div className="text-xs text-gray-500">By influencer + admin</div>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      {/* Detailed Status Breakdown - 6 Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* 1. Total Inquiries */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{totalInquiries}</span>
           </div>
-          {/* Bookings removed */}
+          <h3 className="text-gray-600 text-sm font-medium">📨 Total Inquiries</h3>
+          <p className="text-xs text-gray-500 mt-1">All inquiries submitted by you</p>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Completed Events</h3>
+
+        {/* 2. Accepted by Influencer */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{acceptedByInfluencer}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">✅ Accepted by Influencer</h3>
+          <p className="text-xs text-gray-500 mt-1">Influencer approved your requests</p>
+        </div>
+
+        {/* 3. Rejected by Influencer */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{rejectedByInfluencer}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">❌ Rejected by Influencer</h3>
+          <p className="text-xs text-gray-500 mt-1">Influencer declined your requests</p>
+        </div>
+
+        {/* 4. Confirmed by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{acceptedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🎯 Confirmed by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin approved your requests</p>
+        </div>
+
+        {/* 5. Rejected by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h-6m-6 0h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{rejectedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🚫 Rejected by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin declined your requests</p>
+        </div>
+
+        {/* 6. Completed by Admin */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span className="text-2xl font-bold text-gray-800">{completedByAdmin}</span>
+          </div>
+          <h3 className="text-gray-600 text-sm font-medium">🎉 Completed by Admin</h3>
+          <p className="text-xs text-gray-500 mt-1">Admin completed your inquiries</p>
+        </div>
       </div>
 
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+      {/* Performance Metrics */}
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-6">📈 Performance Analytics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Column */}
+          <div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Influencer Acceptance Rate</span>
+                <span className="text-lg font-bold text-green-600">
+                  {totalInquiries > 0 ? Math.round((acceptedByInfluencer / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Admin Confirmation Rate</span>
+                <span className="text-lg font-bold text-indigo-600">
+                  {totalInquiries > 0 ? Math.round((acceptedByAdmin / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+            </div>
           </div>
-          {/* Bookings removed */}
-        </div>
-        {/* Bookings removed */}
-      </div>
-
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-        <div className="flex items-center justify-between mb-4">
-          <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
+          
+          {/* Right Column */}
+          <div>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Overall Success Rate</span>
+                <span className="text-lg font-bold text-blue-600">
+                  {totalInquiries > 0 ? Math.round(((acceptedByInfluencer + acceptedByAdmin) / totalInquiries) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                <span className="text-sm text-gray-600">Total Completed</span>
+                <span className="text-lg font-bold text-purple-600">
+                  {completedByAdmin}
+                </span>
+              </div>
+            </div>
           </div>
-          <span className="text-2xl font-bold text-gray-800">0</span>
         </div>
-        <h3 className="text-gray-600 text-sm font-medium">Saved Influencers</h3>
       </div>
-    </div>
+    </>
   );
+};
 
   // Booking-related UI removed
 
