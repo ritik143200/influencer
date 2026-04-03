@@ -84,10 +84,7 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                     <label className={labelClass}>Full Name *</label>
                     <input className={inputClass} value={formData.fullName || ''} onChange={e => handleField('fullName', e.target.value)} placeholder="Enter your full name" />
                   </div>
-                  <div>
-                    <label className={labelClass}>Username / Display Name</label>
-                    <input className={inputClass} value={formData.username || ''} onChange={e => handleField('username', e.target.value)} placeholder="@username" />
-                  </div>
+                  {/* username removed per request */}
                   <div>
                     <label className={labelClass}>Email Address *</label>
                     <input className={inputClass} type="email" value={formData.email || ''} onChange={e => handleField('email', e.target.value)} placeholder="your@email.com" />
@@ -175,63 +172,23 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                   </div>
 
                   <div>
-                    <label className={labelClass}>Pricing / Charges (₹)</label>
-                    <input className={inputClass} type="number" value={formData.pricing?.collaborationCharges || formData.budget || ''} onChange={e => handleNestedField('pricing.collaborationCharges', e.target.value)} placeholder="e.g. 5000" />
+                    <label className={labelClass}>Default Budget</label>
+                    <input className={inputClass} type="number" value={formData.budget || ''} onChange={e => handleField('budget', e.target.value)} placeholder="Enter default budget" />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Budget Range (Min)</label>
+                    <input className={inputClass} type="number" value={formData.budgetMin || ''} onChange={e => handleField('budgetMin', e.target.value)} placeholder="Minimum budget" />
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>Budget Range (Max)</label>
+                    <input className={inputClass} type="number" value={formData.budgetMax || ''} onChange={e => handleField('budgetMax', e.target.value)} placeholder="Maximum budget" />
                   </div>
 
                   <div className="sm:col-span-2">
                     <label className={labelClass}>Previous Collaborations</label>
                     <textarea className={`${inputClass} resize-none`} rows={3} value={formData.previousCollaborations || ''} onChange={e => handleField('previousCollaborations', e.target.value)} placeholder="List notable collaborations..." />
-                  </div>
-                </div>
-
-                {/* Budget Section */}
-                <div className="mt-8 pt-6 border-t border-gray-100">
-                  <div className="mb-4">
-                    <h4 className="text-lg font-bold text-gray-700">💰 Budget Information</h4>
-                    <p className="text-sm text-gray-500">Set your budget preferences for collaborations</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                      <label className={labelClass}>Minimum Budget (₹)</label>
-                      <input 
-                        type="number" 
-                        className={inputClass} 
-                        value={formData.budgetMin || ''} 
-                        onChange={e => handleField('budgetMin', e.target.value)} 
-                        placeholder="5000"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className={labelClass}>Maximum Budget (₹)</label>
-                      <input 
-                        type="number" 
-                        className={inputClass} 
-                        value={formData.budgetMax || ''} 
-                        onChange={e => handleField('budgetMax', e.target.value)} 
-                        placeholder="50000"
-                        min="0"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className={labelClass}>Default Budget (₹)</label>
-                      <input 
-                        type="number" 
-                        className={inputClass} 
-                        value={formData.budget || ''} 
-                        onChange={e => handleField('budget', e.target.value)} 
-                        placeholder="25000"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 text-xs text-gray-500">
-                    💡 Tip: Set realistic budget ranges to attract suitable collaboration opportunities
                   </div>
                 </div>
 

@@ -40,11 +40,7 @@ const ProfileOverviewTab = ({ formData }) => {
         <InfoCard icon="📱" label="Phone" value={formData.phone} color="green" />
         <InfoCard icon="🎯" label="Category / Niche" value={formData.niche || formData.category} color="brand" />
         <InfoCard icon="⏳" label="Experience" value={formData.experience} color="purple" />
-        <InfoCard icon="💰" label="Pricing" value={formData.pricing?.collaborationCharges ? `₹${formData.pricing.collaborationCharges}` : (formData.budget ? `₹${formData.budget}` : null)} color="orange" />
-        <InfoCard icon="📊" label="Availability" value={formData.availability === 'available' ? '🟢 Available' : '🔴 Busy'} color="green" />
-        <InfoCard icon="👥" label="Audience" value={formData.audienceType?.ageGroup || 'All ages'} color="pink" />
-        <InfoCard icon="🌍" label="Audience Region" value={formData.audienceType?.region || 'Global'} color="blue" />
-      </div>
+              </div>
 
       {activePlatforms.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

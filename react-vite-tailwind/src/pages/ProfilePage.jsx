@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileEditForm from '../components/profile/ProfileEditForm';
+import ProfileOverviewTab from '../components/profile/ProfileOverviewTab';
 import { 
   CheckCircle2, 
   MapPin,
@@ -145,6 +146,8 @@ const ProfilePage = ({ config }) => {
         experience: formData.experience,
         skills: formData.subcategories,
         budget: formData.budget,
+        budgetMin: formData.budgetMin,
+        budgetMax: formData.budgetMax,
         socialLinks: formData.socialLinks,
         platforms: formData.platforms,
         niche: formData.niche,
@@ -241,7 +244,7 @@ const ProfilePage = ({ config }) => {
 
   const userData = {
     name: formData.fullName || `${formData.firstName || ''} ${formData.lastName || ''}`.trim() || 'Your Name',
-    username: formData.username ? `@${formData.username}` : '@username',
+    
     title: displayRole,
     handle2: nicheOrCategory || 'Creator',
     location: formattedLocation || 'Location',
@@ -269,10 +272,7 @@ const ProfilePage = ({ config }) => {
         followers: formData.platforms?.facebook?.followers || '0'
       }
     },
-    pricing: {
-      starting: formData.pricing?.collaborationCharges ? `₹${Number(formData.pricing.collaborationCharges).toLocaleString()}` : 
-                 formData.budget ? `₹${Number(formData.budget).toLocaleString()}` : 'Contact for Pricing'
-    },
+    // pricing UI removed; keep raw pricing in formData for backend compatibility
     professional: {
       experience: formData.experience ? `${formData.experience} Years` : '0 Years',
       primaryNiche: nicheOrCategory || 'General',
@@ -292,393 +292,288 @@ const ProfilePage = ({ config }) => {
     }))
   };
 
+  // Budget formatting helpers: treat null/undefined/empty-string as absent
+  const hasBudgetMin = userData.budgetMin !== '' && userData.budgetMin !== null && userData.budgetMin !== undefined && `${userData.budgetMin}`.trim() !== '';
+  const hasBudgetMax = userData.budgetMax !== '' && userData.budgetMax !== null && userData.budgetMax !== undefined && `${userData.budgetMax}`.trim() !== '';
+  const hasBudgetDefault = userData.budget !== '' && userData.budget !== null && userData.budget !== undefined && userData.budget !== 0;
+  const formattedBudgetMin = hasBudgetMin ? `₹${Number(userData.budgetMin).toLocaleString('en-IN')}` : null;
+  const formattedBudgetMax = hasBudgetMax ? `₹${Number(userData.budgetMax).toLocaleString('en-IN')}` : null;
+  const formattedBudgetDefault = hasBudgetDefault ? `₹${Number(userData.budget).toLocaleString('en-IN')}` : null;
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] font-sans text-slate-900 pb-12 pt-20" style={{ backgroundColor: config.background_color }}>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-sans text-slate-900 pb-16 pt-20" style={{ backgroundColor: config.background_color }}>
       {saveMessage && (
-        <div className="max-w-6xl mx-auto px-4 mt-6">
-          <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-semibold text-center animate-fadeIn shadow-md">
+        <div className="max-w-6xl mx-auto px-4 mb-6">
+          <div className="p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-lg text-sm font-semibold animate-fadeIn">
             ✅ {saveMessage}
           </div>
         </div>
       )}
 
-      {/* Full-Width Hero Section */}
-      <div className="w-full mt-6">
-        <div className="relative bg-white rounded-3xl overflow-hidden shadow-xl border-0 mx-4 lg:mx-6">
-          {/* Enhanced Banner */}
-          <div className="h-48 md:h-64 overflow-hidden relative bg-gradient-to-br from-brand-500 via-indigo-600 to-purple-700">
-            {/* Animated Background Pattern */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-              <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 w-40 h-40 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-            </div>
-            
-            <img 
-              src="https://images.unsplash.com/photo-1572508589584-94d778209da9?auto=format&fit=crop&q=80&w=1200" 
-              alt="Profile Cover"
-              className="w-full h-full object-cover mix-blend-overlay"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent"></div>
-            
-            {/* Overlay Text */}
-            <div className="absolute bottom-8 left-8 text-white">
-              <div className="text-sm font-medium mb-1 opacity-90">Welcome Back</div>
-              <div className="text-2xl md:text-3xl font-bold">{userData.name}</div>
-            </div>
+      {/* Hero Section with Profile Header */}
+      <div className="w-full mb-12">
+        {/* Banner */}
+        <div className="h-40 md:h-56 overflow-hidden relative bg-gradient-to-br from-brand-500 via-indigo-600 to-purple-700 -mt-20 pt-20">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
           </div>
+          <img 
+            src="https://images.unsplash.com/photo-1572508589584-94d778209da9?auto=format&fit=crop&q=80&w=1200" 
+            alt="Profile Cover"
+            className="w-full h-full object-cover mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+        </div>
 
-          {/* Enhanced Profile Basic Info */}
-          <div className="p-6 md:p-8 pt-0 flex flex-col lg:flex-row gap-6 relative">
-            {/* Logo Above Profile Picture */}
-            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 z-20">
-              <div className="bg-white rounded-xl p-3 shadow-2xl border-2 border-white">
-                <img 
-                  src="https://i.ibb.co/3dC6HsJ/Untitled-design.png" 
-                  alt="Logo" 
-                  className="h-10 w-auto object-contain"
-                />
-              </div>
-            </div>
-            
-            {/* Enhanced Avatar */}
-            <div className="relative  md:-mt-20 shrink-0 order-1 lg:order-1 mt-8">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white relative group">
+        {/* Profile Info Section */}
+        <div className="max-w-6xl mx-auto px-4 -mt-20 relative z-10 mb-8">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-end">
+            {/* Avatar */}
+            <div className="flex-shrink-0">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl border-4 border-white shadow-2xl overflow-hidden bg-white relative group">
                 <img 
                   src={formData.profileImage || formData.profilePicture || "https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=400"} 
                   alt={userData.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                {/* Avatar Status Badge */}
-                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-3 border-white shadow-lg flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full"></div>
-                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-3 border-white shadow-lg"></div>
               </div>
             </div>
 
-            <div className="flex-1 mt-2 order-2 lg:order-2">
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <h1 className="text-2xl md:text-3xl font-black tracking-tight">{userData.name}</h1>
+            {/* Header Info */}
+            <div className="flex-1 pb-2">
+              <div className="flex flex-wrap items-center gap-3 mb-3">
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">{userData.name}</h1>
                 {formData.verificationStatus === 'verified' && (
-                  <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
-                    <CheckCircle2 className="text-blue-500 fill-blue-500" size={18} strokeWidth={2.5} />
+                  <span className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-200">
+                    <CheckCircle2 className="text-blue-500 fill-blue-500" size={16} />
                     <span className="text-xs font-bold text-blue-600">VERIFIED</span>
-                  </div>
+                  </span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-slate-600 text-sm md:text-base font-medium">
-                <span className="bg-gradient-to-r from-slate-100 to-slate-200 px-3 py-1.5 rounded-lg font-semibold border border-slate-300">@{userData.username}</span>
-                <span className="flex items-center gap-1 bg-gradient-to-r from-orange-50 to-red-50 px-3 py-1.5 rounded-lg border border-orange-200">
-                  <MapPin size={16} className="text-orange-500" />
+              
+              <p className="text-lg font-semibold text-slate-600 mb-4">{userData.title} • {userData.handle2}</p>
+              
+              <div className="flex flex-wrap gap-3 mb-4">
+                <div className="flex items-center gap-2 text-slate-700 font-medium">
+                  <MapPin size={18} className="text-slate-400" />
                   {userData.location}
-                </span>
-                <span className="flex items-center gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 rounded-lg border border-blue-200">
-                  <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                </div>
+                <div className="flex items-center gap-2 text-slate-700 font-medium">
+                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   {formData.email || 'email@example.com'}
-                </span>
-                <span className="bg-gradient-to-r from-purple-100 to-pink-100 px-3 py-1.5 rounded-lg font-semibold text-purple-700 border border-purple-200">
-                  {userData.title} @{userData.handle2}
-                </span>
-              </div>
-              
-              {/* Stats Row */}
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="text-center p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                  <div className="text-2xl font-bold text-blue-600">{userData.stats.totalReach}</div>
-                  <div className="text-xs text-blue-500 font-medium">Total Reach</div>
-                </div>
-                {userData.portfolio.length > 0 && (
-                  <div className="text-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                    <div className="text-2xl font-bold text-purple-600">{userData.portfolio.length}</div>
-                    <div className="text-xs text-purple-500 font-medium">Projects</div>
-                  </div>
-                )}
-                <div className="text-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">{userData.professional.experience}</div>
-                  <div className="text-xs text-green-500 font-medium">Experience</div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-2">
                 {userData.tags.length > 0 ? (
                   userData.tags.map(tag => (
-                    <span key={tag} className="bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold hover:from-slate-100 hover:to-slate-200 cursor-default transition-all">
+                    <span key={tag} className="inline-block bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full text-xs font-bold hover:bg-slate-200 transition-colors">
                       {tag}
                     </span>
                   ))
                 ) : (
-                  <span className="text-gray-400 text-sm italic">No tags added yet</span>
+                  <span className="text-slate-400 text-sm italic">No specializations added yet</span>
                 )}
               </div>
             </div>
 
-            {/* Edit Profile Button - Floating */}
+            {/* Edit Button */}
             <button 
               onClick={() => setIsEditing(true)} 
-              className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl active:scale-[0.98] group z-50 flex items-center gap-2"
+              className="hidden lg:flex fixed bottom-6 right-6 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-95 z-50 items-center gap-2" style={{ background: 'rgb(238 119 17)' }}
             >
-              <Edit3 size={18} className="group-hover:rotate-12 transition-transform" />
-              <span>EDIT PROFILE</span>
+              <Edit3 size={18} />
+              EDIT PROFILE
             </button>
-          </div>
-
-          {/* Bio Section */}
-          <div className="px-6 md:px-8 pb-8">
-            <h4 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-              <div className="w-2 h-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
-              About Me
-            </h4>
-            <p className="text-slate-600 leading-relaxed max-w-3xl whitespace-pre-wrap bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-              {userData.bio && userData.bio !== 'Tell us about yourself...' ? userData.bio : (
-                <span className="text-gray-400 italic">No bio added yet. Click "EDIT PROFILE" to add your bio.</span>
-              )}
-            </p>
           </div>
         </div>
       </div>
 
-      {/* Main Grid Content */}
-      <div className="max-w-6xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* LEFT COLUMN: Stats and Professional Info */}
-        <div className="lg:col-span-8 space-y-6">
-          
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center transition-all hover:border-brand-100">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Total Reach</p>
-              <h3 className="text-2xl font-black text-slate-900">{userData.stats.totalReach}</h3>
-              <p className="text-xs text-slate-400 font-medium mt-1">Combined</p>
-            </div>
-
-            {/* Instagram Card */}
-            {(parseInt(userData.stats.instagram.followers.toString().replace(/,/g, '')) > 0 || userData.stats.instagram.url) && (
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#F7E7ED]">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-5 h-5 rounded-md bg-[#fceef5] flex items-center justify-center text-[#e1306c]">
-                    <Instagram size={12} />
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Instagram</p>
-                </div>
-                <h3 className="text-xl font-black text-slate-900">{userData.stats.instagram.followers}</h3>
-                <p className="text-xs text-slate-400 font-medium mt-1">Followers</p>
-              </div>
-            )}
-
-            {/* YouTube Card */}
-            {(parseInt(userData.stats.youtube.subs.toString().replace(/,/g, '')) > 0 || userData.stats.youtube.url) && (
-              <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#FEECEC]">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-5 h-5 rounded-md bg-[#feecec] flex items-center justify-center text-[#ff0000]">
-                    <Youtube size={12} />
-                  </div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">YouTube</p>
-                </div>
-                <h3 className="text-xl font-black text-slate-900">{userData.stats.youtube.subs}</h3>
-                <p className="text-xs text-slate-400 font-medium mt-1">Subscribers</p>
-              </div>
-            )}
-
-            {/* Facebook Card */}
-            {(parseInt(userData.stats.facebook.url ? '1' : '0') > 0 || userData.stats.facebook.url) && (
-               <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm transition-all hover:border-[#EEF4FE]">
-                 <div className="flex items-center gap-2 mb-1">
-                   <div className="w-5 h-5 rounded-md bg-[#eef4fe] flex items-center justify-center text-[#1877f2]">
-                     <Facebook size={12} />
-                   </div>
-                   <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Facebook</p>
-                 </div>
-                 <h3 className="text-xl font-black text-slate-900">{userData.stats.facebook.url ? 'Active' : '0'}</h3>
-                 <p className="text-xs text-slate-400 font-medium mt-1">Connected</p>
-               </div>
-             )}
+      {/* Biography Section - Professional Profile */}
+      <div className="max-w-6xl mx-auto px-4 mt-8">
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 hover:shadow-md transition-shadow">
+          <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl shadow-inner">
+            📝
           </div>
-
-          {/* Portfolio & Collaborations */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                Portfolio & Collaborations
-              </h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Professional Bio</h3>
+              <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase rounded-md tracking-widest">About Me</span>
             </div>
-            <div className="p-6">
-              {userData.portfolio.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {userData.portfolio.map(item => (
-                    <div key={item.id} className="group cursor-pointer">
-                      <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative">
-                        <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
-                          <span className="text-white text-[10px] font-bold uppercase tracking-widest">
-                            View Details
-                          </span>
-                        </div>
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#3078F1] transition-colors line-clamp-1">{item.title}</h4>
-                      <p className="text-[10px] text-slate-500 font-medium">{item.category}</p>
-                    </div>
-                  ))}
-                </div>
+            <div className="text-slate-600 text-base leading-relaxed max-w-4xl">
+              {userData.bio && userData.bio !== 'Tell us about yourself...' ? (
+                <p className="whitespace-pre-wrap">{userData.bio}</p>
               ) : (
-                <p className="text-gray-500 text-sm">No portfolio items added yet.</p>
+                <p className="text-slate-400 italic">No professional bio shared yet. Introduce yourself to brands!</p>
               )}
+            </div>
+          </div>
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="hidden md:block px-5 py-2 hover:bg-slate-50 text-indigo-600 rounded-xl text-sm font-bold transition-all border border-slate-100 hover:border-indigo-100"
+          >
+            Edit Bio
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Grid - Basic & Professional Information Cards */}
+      <div className="max-w-6xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Basic Information Card */}
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 transition-all hover:shadow-md">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1.5 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Basic Information</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Full Name</label>
+              <p className="text-base font-semibold text-slate-900">{userData.name || "—"}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+              <p className="text-base font-semibold text-slate-900 break-all">{formData.email || "—"}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Phone</label>
+              <p className="text-base font-semibold text-slate-900">{formData.phone || "—"}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Location</label>
+              <p className="text-base font-semibold text-slate-900">{formattedLocation || "—"}</p>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Professional Details & Socials */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          {/* Mobile Only: Pricing & Availability */}
-          <div className="lg:hidden bg-white border border-slate-100 shadow-sm rounded-2xl p-6">
-            <h3 className="text-sm font-bold text-slate-800 mb-3">Profile Actions</h3>
-            <div className="flex gap-3">
-              <button onClick={() => setIsEditing(true)} className="flex-1 flex items-center justify-center gap-2 bg-[#3078F1] text-white font-bold py-3 rounded-xl hover:bg-blue-600 transition-all shadow-md">
-                <Edit3 size={18} /> EDIT
-              </button>
-              <button className="flex-1 bg-white border border-slate-200 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-50 transition-all">
-                MEDIA KIT
-              </button>
-            </div>
+        {/* Professional Information Card */}
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 transition-all hover:shadow-md">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1.5 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Professional Profile</h3>
           </div>
-
-          {/* Professional Details */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-            <h3 className="text-base font-bold text-slate-800 mb-5">Professional Details</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Experience</p>
-                  <p className="text-sm font-bold text-slate-700">{userData.professional.experience}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Primary Niche</p>
-                  <p className="text-sm font-bold text-slate-700 leading-tight">{userData.professional.primaryNiche}</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pricing</p>
-                  <p className="text-sm font-bold text-slate-700">{userData.pricing.starting}</p>
-                </div>
-              </div>
-              
-              {/* Budget Information */}
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Budget Range</p>
-                  <div className="space-y-1">
-                    {(userData.budgetMin || userData.budgetMax) ? (
-                      <p className="text-sm font-bold text-slate-700">
-                        ₹{userData.budgetMin || '0'} - ₹{userData.budgetMax || '0'}
-                      </p>
-                    ) : (
-                      <p className="text-sm font-bold text-slate-700">Not specified</p>
-                    )}
-                    {userData.budget && (
-                      <p className="text-xs text-slate-500">Default: ₹{userData.budget}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Individual Budget Breakdown */}
-              {(userData.budgetMin || userData.budgetMax || userData.budget) && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-slate-50 p-2 rounded-lg text-slate-400"><MapPin size={18} /></div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Budget Details</p>
-                    <div className="grid grid-cols-1 gap-1 text-xs text-slate-600">
-                      {userData.budgetMin && (
-                        <div className="flex justify-between">
-                          <span>Minimum:</span>
-                          <span className="font-medium">₹{userData.budgetMin}</span>
-                        </div>
-                      )}
-                      {userData.budgetMax && (
-                        <div className="flex justify-between">
-                          <span>Maximum:</span>
-                          <span className="font-medium">₹{userData.budgetMax}</span>
-                        </div>
-                      )}
-                      {userData.budget && (
-                        <div className="flex justify-between">
-                          <span>Default:</span>
-                          <span className="font-medium">₹{userData.budget}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Primary Niche</label>
+              <p className="text-base font-semibold text-slate-900">{userData.professional.primaryNiche || "—"}</p>
             </div>
-          </div>
-
-          {/* Social Links Section */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 overflow-hidden">
-            <h3 className="text-base font-bold text-slate-800 mb-5">Social Media Links</h3>
-            <div className="flex flex-wrap items-center gap-4">
-              {userData.stats.instagram.url ? (
-                <a href={userData.stats.instagram.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#fceef5] flex items-center justify-center text-[#e1306c] hover:scale-110 transition-transform">
-                  <Instagram size={20} />
-                </a>
-              ) : null}
-              {userData.stats.youtube.url ? (
-                <a href={userData.stats.youtube.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#feecec] flex items-center justify-center text-[#ff0000] hover:scale-110 transition-transform">
-                  <Youtube size={20} />
-                </a>
-              ) : null}
-              {userData.stats.facebook.url ? (
-                <a href={userData.stats.facebook.url} target="_blank" rel="noreferrer" className="w-10 h-10 rounded-full bg-[#eef4fe] flex items-center justify-center text-[#1877f2] hover:scale-110 transition-transform">
-                  <Facebook size={20} />
-                </a>
-              ) : null}
-              {/* Fallback msg if nothing shows */}
-              {(!userData.stats.instagram.url && !userData.stats.youtube.url && !userData.stats.facebook.url) && (
-                <p className="text-xs text-slate-400 italic">No social links connected yet.</p>
-              )}
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Experience</label>
+              <p className="text-base font-semibold text-slate-900">{userData.professional.experience || "—"}</p>
             </div>
-          </div>
-
-          {/* Collaboration Banner */}
-          <div className="bg-gradient-to-br from-[#3078F1] to-[#6366f1] rounded-2xl p-6 text-white relative overflow-hidden group mb-6">
-            <div className="relative z-10">
-              <h3 className="font-black text-xl mb-2 italic">
-                {userData.name ? `Let's Work Together, ${userData.name.split(' ')[0]}!` : 'Ready to Collaborate?'}
-              </h3>
-              <p className="text-blue-100 text-sm mb-4 font-medium">
-                {userData.bio && userData.bio !== 'Tell us about yourself...' 
-                  ? `Available for projects and collaborations. ${userData.professional.primaryNiche} specialist with ${userData.professional.experience} of experience.`
-                  : 'Available for projects and collaborations. Contact me to discuss your ideas.'
-                }
-              </p>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setIsEditing(true)}
-                  className="bg-white/90 text-[#3078F1] px-5 py-2 rounded-xl font-black text-sm transition-all shadow-md hover:bg-white hover:scale-105"
-                >
-                  GET IN TOUCH
-                </button>
-                {userData.pricing.starting !== 'Contact for Pricing' && (
-                  <span className="text-blue-100 text-sm font-medium">
-                    Starting at {userData.pricing.starting}
-                  </span>
-                )}
-              </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Reach</label>
+              <p className="text-base font-semibold text-slate-900">{userData.stats.totalReach} followers</p>
             </div>
-            <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:rotate-12 transition-transform">
-              <MessageSquare size={80} />
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Budget Range</label>
+              <p className="text-base font-semibold text-slate-900">{userData.budgetMin || userData.budgetMax ? `${userData.budgetMin || '₹0'} - ${userData.budgetMax || '₹0'}` : 'Not specified'}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Default Budget</label>
+              <p className="text-base font-semibold text-slate-900">{userData.budget ? `₹${Number(userData.budget).toLocaleString()}` : 'Not specified'}</p>
             </div>
           </div>
         </div>
+
+      </div>
+
+      {/* Social Media Section */}
+      <div className="max-w-6xl mx-auto px-4 mt-8">
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3">
+              <div className="w-1 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }} />
+              Social Media
+            </h3>
+            <div>
+              <button onClick={() => setIsEditing(true)} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-semibold border border-indigo-100">Edit</button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            {(formData.socialLinks?.instagram || userData.stats.instagram.url) ? (
+              <a href={formData.socialLinks?.instagram || userData.stats.instagram.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 hover:shadow-sm">
+                <Instagram size={18} className="text-[#e1306c]" />
+                <span className="text-sm font-medium text-slate-700">Instagram</span>
+              </a>
+            ) : null}
+
+            {(formData.socialLinks?.youtube || userData.stats.youtube.url) ? (
+              <a href={formData.socialLinks?.youtube || userData.stats.youtube.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-red-50 px-4 py-2 rounded-lg border border-red-100 hover:shadow-sm">
+                <Youtube size={18} className="text-red-500" />
+                <span className="text-sm font-medium text-slate-700">YouTube</span>
+              </a>
+            ) : null}
+
+            {(formData.socialLinks?.facebook || userData.stats.facebook.url) ? (
+              <a href={formData.socialLinks?.facebook || userData.stats.facebook.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 hover:shadow-sm">
+                <Facebook size={18} className="text-blue-600" />
+                <span className="text-sm font-medium text-slate-700">Facebook</span>
+              </a>
+            ) : null}
+
+            {!(formData.socialLinks?.instagram || userData.stats.instagram.url || formData.socialLinks?.youtube || userData.stats.youtube.url || formData.socialLinks?.facebook || userData.stats.facebook.url) && (
+              <p className="text-sm text-slate-500">No social links added yet. Click Edit to add profiles.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Modern Portfolio Section */}
+      <div className="max-w-6xl mx-auto px-4 mt-8">
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 mb-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-1.5 h-8 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Portfolio Canvas</h3>
+            </div>
+            <button 
+              onClick={() => setIsEditing(true)} 
+              className="px-6 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-bold transition-all border border-slate-100"
+            >
+              Manage Work
+            </button>
+          </div>
+
+          {formData.portfolio && formData.portfolio.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {formData.portfolio.map((item, idx) => (
+                <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1">
+                  {typeof item === 'string' && (item.startsWith('http') || item.startsWith('/')) ? (
+                    <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : typeof item === 'object' && item?.url ? (
+                    <img src={item.url} alt={item.title || `Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-400 p-4 text-sm text-center font-medium capitalize">{item || 'Portfolio item'}</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <p className="text-white text-[11px] font-bold tracking-wide uppercase">Project {idx + 1}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <p className="text-slate-400 font-medium mb-6">No project showcase added yet.</p>
+              <button 
+                onClick={() => setIsEditing(true)} 
+                className="px-8 py-3 text-white rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95" style={{ background: 'rgb(238 119 17)' }}
+              >
+                Upload First Work
+              </button>
+            </div>
+          )}
+        </div>
+
+        <ProfileOverviewTab formData={formData} />
       </div>
     </div>
   );
