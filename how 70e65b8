@@ -1,0 +1,150 @@
+[33mcommit 5de302f93dfa43617b87da7737cfc5e172233403[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: vinit904 <vinitanjana904@gmail.com>
+Date:   Thu Apr 2 18:51:40 2026 +0530
+
+    chore: cleanup sensitive data and fix gitignore
+
+[1mdiff --git a/.gitignore b/.gitignore[m
+[1mnew file mode 100644[m
+[1mindex 0000000..3164e4e[m
+[1m--- /dev/null[m
+[1m+++ b/.gitignore[m
+[36m@@ -0,0 +1,26 @@[m
+[32m+[m[32m# Node modules[m
+[32m+[m[32mnode_modules/[m
+[32m+[m
+[32m+[m[32m# Environment variables[m
+[32m+[m[32m.env[m
+[32m+[m[32m.env.local[m
+[32m+[m[32m.env.development.local[m
+[32m+[m[32m.env.test.local[m
+[32m+[m[32m.env.production.local[m
+[32m+[m[32mbackend/.env[m
+[32m+[m[32mbackend/.env.local[m
+[32m+[m
+[32m+[m[32m# Logs[m
+[32m+[m[32mlogs[m
+[32m+[m[32m*.log[m
+[32m+[m[32mnpm-debug.log*[m
+[32m+[m
+[32m+[m[32m# Editor directories and files[m
+[32m+[m[32m.vscode/*[m
+[32m+[m[32m.idea/[m
+[32m+[m[32m.DS_Store[m
+[32m+[m
+[32m+[m[32m# Build artifacts[m
+[32m+[m[32mdist/[m
+[32m+[m[32mdist-ssr/[m
+[32m+[m[32mbuild/[m
+[1mdiff --git a/backend/seedInfluencers.js b/backend/seedInfluencers.js[m
+[1mnew file mode 100644[m
+[1mindex 0000000..720a164[m
+[1m--- /dev/null[m
+[1m+++ b/backend/seedInfluencers.js[m
+[36m@@ -0,0 +1,471 @@[m
+[32m+[m[32mconst mongoose = require('mongoose');[m
+[32m+[m[32mconst Influencer = require('./models/Influencer');[m
+[32m+[m
+[32m+[m[32m// Connect to MongoDB[m
+[32m+[m[32mmongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/artisthub', {[m
+[32m+[m[32m  useNewUrlParser: true,[m
+[32m+[m[32m  useUnifiedTopology: true,[m
+[32m+[m[32m});[m
+[32m+[m
+[32m+[m[32m// Enhanced influencer data with more realistic information[m
+[32m+[m[32mconst categories = ['singers', 'dancers', 'musicians', 'photographers', 'videographers', 'makeup_artists', 'decorators', 'mehendi_artists'];[m
+[32m+[m[32mconst subcategories = {[m
+[32m+[m[32m  singers: ['Classical', 'Bollywood', 'Sufi', 'Ghazal', 'Pop', 'Rock', 'Folk', 'Carnatic', 'Hindustani', 'Qawwali'],[m
+[32m+[m[32m  dancers: ['Classical', 'Bollywood', 'Hip-Hop', 'Contemporary', 'Folk', 'Bhangra', 'Garba', 'Kathak', 'Bharatanatyam', 'Odissi'],[m
+[32m+[m[32m  musicians: ['Guitarist', 'Pianist', 'Drummer', 'Flute', 'Violin', 'Tabla', 'Sitar', 'Saxophone', 'DJ', 'Music Producer'],[m
+[32m+[m[32m  photographers: ['Wedding', 'Portrait', 'Fashion', 'Product', 'Event', 'Wildlife', 'Street', 'Food', 'Architecture', 'Sports'],[m
+[32m+[m[32m  videographers: ['Wedding', 'Event', 'Commercial', 'Documentary', 'Music Video', 'Corporate', 'Travel', 'Cinematic', 'Drone', 'Short Film'],[m
+[32m+[m[32m  makeup_artists: ['Bridal', 'Fashion', 'Party', 'Special Effects', 'Character', 'Editorial', 'Theatrical', 'Airbrush', 'HD Makeup', 'Prosthetic'],[m
+[32m+[m[32m  decorators: ['Wedding', 'Event', 'Birthday', 'Corporate', 'Festival', 'Theme', 'Floral', 'Balloon', 'Lighting', 'Stage'],[m
+[32m+[m[32m  mehendi_artists: ['Traditional', 'Arabic', 'Bridal', 'Fusion', 'Modern', 'Rajasthani', 'Indo-Arabic', 'Moroccan', 'Pakistani', 'African'][m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mconst cities = ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune', 'Jaipur', 'Lucknow', 'Indore', 'Ahmedabad', 'Chandigarh', 'Goa', 'Kochi', 'Bhopal'];[m
+[32m+[m[32mconst firstNames = ['Rahul', 'Priya', 'Amit', 'Sneha', 'Rohit', 'Anjali', 'Vikram', 'Kavita', 'Arjun', 'Neha', 'Karan', 'Pooja', 'Aditya', 'Swati', 'Manish', 'Riya', 'Vivek', 'Meera', 'Suresh', 'Tina', 'Raj', 'Anita', 'Deepak', 'Pallavi', 'Ajay', 'Kavita', 'Rohit', 'Divya', 'Aakash', 'Sonia'];[m
+[32m+[m[32mconst lastNames = ['Sharma', 'Verma', 'Gupta', 'Agarwal', 'Jain', 'Singh', 'Kumar', 'Mishra', 'Pandey', 'Chopra', 'Malhotra', 'Bansal', 'Goel', 'Tandon', 'Chauhan', 'Reddy', 'Nair', 'Patel', 'Yadav', 'Mishra'];[m
+[32m+[m
+[32m+[m[32m// Predefined realistic influencer profiles[m
+[32m+[m[32mconst predefinedInfluencers = [[m
+[32m+[m[32m  {[m
+[32m+[m[32m    firstName: 'Manish',[m
+[32m+[m[32m    lastName: 'Sharma',[m
+[32m+[m[32m    email: 'manish.sharma@gmail.com',[m
+[32m+[m[32m    phone: '9876543210',[m
+[32m+[m[32m    dateOfBirth: new Date(1992, 5, 15),[m
+[32m+[m[32m    gender: 'male',[m
+[32m+[m[32m    password: 'artist123',[m
+[32m+[m[32m    artistType: 'solo',[m
+[32m+[m[32m    category: 'Dancers',[m
+[32m+[m[32m    subcategory: 'Bhangra',[m
+[32m+[m[32m    experience: '5-10',[m
+[32m+[m[32m    skills: ['Bhangra', 'Bollywood', 'Folk', 'Stage Performance', 'Choreography'],[m
+[32m+[m[32m    bio: 'Professional Bhangra dancer with over 8 years of experience. Specialized in Punjabi folk dance and Bollywood performances. Available for weddings, corporate events, and cultural shows.',[m
+[32m+[m[32m    location: 'Bangalore',[m
+[32m+[m[32m    budgetMin: 35000, // Starting from ₹35,000[m
+[32m+[m[32m    budgetMax: 60000, // Upto ₹60,000[m
+[32m+[m[32m    socialLinks: {[m
+[32m+[m[32m      instagram: 'https://instagram.com/manishbhangra',[m
+[32m+[m[32m      youtube: 'https://youtube.com/manishbhangra',[m
+[32m+[m[32m      facebook: 'https://facebook.com/manishsharma',[m
+[32m+[m[32m      website: 'https://manishsharma.com'[m
+[32m+[m[32m    },[m
+[32m+[m[32m    verificationStatus: 'verified',[m
+[32m+[m[32m    isActive: true,[m
+[32m+[m[32m    profileViews: 1250,[m
+[32m+[m[32m    trending: true,[m
+[32m+[m[32m    completedEvents: 150,[m
+[32m+[m[32m    responseTime: '2h',[m
+[32m+[m[32m    genre: 'Traditional',[m
+[32m+[m[32m    subOptions: ['Bhangra', 'Giddha', 'Ludi', 'Jhumar'],[m
+[32m+[m[32m    rating: { average: 4.7, count: 12 }[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    firstName: 'Priya',[m
+[32m+[m[32m    lastName: 'Singh',[m
+[32m+[m[32m    email: 'priya.singh@gmail.com',[m
+[32m+[m[32m    phone: '9876543211',[m
+[32m+[m[32m    dateOfBirth: new Date(1994, 8, 22),[m
+[32m+[m[32m    gender: 'female',[m
+[32m+[m[32m    password: 'artist123',[m
+[32m+[m[32m    artistType: 'solo',[m
+[32m+[m[32m    category: 'Dancers',[m
+[32m+[m[32m    subcategory: 'Bharatanatyam',[m
+[32m+[m[32m    experience: '3-5',[m
+[32m+[m[32m    skills: ['Bharatanatyam', 'Classical', 'Carnatic', 'Temple Dance', 'Traditional'],[m
+[32m+[m[32m    bio: 'Trained Bharatanatyam dancer with 4 years of professional experience. Expert in classical dance forms and temple dance traditions. Perfect for cultural and religious events.',[m
+[32m+[m[32m    location: 'Mumbai',[m
+[32m+[m[32m    budgetMin: 25000, // Starting from ₹25,000[m
+[32m+[m[32m    budgetMax: 45000, // Upto ₹45,000[m
+[32m+[m[32m    socialLinks: {[m
+[32m+[m[32m      instagram: 'https://instagram.com/priyabharatnatyam',[m
+[32m+[m[32m      youtube: 'https://youtube.com/priyabharatnatyam',[m
+[32m+[m[32m      facebook: 'https://facebook.com/priyasingh',[m
+[32m+[m[32m      website: 'https://priyasingh.com'[m
+[32m+[m[32m    },[m
+[32m+[m[32m    verificationStatus: 'verified',[m
+[32m+[m[32m    isActive: true,[m
+[32m+[m[32m    profileViews: 890,[m
+[32m+[m[32m    completedEvents: 89,[m
+[32m+[m[32m    responseTime: '4h',[m
+[32m+[m[32m    genre: 'Classical',[m
+[32m+[m[32m    subOptions: ['Bharatanatyam', 'Mohiniyattam', 'Kuchipudi', 'Odissi'],[m
+[32m+[m[32m    rating: { average: 4.9, count: 8 }[m
+[32m+[m[32m  },[m
+[32m+[m[32m  {[m
+[32m+[m[32m    firstName: 'Rahul',[m
+[32m+[m[32m    lastName: 'Kumar',[m
+[32m+[m[32m    email: 'rahul.kumar@gmail.com',[m
+[32m+[m[32m    phone: '9876543212',[m
+[32m+[m[32m    dateOfBirth: new Date(1991, 3, 10),[m
+[32m+[m[32m    gender: 'male',[m
+[32m+[m[32m    password: 'artist123',[m
+[32m+[m[32m    artistType: 'solo',[m
+[32m+[m[32m    category: 'Dancers',[m
+[32m+[m[32m    subcategory: 'Hip-Hop',[m
+[32m+[m[32m    experience: '5-10',[m
+[32m+[m[32m    skills: ['Hip-Hop', 'Contemporary', '

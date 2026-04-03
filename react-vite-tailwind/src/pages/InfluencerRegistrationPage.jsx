@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 
 /**
@@ -11,6 +11,25 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // OTP Verification States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpValue, setOtpValue] = useState(['', '', '', '', '', '']);
+  const [isOtpSending, setIsOtpSending] = useState(false);
+  const [isOtpVerifying, setIsOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -108,18 +127,143 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
     return true;
   };
 
+  /**
+   * Helper to format phone number to E.164 (e.g., +91XXXXXX)
+   */
+  const formatPhoneNumber = (phone) => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 10) {
+      return `+91${cleaned}`;
+    }
+    if (!phone.startsWith('+')) {
+      return `+${cleaned}`;
+    }
+    return phone;
+  };
 
-  const handleSubmit = async () => {
+  /**
+   * Send OTP to the user's phone number
+   */
+  const handleSendOtp = async () => {
     if (!validateForm()) return;
 
-    setLoading(true);
-    setError('');
+    setIsOtpSending(true);
+    setOtpError('');
 
     try {
-      // Influencer payload - only include required fields
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      const formattedPhone = formatPhoneNumber(formData.phone);
+      
+      const response = await fetch(`${API_BASE_URL}/api/otp/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone, email: formData.email })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setShowOtpModal(true);
+        setOtpSent(true);
+        setResendTimer(60);
+      } else {
+        setError(data.message || 'Failed to send OTP. Please check your phone number.');
+      }
+    } catch (err) {
+      setError('Network error while sending OTP. Please try again.');
+    } finally {
+      setIsOtpSending(false);
+    }
+  };
+
+  /**
+   * Verify OTP and proceed with registration
+   */
+  const handleVerifyOtp = async () => {
+    const combinedOtp = otpValue.join('');
+    if (combinedOtp.length !== 6) {
+      setOtpError('Please enter a 6-digit OTP');
+      return;
+    }
+
+    setIsOtpVerifying(true);
+    setOtpError('');
+
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      const formattedPhone = formatPhoneNumber(formData.phone);
+
+      const response = await fetch(`${API_BASE_URL}/api/otp/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: formattedPhone, otp: combinedOtp })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // OTP Verified! Now proceed with the actual registration
+        await registerInfluencer();
+      } else {
+        setOtpError(data.message || 'Invalid OTP. Please try again.');
+      }
+    } catch (err) {
+      setOtpError('Error verifying OTP. Please try again.');
+    } finally {
+      setIsOtpVerifying(false);
+    }
+  };
+
+  /**
+   * Handlers for split OTP Input
+   */
+  const handleOtpChange = (index, value) => {
+    if (isNaN(value)) return; // Allow only numbers
+    
+    const newOtp = [...otpValue];
+    newOtp[index] = value.substring(value.length - 1); // Only take last character
+    setOtpValue(newOtp);
+
+    // Auto focus next box
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otpValue[index] && index > 0) {
+      // Focus previous box on backspace
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').substring(0, 6).split('');
+    const newOtp = [...otpValue];
+    pastedData.forEach((char, i) => {
+      if (i < 6 && !isNaN(char)) newOtp[i] = char;
+    });
+    setOtpValue(newOtp);
+    // Focus last box or next empty one
+    const focusIndex = Math.min(pastedData.length, 5);
+    document.getElementById(`otp-${focusIndex}`)?.focus();
+  };
+
+  /**
+   * Final registration submission
+   */
+  const registerInfluencer = async () => {
+    setLoading(true);
+    setError('');
+    setShowOtpModal(false); // Close modal on success
+
+    try {
       const payload = {
         email: formData.email,
-        phone: formData.phone,
+        phone: formatPhoneNumber(formData.phone),
         password: formData.password,
         location: formData.location,
         categories: formData.categories,
@@ -153,10 +297,15 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
       }
     } catch (error) {
       setError('Network error. Please try again.');
-      console.error('Registration error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+
+  const handleSubmit = async () => {
+    // Instead of registering directly, we trigger the OTP flow
+    await handleSendOtp();
   };
 
 
@@ -455,6 +604,102 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
           </div>
         </div>
       </div>
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[200] p-4">
+          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-md flex flex-col p-8 sm:p-10 relative border border-gray-100">
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowOtpModal(false)}
+              className="absolute top-6 right-6 w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-orange-500 hover:bg-orange-50 transition-all hover:rotate-90"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto mb-5">
+                <svg className="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verify your WhatsApp</h2>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                We've sent a 6-digit code to
+              </p>
+              <p className="text-orange-500 font-bold text-base mt-1">{formData.phone}</p>
+            </div>
+
+            {/* Error Message */}
+            {otpError && (
+              <div className="mb-5 px-4 py-3 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm font-medium">
+                ⚠️ {otpError}
+              </div>
+            )}
+
+            {/* 6-Box OTP Input */}
+            <div className="space-y-6">
+              <div className="flex justify-center gap-3" onPaste={handleOtpPaste}>
+                {otpValue.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-bold bg-gray-50 border-2 border-gray-200 rounded-2xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all text-gray-900 outline-none"
+                  />
+                ))}
+              </div>
+
+              {/* Verify Button */}
+              <button
+                onClick={handleVerifyOtp}
+                disabled={isOtpVerifying || otpValue.join('').length !== 6}
+                className="w-full py-4 bg-orange-500 text-white rounded-2xl font-bold text-base shadow-lg shadow-orange-200/50 hover:bg-orange-600 hover:-translate-y-0.5 transition-all active:scale-95 disabled:opacity-40 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2"
+              >
+                {isOtpVerifying ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Verify & Complete Registration
+                  </>
+                )}
+              </button>
+
+              {/* Resend */}
+              <p className="text-center text-sm text-gray-400">
+                Didn't receive the code?{' '}
+                <button
+                  onClick={handleSendOtp}
+                  disabled={isOtpSending || resendTimer > 0}
+                  className="text-orange-500 font-semibold hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isOtpSending ? 'Sending...' : resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend Code'}
+                </button>
+              </p>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Category Selection Modal */}
       {showCategoryPopup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
