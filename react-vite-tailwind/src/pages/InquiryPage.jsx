@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useRouter } from '../contexts/RouterContext';
 
 const InquiryPage = ({ config }) => {
-  const { user, isAuthenticated, login } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
   const getThemeColor = (key) => {
@@ -17,8 +18,6 @@ const InquiryPage = ({ config }) => {
     hiringFor: 'influencer',
     category: '',
     location: '',
-    eventType: '',
-    eventDate: '',
     budget: '',
     requirements: ''
   }), [user]);
@@ -27,184 +26,112 @@ const InquiryPage = ({ config }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const { navigate } = useRouter();
 
-  const [loginForm, setLoginForm] = useState({ email: user?.email || '', password: '' });
-  const [loginSubmitting, setLoginSubmitting] = useState(false);
-  const [loginError, setLoginError] = useState(null);
-  const [loginSuccess, setLoginSuccess] = useState(null);
+  // Category suggestions for each hiring type
+  // Keys must match dropdown values exactly (including spaces)
+  const categoryOptions = {
+    'influencer': [
+      'Lifestyle',
+      'UGC Creator',
+      'Fashion',
+      'Fitness',
+      'Travel',
+      'Food',
+      'Tech',
+      'Finance',
+      'Gaming',
+      'Education',
+      'Motivation',
+      'Spiritual',
+      'Actor',
+      'Comedian',
+      'Model',
+      'Filmmaker',
+      'Historical',
+      'Other'
+    ],
+    celebrity: [
+      'Finance & Investment',
+      'Stock Market Analysis',
+      'Travel',
+      'Lifestyle',
+      'Fitness & Health',
+      'Yoga & Meditation',
+      'Motivation & Self Help',
+      'Study & Productivity',
+      'Career Guidance',
+      'Cooking',
+      'Street Food Vlogs',
+      'Kids Learning (Rhymes, ABC, Stories)',
+      'Technology (Unboxing)',
+      'App Review',
+      'Gadgets Review',
+      'Gaming',
+      'Comedy',
+      'Roasting',
+      'Street Interview',
+      'Personal Branding / Self Growth',
+      'Education',
+      'AI',
+      'Art & Craft',
+      'Historical',
+      'Spiritual',
+      'Fashion',
+      'Vlogs',
+      'Astrology',
+      'Other'
+    ],
+    'city page': [
+      'Food Pages',
+      'Local City Pages',
+      'State Pages'
+    ],
+    'meme page': [
+      'Meme Pages',
+      'Music Pages',
+      'Celebrity Pages',
+      'Motivation Pages',
+      'Devotional Pages',
+      'Media Pages',
+      'Political Pages',
+      'Other'
+    ]
+  };
 
-  const [authMode, setAuthMode] = useState('register');
-  const [registerForm, setRegisterForm] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    password: ''
-  });
-  const [registerSubmitting, setRegisterSubmitting] = useState(false);
-  const [registerError, setRegisterError] = useState(null);
-  const [registerSuccess, setRegisterSuccess] = useState(null);
 
-  const [showRegistrationPopup, setShowRegistrationPopup] = useState(false);
 
-  // Show popup for unauthenticated users and auto-hide after 4 seconds
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setShowRegistrationPopup(true);
-      const timer = setTimeout(() => {
-        setShowRegistrationPopup(false);
-      }, 4000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated]);
+
+
 
   useEffect(() => {
     setForm(initialForm);
   }, [initialForm]);
 
-  useEffect(() => {
-    const nextEmail = user?.email || form.email || '';
-    setLoginForm((prev) => (prev.email === nextEmail ? prev : { ...prev, email: nextEmail }));
-  }, [user?.email, form.email]);
 
-  useEffect(() => {
-    const nextEmail = user?.email || form.email || '';
-    const nextName = user?.name || form.name || '';
-    setRegisterForm((prev) => {
-      const next = { ...prev };
-      if (prev.email !== nextEmail) next.email = nextEmail;
-      if (prev.name !== nextName) next.name = nextName;
-      return next;
-    });
-  }, [user?.email, user?.name, form.email, form.name]);
 
   const onChange = (key) => (e) => {
-    setForm((prev) => ({ ...prev, [key]: e.target.value }));
-  };
-
-  const onLoginChange = (key) => (e) => {
-    setLoginForm((prev) => ({ ...prev, [key]: e.target.value }));
-  };
-
-  const onRegisterChange = (key) => (e) => {
-    setRegisterForm((prev) => ({ ...prev, [key]: e.target.value }));
-  };
-
-  const finishAuth = (data) => {
-    if (data?.token) {
-      localStorage.setItem('userToken', data.token);
-    }
-
-    const userData = { ...data };
-    delete userData.token;
-    delete userData.message;
-    login(userData);
-
-    setForm((prev) => ({
-      ...prev,
-      name: userData.name || prev.name,
-      email: userData.email || prev.email,
-      phone: userData.phone || prev.phone
-    }));
-  };
-
-  const handleInlineRegister = async (e) => {
-    e.preventDefault();
-    setRegisterError(null);
-    setRegisterSuccess(null);
-    setLoginError(null);
-    setLoginSuccess(null);
-    setError(null);
-    setSuccess(null);
-
-    if (!registerForm.name || !registerForm.email || !registerForm.password) {
-      setRegisterError('Please fill name, email and password to register.');
-      return;
-    }
-
-    try {
-      setRegisterSubmitting(true);
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: registerForm.name,
-          email: registerForm.email,
-          password: registerForm.password
-        })
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setRegisterError(data.message || 'Registration failed.');
-        return;
+    const value = e.target.value;
+    setForm((prev) => {
+      const updates = { [key]: value };
+      if (key === 'hiringFor') {
+        updates.category = '';
       }
-
-      finishAuth(data);
-      setRegisterForm((prev) => ({ ...prev, password: '' }));
-      setRegisterSuccess('Account created successfully. You can submit your inquiry now.');
-    } catch (err) {
-      console.error('Inline register error:', err);
-      setRegisterError('Network error while registering.');
-    } finally {
-      setRegisterSubmitting(false);
-    }
+      return { ...prev, ...updates };
+    });
   };
 
-  const handleInlineLogin = async (e) => {
-    e.preventDefault();
-    setLoginError(null);
-    setLoginSuccess(null);
-    setRegisterError(null);
-    setRegisterSuccess(null);
-    setError(null);
-    setSuccess(null);
 
-    if (!loginForm.email || !loginForm.password) {
-      setLoginError('Please enter email and password to continue.');
-      return;
-    }
 
-    try {
-      setLoginSubmitting(true);
-      const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: loginForm.email,
-          password: loginForm.password
-        })
-      });
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        const msg = data.message || 'Login failed.';
-        setLoginError(msg);
-
-        if (typeof msg === 'string' && msg.toLowerCase().includes('invalid email')) {
-          setAuthMode('register');
-          setRegisterError('You are not registered. Please create an account below.');
-        }
-        return;
-      }
-
-      finishAuth(data);
-      setLoginForm((prev) => ({ ...prev, password: '' }));
-      setLoginSuccess('Logged in successfully. You can submit your inquiry now.');
-    } catch (err) {
-      console.error('Inline login error:', err);
-      setLoginError('Network error while logging in.');
-    } finally {
-      setLoginSubmitting(false);
-    }
-  };
 
   const validate = () => {
     if (!form.name || !form.email || !form.phone) return 'Please fill your contact details.';
     if (!form.hiringFor) return 'Please select who you want to hire.';
     if (!form.category) return 'Please enter a category.';
     if (!form.location) return 'Please enter a location.';
-    if (!form.eventType) return 'Please enter an event type.';
-    if (!form.eventDate) return 'Please select an event date.';
+
     if (form.budget === '' || form.budget === null || form.budget === undefined) return 'Please enter a budget.';
     const budgetNumber = Number(form.budget);
     if (Number.isNaN(budgetNumber) || budgetNumber < 0) return 'Budget must be a valid number.';
@@ -217,7 +144,8 @@ const InquiryPage = ({ config }) => {
     setSuccess(null);
 
     if (!isAuthenticated) {
-      setError('Please sign in to submit an inquiry.');
+      localStorage.setItem('pendingInquiry', JSON.stringify(form));
+      setShowLoginModal(true);
       return;
     }
 
@@ -248,8 +176,7 @@ const InquiryPage = ({ config }) => {
           hiringFor: form.hiringFor,
           category: form.category,
           location: form.location,
-          eventType: form.eventType,
-          eventDate: form.eventDate,
+
           budget: Number(form.budget),
           requirements: form.requirements
         })
@@ -267,8 +194,7 @@ const InquiryPage = ({ config }) => {
         hiringFor: 'influencer',
         category: '',
         location: '',
-        eventType: '',
-        eventDate: '',
+
         budget: '',
         requirements: ''
       }));
@@ -285,171 +211,25 @@ const InquiryPage = ({ config }) => {
       <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0 py-0">
         <div className="w-full" style={{ backgroundColor: getThemeColor('surface') || 'transparent' }}>
           <div
-            className="w-full px-6 sm:px-8 py-6 bg-gradient-to-br"
+            className="w-full px-6 sm:px-8 py-10 bg-gradient-to-br rounded-b-[3rem] shadow-lg"
             style={{
               backgroundImage: `linear-gradient(135deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)`
             }}
           >
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 max-w-6xl mx-auto">
-              <div>
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">Send a Collaboration Request</h1>
-                <p className="text-white/95 mt-2 max-w-2xl leading-tight text-sm md:text-base">
-                  Send a collaboration request for an influencer. Your inquiry will be reviewed by the admin and marked as <span className="font-semibold">Pending</span> by default.
+              <div className="flex-1">
+                <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">Hire Influencers</h1>
+                <p className="text-white/90 mt-2 max-w-xl leading-relaxed text-sm md:text-lg">
+                  Connect with the best influencers for your brand campaigns.
                 </p>
               </div>
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10 text-sm text-white/90">
-                <p className="font-semibold">Status Workflow</p>
-                <p className="mt-1 text-xs">Pending → Accepted / Rejected</p>
-              </div>
+
+
             </div>
           </div>
 
           <div className="mt-8 px-0 sm:px-0 pb-8 relative z-10">
-            {!isAuthenticated && (
-              <div className="mb-8 bg-white p-6 rounded-xl shadow-md border border-gray-100 border-l-4 border-brand-500">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
-                    <h2 className="text-lg font-semibold text-gray-900">{authMode === 'register' ? 'Create account' : 'Login to continue'}</h2>
-                  </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMode('login');
-                        setRegisterError(null);
-                        setRegisterSuccess(null);
-                      }}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
-                        authMode === 'login' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      Login
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAuthMode('register');
-                        setLoginError(null);
-                        setLoginSuccess(null);
-                      }}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
-                        authMode === 'register' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      Register
-                    </button>
-                  </div>
-                </div>
-
-                <p className="text-sm text-gray-500 mt-2">
-                  {authMode === 'register'
-                    ? 'If you are new, create an account here. Your session will be saved automatically.'
-                    : 'Login here and your session will be saved. Next time you won\'t need to login again.'}
-                </p>
-
-                {authMode === 'login' && loginSuccess && (
-                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{loginSuccess}</div>
-                )}
-                {authMode === 'login' && loginError && (
-                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{loginError}</div>
-                )}
-
-                {authMode === 'register' && registerSuccess && (
-                  <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{registerSuccess}</div>
-                )}
-                {authMode === 'register' && registerError && (
-                  <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{registerError}</div>
-                )}
-
-                {authMode === 'login' ? (
-                  <form onSubmit={handleInlineLogin} className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-1">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</label>
-                      <input
-                        type="email"
-                        value={loginForm.email}
-                        onChange={onLoginChange('email')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                        placeholder="Email address"
-                        autoComplete="email"
-                      />
-                    </div>
-                    <div className="sm:col-span-1">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Password</label>
-                      <input
-                        type="password"
-                        value={loginForm.password}
-                        onChange={onLoginChange('password')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                        placeholder="Password"
-                        autoComplete="current-password"
-                      />
-                    </div>
-                    <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-                      <button
-                        type="submit"
-                        disabled={loginSubmitting}
-                        className={`px-8 py-3 rounded-full font-semibold text-white shadow-2xl transition-all flex items-center gap-3 justify-center w-full sm:w-auto ${
-                          loginSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl active:scale-[0.99]'
-                        }`}
-                        style={{ background: `linear-gradient(90deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)` }}
-                      >
-                        {loginSubmitting ? 'Logging in...' : 'Login'}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleInlineRegister} className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="sm:col-span-1">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Full Name</label>
-                      <input
-                        value={registerForm.name}
-                        onChange={onRegisterChange('name')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                        placeholder="Your name"
-                        autoComplete="name"
-                      />
-                    </div>
-                    <div className="sm:col-span-1">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</label>
-                      <input
-                        type="email"
-                        value={registerForm.email}
-                        onChange={onRegisterChange('email')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                        placeholder="Email address"
-                        autoComplete="email"
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Password</label>
-                      <input
-                        type="password"
-                        value={registerForm.password}
-                        onChange={onRegisterChange('password')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                        placeholder="Create a password"
-                        autoComplete="new-password"
-                      />
-                    </div>
-                    <div className="sm:col-span-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3">
-                      <button
-                        type="submit"
-                        disabled={registerSubmitting}
-                        className={`px-8 py-3 rounded-full font-semibold text-white shadow-2xl transition-all flex items-center gap-3 justify-center w-full sm:w-auto ${
-                          registerSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl active:scale-[0.99]'
-                        }`}
-                        style={{ background: `linear-gradient(90deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)` }}
-                      >
-                        {registerSubmitting ? 'Creating...' : 'Create Account'}
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            )}
 
             {error && (
               <div className="mb-8 rounded-lg border border-red-200 bg-red-50 pl-4 pr-5 py-3 flex items-start gap-3 border-l-4 border-red-400">
@@ -482,8 +262,8 @@ const InquiryPage = ({ config }) => {
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Full Name</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Full Name / Brand Name</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A9 9 0 1118.88 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -492,15 +272,15 @@ const InquiryPage = ({ config }) => {
                         <input
                           value={form.name}
                           onChange={onChange('name')}
-                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="Your name"
                           autoComplete="name"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Phone</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Phone</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h2.6a1 1 0 01.9.55l1.2 2.4a1 1 0 01-.2 1.05L9 8.5a11 11 0 005.5 5.5l1.5-1.1a1 1 0 011.05-.2l2.4 1.2A1 1 0 0119 18.4V21a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
@@ -509,15 +289,15 @@ const InquiryPage = ({ config }) => {
                         <input
                           value={form.phone}
                           onChange={onChange('phone')}
-                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="Phone number"
                           autoComplete="tel"
                         />
                       </div>
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Email</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Email</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12H8m8 0l-4-4m4 4l-4 4" />
@@ -527,7 +307,7 @@ const InquiryPage = ({ config }) => {
                           type="email"
                           value={form.email}
                           onChange={onChange('email')}
-                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="Email address"
                           autoComplete="email"
                         />
@@ -545,35 +325,60 @@ const InquiryPage = ({ config }) => {
 
                   <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Hiring For</label>
-                      <select
-                        value={form.hiringFor}
-                        onChange={onChange('hiringFor')}
-                        className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 appearance-none cursor-pointer"
-                      >
-                        <option value="influencer">Influencer</option>
-                        <option value="creator">Creator</option>
-                      </select>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Hiring Of</label>
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-gray-400 group-focus-within:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </div>
+                        <select
+                          value={form.hiringFor}
+                          onChange={onChange('hiringFor')}
+                          className="mt-0 w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50/30 shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white appearance-none cursor-pointer transition-all duration-200 font-medium text-gray-800"
+                        >
+                          <option value="influencer">Hiring of Influencer</option>
+                          <option value="celebrity">Hiring of Celebrity</option>
+                          <option value="city page">Hiring of City Page</option>
+                          <option value="meme page">Hiring of Meme Page</option>
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 group-hover:text-gray-600 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Category</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Category</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h12M3 17h18" />
                           </svg>
                         </div>
-                        <input
+                        <select
                           value={form.category}
                           onChange={onChange('category')}
-                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
-                          placeholder="e.g. Lifestyle, Fitness, Tech"
-                        />
+                          className="mt-0 w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50/30 shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white appearance-none cursor-pointer transition-all duration-200 font-medium text-gray-800"
+                        >
+                          <option value="">Select Category</option>
+                          {categoryOptions[form.hiringFor]?.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 group-hover:text-gray-600 transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Location</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Location</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -583,21 +388,21 @@ const InquiryPage = ({ config }) => {
                         <input
                           value={form.location}
                           onChange={onChange('location')}
-                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="City / Venue"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Budget (INR)</label>
-                      <div className="mt-2 relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Budget (INR)</label>
+                      <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <span className="text-gray-600">₹</span>
                         </div>
                         <input
                           value={form.budget}
                           onChange={onChange('budget')}
-                          className="mt-0 w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-200"
+                          className="mt-0 w-full pl-8 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
                           placeholder="e.g. 5000"
                           inputMode="numeric"
                         />
@@ -614,33 +419,15 @@ const InquiryPage = ({ config }) => {
                 </div>
                 <p className="text-sm text-gray-500 mt-1">Help us understand the timeline and context.</p>
 
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Event Type</label>
-                    <input
-                      value={form.eventType}
-                      onChange={onChange('eventType')}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                      placeholder="e.g. Wedding, Brand Shoot"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Event Date</label>
-                    <input
-                      type="date"
-                      value={form.eventDate}
-                      onChange={onChange('eventDate')}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                    />
-                  </div>
+                <div className="mt-6">
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide">Requirements / Message</label>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Requirements / Message</label>
                     <textarea
                       value={form.requirements}
                       onChange={onChange('requirements')}
-                      rows={4}
-                      className="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100"
-                      placeholder="Describe the influencer style, duration, deliverables, audience size, etc."
+                      rows={6}
+                      className="mt-0 w-full px-4 py-4 rounded-2xl border border-gray-100 bg-white shadow-inner focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all text-gray-800"
+                      placeholder="Describe the event type, event date, influencer style, duration, deliverables, audience size, etc."
                     />
                   </div>
                 </div>
@@ -655,9 +442,8 @@ const InquiryPage = ({ config }) => {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className={`px-8 py-3 rounded-full font-semibold text-white shadow-2xl transition-all flex items-center gap-3 justify-center w-full sm:w-auto ${
-                      submitting ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl active:scale-[0.99]'
-                    }`}
+                    className={`px-8 py-3 rounded-full font-semibold text-white shadow-2xl transition-all flex items-center gap-3 justify-center w-full sm:w-auto ${submitting ? 'opacity-60 cursor-not-allowed' : 'hover:shadow-2xl active:scale-[0.99]'
+                      }`}
                     style={{ background: `linear-gradient(90deg, ${getThemeColor('primary') || '#ee7711'} 0%, ${getThemeColor('secondary') || '#f19332'} 100%)` }}
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -672,120 +458,52 @@ const InquiryPage = ({ config }) => {
         </div>
       </div>
 
-      {/* Registration Popup */}
-      {showRegistrationPopup && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[200] animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform transition-all animate-scaleIn">
-            {/* Decorative Header */}
-            <div className="text-center mb-6">
-              <div 
-                className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-4"
-                style={{ background: `linear-gradient(135deg, ${getThemeColor('primary')}20 0%, ${getThemeColor('secondary')}20 100%)` }}
+      {/* Login Requirement Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 scale-100">
+            <div className="relative p-8 sm:p-10 text-center">
+              {/* Close Button */}
+              <button
+                onClick={() => setShowLoginModal(false)}
+                className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <svg 
-                  className="w-10 h-10" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  style={{ color: getThemeColor('primary') }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Please Register to Send Inquiries</h3>
-              <p className="text-gray-600">Join our platform to connect with amazing influencers and grow your brand.</p>
-            </div>
+              </button>
 
-            {/* Visual Elements */}
-            <div className="flex justify-center gap-2 mb-6">
-              <span 
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full"
-                style={{ backgroundColor: `${getThemeColor('primary')}20` }}
-              >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('primary') }}
-                >
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              <div className="w-20 h-20 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-3">
+                <svg className="w-10 h-10 text-orange-500 -rotate-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                 </svg>
-              </span>
-              <span 
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full"
-                style={{ backgroundColor: `${getThemeColor('secondary')}20` }}
-              >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('secondary') }}
-                >
-                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </span>
-              <span 
-                className="inline-flex items-center justify-center w-10 h-10 rounded-full"
-                style={{ backgroundColor: `${getThemeColor('primary')}15` }}
-              >
-                <svg 
-                  className="w-5 h-5" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('primary') }}
-                >
-                  <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" />
-                  <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" />
-                </svg>
-              </span>
-            </div>
+              </div>
 
-            {/* Benefits List */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <svg 
-                  className="w-5 h-5 flex-shrink-0" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('primary') }}
-                >
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Access to verified influencers</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <svg 
-                  className="w-5 h-5 flex-shrink-0" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('secondary') }}
-                >
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Send unlimited inquiries</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <svg 
-                  className="w-5 h-5 flex-shrink-0" 
-                  fill="currentColor" 
-                  viewBox="0 0 20 20"
-                  style={{ color: getThemeColor('primary') }}
-                >
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>Track campaign progress</span>
-              </div>
-            </div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 tracking-tight">You're almost there!</h3>
+              <p className="text-gray-600 mb-8 text-base sm:text-lg leading-relaxed">
+                Please sign up to complete your inquiry and track its progress in your dashboard.
+              </p>
 
-            {/* Auto-hide message */}
-            <div 
-              className="text-center text-sm italic px-4 py-2 rounded-lg"
-              style={{ 
-                backgroundColor: `${getThemeColor('primary')}10`,
-                color: getThemeColor('primary')
-              }}
-            >
-              This message will disappear automatically in 4 seconds...
+              <div className="space-y-4">
+                <button
+                  onClick={() => navigate('registration', { type: 'user' })}
+                  className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl font-bold text-lg shadow-lg shadow-orange-200 hover:shadow-orange-300 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  New User? Sign Up
+                </button>
+                <button
+                  onClick={() => navigate('auth')}
+                  className="w-full py-4 bg-white border-2 border-orange-500 text-orange-500 rounded-2xl font-bold text-lg hover:bg-orange-50 transition-all"
+                >
+                  Have an Account? Sign In
+                </button>
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="w-full py-4 text-gray-500 font-semibold hover:text-gray-700 transition-colors"
+                >
+                  Continue as Guest (Draft)
+                </button>
+              </div>
             </div>
           </div>
         </div>

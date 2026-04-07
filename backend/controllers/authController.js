@@ -61,6 +61,7 @@ const registerUser = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         token: generateToken(user._id),
         message: 'User registered successfully'
@@ -140,6 +141,7 @@ const loginUser = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role || 'user',
       token,
       message: 'Login successful'

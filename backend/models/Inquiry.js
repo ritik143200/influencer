@@ -24,7 +24,7 @@ const inquirySchema = new mongoose.Schema({
     },
     hiringFor: {
         type: String,
-        enum: ['artist', 'influencer'],
+        enum: ['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'],
         required: true
     },
     category: {
@@ -37,14 +37,9 @@ const inquirySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    eventType: {
-        type: String,
-        required: true,
-        trim: true
-    },
     eventDate: {
         type: Date,
-        required: true
+        default: Date.now
     },
     budget: {
         type: Number,

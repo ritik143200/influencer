@@ -18,7 +18,7 @@ const AdminDashboard = ({ config }) => {
 
   const { user, logout } = useAuth();
 
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
   const [adminData, setAdminData] = useState(null);
 
@@ -48,7 +48,7 @@ const AdminDashboard = ({ config }) => {
 
   const [inquiries, setInquiries] = useState([]);
 
-  
+
 
   // Influencer detail modal state
 
@@ -70,7 +70,7 @@ const AdminDashboard = ({ config }) => {
 
   const [showUserModal, setShowUserModal] = useState(false);
 
-  
+
 
   // Forward inquiry modal state
 
@@ -189,11 +189,11 @@ const AdminDashboard = ({ config }) => {
 
       });
 
-      
+
 
       console.log('Influencers fetch response status:', influencersRes.status);
 
-      
+
 
       if (influencersRes.ok) {
 
@@ -201,28 +201,28 @@ const AdminDashboard = ({ config }) => {
 
         console.log('Influencers data received:', influencersData);
 
-        const influencersArray = Array.isArray(influencersData.data) ? influencersData.data : 
+        const influencersArray = Array.isArray(influencersData.data) ? influencersData.data :
 
-                            Array.isArray(influencersData) ? influencersData : 
+          Array.isArray(influencersData) ? influencersData :
 
-                            Array.isArray(influencersData.artists) ? influencersData.artists : [];
+            Array.isArray(influencersData.artists) ? influencersData.artists : [];
 
         console.log('Influencers array after processing:', influencersArray);
 
-        
+
 
         // Filter out influencers with missing required fields and create demo influencers if needed
 
-        const validInfluencers = influencersArray.filter(influencer => 
-          influencer && influencer.email && 
+        const validInfluencers = influencersArray.filter(influencer =>
+          influencer && influencer.email &&
           (influencer.categories && influencer.categories.length > 0 || influencer.category)
         );
 
-        
+
 
         console.log('Valid influencers after filtering:', validInfluencers.length);
 
-        
+
 
         // If no valid influencers exist, create demo influencers for testing
 
@@ -290,7 +290,7 @@ const AdminDashboard = ({ config }) => {
 
         }
 
-        
+
 
         // Set demo artists as fallback
 
@@ -393,7 +393,7 @@ const AdminDashboard = ({ config }) => {
       if (isManualRefresh) {
         setIsRefreshing(true);
       }
-      
+
       const res = await fetch(`${API_BASE_URL}/api/admin/overview`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
       });
@@ -423,6 +423,15 @@ const AdminDashboard = ({ config }) => {
     fetchDashboardData();
     fetchOverviewAnalytics();
   }, [adminData, API_BASE_URL]);
+
+  // Helper to safely render location (handles both string and object formats)
+  const renderLocation = (loc) => {
+    if (!loc) return 'Not specified';
+    if (typeof loc === 'string') return loc;
+    const { city = '', country = '' } = loc;
+    const formatted = [city, country].filter(Boolean).join(', ');
+    return formatted || 'Not specified';
+  };
 
   const handleAdminInquiryAction = async (inquiryId, action) => {
     try {
@@ -466,47 +475,47 @@ const AdminDashboard = ({ config }) => {
   };
 
   const handleViewInfluencerDetails = async (influencer) => {
-  setLoadingInfluencerDetails(true);
-  try {
-    const influencerId = influencer._id || influencer.id;
-    let fullInfluencerData = influencer;
+    setLoadingInfluencerDetails(true);
+    try {
+      const influencerId = influencer._id || influencer.id;
+      let fullInfluencerData = influencer;
 
-    // If we have minimal influencer data, try multiple approaches to get full details
-    if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
+      // If we have minimal influencer data, try multiple approaches to get full details
+      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
 
-      // First try to find in existing influencers array
-      const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
-      if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
-        fullInfluencerData = { ...influencer, ...existingInfluencer };
-      } else {
-        // Then try API call
-        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
-        const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('userToken')}` 
-          }
-        });
+        // First try to find in existing influencers array
+        const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
+        if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
+          fullInfluencerData = { ...influencer, ...existingInfluencer };
+        } else {
+          // Then try API call
+          const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+            }
+          });
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            fullInfluencerData = data.data;
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              fullInfluencerData = data.data;
+            }
           }
         }
       }
-    }
 
-    setSelectedForwardedInfluencer(fullInfluencerData);
-    setShowInfluencerDetailsModal(true);
-  } catch (error) {
-    console.error('Error fetching Influencer Details:', error);
-    // Show error message to user and fallback to available data
-    alert('Failed to fetch complete Influencer Details. Showing available information.');
-    setSelectedForwardedInfluencer(influencer);
-    setShowInfluencerDetailsModal(true);
-  } finally {
-    setLoadingInfluencerDetails(false);
-  }
+      setSelectedForwardedInfluencer(fullInfluencerData);
+      setShowInfluencerDetailsModal(true);
+    } catch (error) {
+      console.error('Error fetching Influencer Details:', error);
+      // Show error message to user and fallback to available data
+      alert('Failed to fetch complete Influencer Details. Showing available information.');
+      setSelectedForwardedInfluencer(influencer);
+      setShowInfluencerDetailsModal(true);
+    } finally {
+      setLoadingInfluencerDetails(false);
+    }
 
   };
 
@@ -523,7 +532,7 @@ const AdminDashboard = ({ config }) => {
 
         method: 'PATCH',
 
-        headers: { 
+        headers: {
 
           'Content-Type': 'application/json',
 
@@ -531,9 +540,9 @@ const AdminDashboard = ({ config }) => {
 
         },
 
-        body: JSON.stringify({ 
+        body: JSON.stringify({
 
-          notes: 'Inquiry completed by admin' 
+          notes: 'Inquiry completed by admin'
 
         })
 
@@ -731,7 +740,7 @@ const AdminDashboard = ({ config }) => {
 
         method: 'POST',
 
-        headers: { 
+        headers: {
 
           'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
 
@@ -741,7 +750,7 @@ const AdminDashboard = ({ config }) => {
 
       });
 
-      
+
 
       if (res.ok) {
 
@@ -753,7 +762,7 @@ const AdminDashboard = ({ config }) => {
 
         setTimeout(() => setSuccessMessage(null), 3000);
 
-        
+
 
         if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
 
@@ -789,7 +798,7 @@ const AdminDashboard = ({ config }) => {
 
     }
 
-    
+
 
     try {
 
@@ -801,7 +810,7 @@ const AdminDashboard = ({ config }) => {
 
       });
 
-      
+
 
       if (res.ok) {
 
@@ -854,9 +863,9 @@ const AdminDashboard = ({ config }) => {
       const data = await res.json();
       if (res.ok && data.success) {
         const updatedInfluencer = data.data;
-        
+
         // Update influencers list
-        setInfluencers(prev => prev.map(i => 
+        setInfluencers(prev => prev.map(i =>
           (i._id === influencerId || i.id === influencerId) ? updatedInfluencer : i
         ));
 
@@ -871,7 +880,7 @@ const AdminDashboard = ({ config }) => {
         }
 
         setSuccessMessage(`Influencer ${newStatus ? 'activated' : 'deactivated'} successfully!`);
-        
+
         // Don't refresh entire dashboard - just update local state
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
@@ -973,23 +982,22 @@ const AdminDashboard = ({ config }) => {
         <button
           onClick={() => fetchOverviewAnalytics(true)}
           disabled={isRefreshing}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${
-            isRefreshing 
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${isRefreshing
+              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
               : 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md'
-          }`}
+            }`}
         >
-          <svg 
-            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={2} 
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
           {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -1406,159 +1414,159 @@ const AdminDashboard = ({ config }) => {
   // Keep all other existing functions unchanged but with theme consistency
 
   const renderUsers = () => {
-  // Filter users based on filters
-  const filteredUsers = users.filter(user => {
-    const matchesRole = filterRole === 'all' || user.role === filterRole;
-    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-    const matchesSearch = searchTerm === '' || 
-      (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       user.email?.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    return matchesRole && matchesStatus && matchesSearch;
-  });
+    // Filter users based on filters
+    const filteredUsers = users.filter(user => {
+      const matchesRole = filterRole === 'all' || user.role === filterRole;
+      const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+      const matchesSearch = searchTerm === '' ||
+        (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  return (
-    <div className="w-full">
-      {/* Full Page Header */}
-      <div className={`bg-gradient-to-r ${getCategoryColors(1)} p-6 shadow-lg`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-white">User Management</h3>
-            <button className="px-4 py-2 bg-white text-green-600 rounded-xl font-medium hover:bg-green-50 transition-colors">
-              Add New User
-            </button>
-          </div>
-          
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            {/* Search */}
-            <div className="flex-1 min-w-[200px]">
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
-              />
+      return matchesRole && matchesStatus && matchesSearch;
+    });
+
+    return (
+      <div className="w-full">
+        {/* Full Page Header */}
+        <div className={`bg-gradient-to-r ${getCategoryColors(1)} p-6 shadow-lg`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-bold text-white">User Management</h3>
+              <button className="px-4 py-2 bg-white text-green-600 rounded-xl font-medium hover:bg-green-50 transition-colors">
+                Add New User
+              </button>
             </div>
-            
-            {/* Role Filter */}
-            <select
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
-              <option value="all" className="text-gray-900">All Roles</option>
-              <option value="user" className="text-gray-900">User</option>
-              <option value="admin" className="text-gray-900">Admin</option>
-              <option value="artist" className="text-gray-900">Artist</option>
-              <option value="influencer" className="text-gray-900">Influencer</option>
-            </select>
-            
-            {/* Status Filter */}
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
-              <option value="all" className="text-gray-900">All Status</option>
-              <option value="active" className="text-gray-900">Active</option>
-              <option value="inactive" className="text-gray-900">Inactive</option>
-              <option value="suspended" className="text-gray-900">Suspended</option>
-            </select>
-            
-            {/* Clear Filters */}
-            <button
-              onClick={() => {
-                setFilterRole('all');
-                setFilterStatus('all');
-                setSearchTerm('');
-              }}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              Clear Filters
-            </button>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              {/* Search */}
+              <div className="flex-1 min-w-[200px]">
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                />
+              </div>
+
+              {/* Role Filter */}
+              <select
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                <option value="all" className="text-gray-900">All Roles</option>
+                <option value="user" className="text-gray-900">User</option>
+                <option value="admin" className="text-gray-900">Admin</option>
+                <option value="artist" className="text-gray-900">Artist</option>
+                <option value="influencer" className="text-gray-900">Influencer</option>
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                <option value="all" className="text-gray-900">All Status</option>
+                <option value="active" className="text-gray-900">Active</option>
+                <option value="inactive" className="text-gray-900">Inactive</option>
+                <option value="suspended" className="text-gray-900">Suspended</option>
+              </select>
+
+              {/* Clear Filters */}
+              <button
+                onClick={() => {
+                  setFilterRole('all');
+                  setFilterStatus('all');
+                  setSearchTerm('');
+                }}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Full Page Content */}
-      <div className="w-full p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
-          {filteredUsers.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <div className="text-gray-400">No users found matching your filters.</div>
-            </div>
-          ) : filteredUsers.map((user) => (
-            <div key={user._id || user.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-              {/* User Header Row */}
-              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-4">
-                    {/* User Avatar */}
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      {user.name?.charAt(0).toUpperCase()}
-                    </div>
-                    
-                    {/* User Info */}
-                    <div className="flex-1">
-                      <div className="flex flex-wrap items-center gap-3 mb-2">
-                        <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                          {user.role}
-                        </span>
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                          {user.status || 'Active'}
-                        </span>
+        {/* Full Page Content */}
+        <div className="w-full p-6">
+          <div className="max-w-7xl mx-auto space-y-4">
+            {filteredUsers.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+                <div className="text-gray-400">No users found matching your filters.</div>
+              </div>
+            ) : filteredUsers.map((user) => (
+              <div key={user._id || user.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+                {/* User Header Row */}
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-4">
+                      {/* User Avatar */}
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        {user.name?.charAt(0).toUpperCase()}
                       </div>
-                      <div className="text-sm text-gray-600">
-                        <div className="font-medium">{user.email}</div>
+
+                      {/* User Info */}
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            {user.role}
+                          </span>
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            {user.status || 'Active'}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium">{user.email}</div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                  <button
+                    onClick={() => handleViewUserDetails(user)}
+                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    Manage User
+                  </button>
+                  <button
+                    onClick={() => handleViewUserDetails(user)}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleUpdateUserStatus(user._id || user.id, 'unblock')}
+                    className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Activate
+                  </button>
+                  <button
+                    onClick={() => handleUpdateUserStatus(user._id || user.id, 'block')}
+                    className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
+                  >
+                    Deactivate
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user._id || user.id)}
+                    className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              
-              {/* Actions */}
-              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                <button 
-                  onClick={() => handleViewUserDetails(user)}
-                  className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                >
-                  Manage User
-                </button>
-                <button 
-                  onClick={() => handleViewUserDetails(user)}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  View Details
-                </button>
-                <button 
-                  onClick={() => handleUpdateUserStatus(user._id || user.id, 'unblock')}
-                  className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Activate
-                </button>
-                <button 
-                  onClick={() => handleUpdateUserStatus(user._id || user.id, 'block')}
-                  className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
-                >
-                  Deactivate
-                </button>
-                <button 
-                  onClick={() => handleDeleteUser(user._id || user.id)}
-                  className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
 
@@ -1569,295 +1577,291 @@ const AdminDashboard = ({ config }) => {
 
 
   const renderInquiries = () => {
-  // Filter inquiries based on filters
-  const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
-    const status = inquiry.status || 'sent';
-    const matchesStatus = filterStatusInquiry === 'all' || status === filterStatusInquiry;
-    const matchesSearch = searchTermInquiry === '' || 
-      (inquiry.hiringFor?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-       inquiry.userId?.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-       inquiry.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-       inquiry.email?.toLowerCase().includes(searchTermInquiry.toLowerCase()));
-    
-    return matchesStatus && matchesSearch;
-  });
+    // Filter inquiries based on filters
+    const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
+      const status = inquiry.status || 'sent';
+      const matchesStatus = filterStatusInquiry === 'all' || status === filterStatusInquiry;
+      const matchesSearch = searchTermInquiry === '' ||
+        (inquiry.hiringFor?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+          inquiry.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+          inquiry.email?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
+          (inquiry.userId && typeof inquiry.userId === 'object' && inquiry.userId.name?.toLowerCase().includes(searchTermInquiry.toLowerCase())));
 
-  return (
-    <div className="w-full">
-      {/* Full Page Header */}
-      <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 shadow-lg`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-2xl font-bold text-white">Inquiry Management</h3>
-            <div className="text-white/90 text-sm font-semibold">
-              Total: {filteredInquiries.length} / {Array.isArray(inquiries) ? inquiries.length : 0}
+      return matchesStatus && matchesSearch;
+    });
+
+    return (
+      <div className="w-full">
+        {/* Full Page Header */}
+        <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 shadow-lg`}>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-2xl font-bold text-white">Inquiry Management</h3>
+              <div className="text-white/90 text-sm font-semibold">
+                Total: {filteredInquiries.length} / {Array.isArray(inquiries) ? inquiries.length : 0}
+              </div>
             </div>
-          </div>
-          
-          {/* Filters */}
-          <div className="flex flex-wrap gap-3">
-            {/* Search */}
-            <div className="flex-1 min-w-[200px]">
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              {/* Search */}
+              <div className="flex-1 min-w-[200px]">
+                <input
+                  type="text"
+                  placeholder="Search inquiries..."
+                  value={searchTermInquiry}
+                  onChange={(e) => setSearchTermInquiry(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                />
+              </div>
+
+              {/* Status Filter */}
+              <select
+                value={filterStatusInquiry}
+                onChange={(e) => setFilterStatusInquiry(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              >
+                <option value="all" className="text-gray-900">All Status</option>
+                <option value="sent" className="text-gray-900">Sent</option>
+                <option value="admin_accepted" className="text-gray-900">Accepted</option>
+                <option value="admin_rejected" className="text-gray-900">Rejected</option>
+                <option value="forwarded" className="text-gray-900">Forwarded</option>
+                <option value="artist_accepted" className="text-gray-900">Artist Accepted</option>
+                <option value="artist_rejected" className="text-gray-900">Artist Rejected</option>
+                <option value="completed" className="text-gray-900">Completed</option>
+              </select>
+
+              {/* Date Filter */}
               <input
-                type="text"
-                placeholder="Search inquiries..."
-                value={searchTermInquiry}
-                onChange={(e) => setSearchTermInquiry(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
               />
+
+              {/* Clear Filters */}
+              <button
+                onClick={() => {
+                  setFilterStatusInquiry('all');
+                  setFilterDate('');
+                  setSearchTermInquiry('');
+                }}
+                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
-            
-            {/* Status Filter */}
-            <select
-              value={filterStatusInquiry}
-              onChange={(e) => setFilterStatusInquiry(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
-              <option value="all" className="text-gray-900">All Status</option>
-              <option value="sent" className="text-gray-900">Sent</option>
-              <option value="admin_accepted" className="text-gray-900">Accepted</option>
-              <option value="admin_rejected" className="text-gray-900">Rejected</option>
-              <option value="forwarded" className="text-gray-900">Forwarded</option>
-              <option value="artist_accepted" className="text-gray-900">Artist Accepted</option>
-              <option value="artist_rejected" className="text-gray-900">Artist Rejected</option>
-              <option value="completed" className="text-gray-900">Completed</option>
-            </select>
-            
-            {/* Date Filter */}
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            />
-            
-            {/* Clear Filters */}
-            <button
-              onClick={() => {
-                setFilterStatusInquiry('all');
-                setFilterDate('');
-                setSearchTermInquiry('');
-              }}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
-            >
-              Clear Filters
-            </button>
           </div>
         </div>
-      </div>
 
-      {/* Full Page Content */}
-      <div className="w-full p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
-          {filteredInquiries.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <div className="text-gray-400">No inquiries found matching your filters.</div>
-            </div>
-          ) : filteredInquiries.map((inquiry) => {
-            const inquiryId = inquiry._id || inquiry.id;
-            const status = inquiry.status || 'sent';
-            
-            return (
-              <div key={inquiryId} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-                {/* Header Row */}
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        #{String(inquiryId).slice(-6)}
-                      </span>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        status === 'admin_accepted' ? 'bg-yellow-100 text-yellow-800' :
-                        status === 'admin_rejected' ? 'bg-red-100 text-red-800' :
-                        status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
-                        status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
-                        status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
-                        status === 'completed' ? 'bg-green-100 text-green-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {/* User Info */}
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium">{inquiry.userId?.name || inquiry.name}</div>
-                          <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
+        {/* Full Page Content */}
+        <div className="w-full p-6">
+          <div className="max-w-7xl mx-auto space-y-4">
+            {filteredInquiries.length === 0 ? (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+                <div className="text-gray-400">No inquiries found matching your filters.</div>
+              </div>
+            ) : filteredInquiries.map((inquiry) => {
+              const inquiryId = inquiry._id || inquiry.id;
+              const status = inquiry.status || 'sent';
+
+              return (
+                <div key={inquiryId} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+                  {/* Header Row */}
+                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          #{String(inquiryId).slice(-6)}
+                        </span>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${status === 'admin_accepted' ? 'bg-yellow-100 text-yellow-800' :
+                            status === 'admin_rejected' ? 'bg-red-100 text-red-800' :
+                              status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
+                                status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
+                                  status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
+                                    status === 'completed' ? 'bg-green-100 text-green-800' :
+                                      'bg-blue-100 text-blue-800'
+                          }`}>
+                          {status.replace('_', ' ')}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {/* User Info */}
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
+                          <div className="text-sm text-gray-600">
+                            <div className="font-medium">{inquiry.userId?.name || inquiry.name}</div>
+                            <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
+                          </div>
+                        </div>
+
+                        {/* Requirement */}
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm mb-1">Requirement</h4>
+                          <div className="text-sm text-gray-600">
+                            <div className="font-medium text-gray-700 capitalize">{inquiry.hiringFor}</div>
+                            <div className="text-xs text-gray-500">{inquiry.category} · {renderLocation(inquiry.location)}</div>
+                            {inquiry.budget !== undefined && inquiry.budget !== null && (
+                              <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Event Details */}
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm mb-1">Event Details</h4>
+                          <div className="text-sm text-gray-600">
+                            {/* Event Type Removed */}
+                            <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
+                            <div className="text-xs text-gray-500">
+                              {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      
-                      {/* Requirement */}
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Requirement</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium text-gray-700 capitalize">{inquiry.hiringFor}</div>
-                          <div className="text-xs text-gray-500">{inquiry.category} · {inquiry.location}</div>
-                          {inquiry.budget !== undefined && inquiry.budget !== null && (
-                            <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
+                    </div>
+
+                    {/* Progress */}
+                    <div className="lg:w-32">
+                      <h4 className="font-semibold text-gray-900 text-sm mb-2">Progress</h4>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${inquiry.progressPercentage || 10}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Forwarded To Section */}
+                  <div className="mb-4">
+                    <h4 className="font-semibold text-gray-900 text-sm mb-2">Forwarded To</h4>
+                    {(() => {
+                      const isBeingForwarded = (inquiryId === forwardInquiryId);
+                      const currentForwarded = Array.isArray(inquiry.forwardedTo) ? inquiry.forwardedTo : [];
+                      const selectingIds = isBeingForwarded ? Array.from(forwardRecipients) : [];
+
+                      // Filter out selectingIds that are already in currentForwarded
+                      const extraSelectingIds = selectingIds.filter(id =>
+                        !currentForwarded.some(f => (typeof f === 'string' ? f : (f.userId?._id || f.userId || f._id || f.id)) === id)
+                      );
+
+                      const allItemsToDisplay = [...currentForwarded, ...extraSelectingIds];
+
+                      if (allItemsToDisplay.length === 0) {
+                        return <span className="text-gray-400 text-xs italic">Not forwarded</span>;
+                      }
+
+                      return (
+                        <div className="flex flex-wrap gap-2">
+                          {allItemsToDisplay.slice(0, 3).map((item, index) => {
+                            const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
+                            const influencerId = (typeof item === 'object' && item !== null)
+                              ? (item.userId?._id || item.userId || item._id || item.id)
+                              : item;
+
+                            // Try to get influencer details from populated field first, otherwise look in influencers array
+                            const influencer = (typeof item === 'object' && item !== null && item.userId && typeof item.userId === 'object' && (item.userId.fullName || item.userId.name))
+                              ? item.userId
+                              : (typeof item === 'object' && item !== null && (item.fullName || item.name))
+                                ? item
+                                : influencers.find(i => (i._id === influencerId || i.id === influencerId));
+
+                            const name = influencer?.fullName || influencer?.name || influencer?.artistName || (influencerId ? `Influencer ${String(influencerId).slice(-4)}` : 'Unknown');
+                            const category = (influencer?.categories && influencer?.categories.length > 0)
+                              ? influencer.categories[0]
+                              : (influencer?.category || influencer?.profileType || 'N/A');
+
+                            return (
+                              <div key={influencerId || index} className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${isSelecting
+                                  ? 'bg-blue-50 border-blue-200'
+                                  : 'bg-purple-50 border-purple-200'
+                                }`}>
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${isSelecting
+                                    ? 'bg-blue-100 text-blue-700 border-blue-200'
+                                    : 'bg-purple-100 text-purple-700 border-purple-200'
+                                  }`}>
+                                  {name.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`text-[11px] font-semibold truncate ${isSelecting ? 'text-blue-600' : 'text-gray-700'
+                                      }`}>
+                                      {name}
+                                      {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
+                                    </span>
+                                  </div>
+                                  <div className="text-[9px] text-gray-400 font-medium uppercase truncate tracking-wider">{category}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {allItemsToDisplay.length > 3 && (
+                            <div className="text-[10px] text-purple-600 font-bold px-3 py-2">
+                              +{allItemsToDisplay.length - 3} more influencers
+                            </div>
                           )}
                         </div>
-                      </div>
-                      
-                      {/* Event Details */}
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Event Details</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium text-gray-700">{inquiry.eventType}</div>
-                          <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
-                          <div className="text-xs text-gray-500">
-                            {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
-                  
-                  {/* Progress */}
-                  <div className="lg:w-32">
-                    <h4 className="font-semibold text-gray-900 text-sm mb-2">Progress</h4>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${inquiry.progressPercentage || 10}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Forwarded To Section */}
-                <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Forwarded To</h4>
-                  {(() => {
-                    const isBeingForwarded = (inquiryId === forwardInquiryId);
-                    const currentForwarded = Array.isArray(inquiry.forwardedTo) ? inquiry.forwardedTo : [];
-                    const selectingIds = isBeingForwarded ? Array.from(forwardRecipients) : [];
-                    
-                    // Filter out selectingIds that are already in currentForwarded
-                    const extraSelectingIds = selectingIds.filter(id => 
-                      !currentForwarded.some(f => (typeof f === 'string' ? f : (f.userId?._id || f.userId || f._id || f.id)) === id)
-                    );
 
-                    const allItemsToDisplay = [...currentForwarded, ...extraSelectingIds];
+                  {/* Actions */}
+                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                    {status === 'sent' && (
+                      <>
+                        <button
+                          onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
+                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
+                          className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
 
-                    if (allItemsToDisplay.length === 0) {
-                      return <span className="text-gray-400 text-xs italic">Not forwarded</span>;
-                    }
-
-                    return (
-                      <div className="flex flex-wrap gap-2">
-                        {allItemsToDisplay.slice(0, 3).map((item, index) => {
-                          const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
-                          const influencerId = (typeof item === 'object' && item !== null) 
-                            ? (item.userId?._id || item.userId || item._id || item.id) 
-                            : item;
-                          
-                          // Try to get influencer details from populated field first, otherwise look in influencers array
-                          const influencer = (typeof item === 'object' && item !== null && item.userId && typeof item.userId === 'object' && (item.userId.fullName || item.userId.name))
-                            ? item.userId
-                            : (typeof item === 'object' && item !== null && (item.fullName || item.name))
-                              ? item
-                              : influencers.find(i => (i._id === influencerId || i.id === influencerId));
-
-                          const name = influencer?.fullName || influencer?.name || influencer?.artistName || (influencerId ? `Influencer ${String(influencerId).slice(-4)}` : 'Unknown');
-                          const category = (influencer?.categories && influencer?.categories.length > 0) 
-                            ? influencer.categories[0] 
-                            : (influencer?.category || influencer?.profileType || 'N/A');
-
-                          return (
-                            <div key={influencerId || index} className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                              isSelecting 
-                                ? 'bg-blue-50 border-blue-200' 
-                                : 'bg-purple-50 border-purple-200'
-                            }`}>
-                              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${
-                                isSelecting 
-                                  ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                                  : 'bg-purple-100 text-purple-700 border-purple-200'
-                              }`}>
-                                {name.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <span className={`text-[11px] font-semibold truncate ${
-                                    isSelecting ? 'text-blue-600' : 'text-gray-700'
-                                  }`}>
-                                    {name}
-                                    {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
-                                  </span>
-                                </div>
-                                <div className="text-[9px] text-gray-400 font-medium uppercase truncate tracking-wider">{category}</div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {allItemsToDisplay.length > 3 && (
-                          <div className="text-[10px] text-purple-600 font-bold px-3 py-2">
-                            +{allItemsToDisplay.length - 3} more influencers
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })()}
-                </div>
-                
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                  {status === 'sent' && (
-                    <>
+                    {(status === 'admin_accepted' || status === 'forwarded') && (
                       <button
-                        onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
+                        onClick={() => handleOpenForwardModal(inquiryId)}
+                        className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        Forward
+                      </button>
+                    )}
+
+                    {(status === 'artist_accepted' || status === 'artist_rejected') && (
+                      <button
+                        onClick={() => handleAssignToArtist(inquiryId)}
                         className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                       >
-                        Accept
+                        Complete
                       </button>
-                      <button
-                        onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
-                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        Reject
-                      </button>
-                    </>
-                  )}
+                    )}
 
-                  {(status === 'admin_accepted' || status === 'forwarded') && (
                     <button
-                      onClick={() => handleOpenForwardModal(inquiryId)}
-                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                      onClick={() => handleViewInquiryDetails(inquiry)}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                      Forward
+                      View Details
                     </button>
-                  )}
-
-                  {(status === 'artist_accepted' || status === 'artist_rejected') && (
-                    <button
-                      onClick={() => handleAssignToArtist(inquiryId)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Complete
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => handleViewInquiryDetails(inquiry)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    View Details
-                  </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
 
@@ -2069,7 +2073,7 @@ const AdminDashboard = ({ config }) => {
                   <p className="text-white/80 capitalize">{selectedUser.role}</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowUserModal(false)}
                 className="p-2 hover:bg-white/10 rounded-lg transition-colors"
               >
@@ -2089,11 +2093,10 @@ const AdminDashboard = ({ config }) => {
               </div>
               <div>
                 <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">User Status</p>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                  selectedUser.status === 'active' ? 'bg-green-100 text-green-700' :
-                  selectedUser.status === 'blocked' ? 'bg-red-100 text-red-700' :
-                  'bg-yellow-100 text-yellow-700'
-                }`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedUser.status === 'active' ? 'bg-green-100 text-green-700' :
+                    selectedUser.status === 'blocked' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                  }`}>
                   {selectedUser.status || 'Active'}
                 </span>
               </div>
@@ -2115,7 +2118,7 @@ const AdminDashboard = ({ config }) => {
               <h4 className="text-lg font-bold text-gray-900 mb-4">Management Actions</h4>
               <div className="flex flex-wrap gap-3">
                 {selectedUser.status !== 'active' && (
-                  <button 
+                  <button
                     onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'unblock')}
                     className="px-6 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
                   >
@@ -2123,14 +2126,14 @@ const AdminDashboard = ({ config }) => {
                   </button>
                 )}
                 {selectedUser.status !== 'blocked' && (
-                  <button 
+                  <button
                     onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'block')}
                     className="px-6 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
                   >
                     Deactivate Account
                   </button>
                 )}
-                <button 
+                <button
                   onClick={() => handleDeleteUser(selectedUser._id || selectedUser.id)}
                   className="px-6 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
                 >
@@ -2141,7 +2144,7 @@ const AdminDashboard = ({ config }) => {
           </div>
 
           <div className="bg-gray-50 px-8 py-4 flex justify-end">
-            <button 
+            <button
               onClick={() => setShowUserModal(false)}
               className="px-6 py-2 text-gray-600 font-bold hover:text-gray-900 transition-colors"
             >
@@ -2351,9 +2354,9 @@ const AdminDashboard = ({ config }) => {
 
                                 <p className="text-xs text-gray-400 mt-2">
 
-                                  {notification.createdAt 
+                                  {notification.createdAt
 
-                                    ? new Date(notification.createdAt).toLocaleString('en-IN') 
+                                    ? new Date(notification.createdAt).toLocaleString('en-IN')
 
                                     : notification.time || 'Just now'}
 
@@ -2515,9 +2518,9 @@ const AdminDashboard = ({ config }) => {
 
         {activeTab === 'influencers' && (
 
-          <AdminInfluencersManagement 
+          <AdminInfluencersManagement
 
-            influencers={influencers} 
+            influencers={influencers}
 
             onRefreshInfluencers={() => fetchDashboardData(true)}
 
@@ -2585,21 +2588,17 @@ const AdminDashboard = ({ config }) => {
 
                     <div className="flex items-center gap-2 mt-2">
 
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.isActive !== false
 
-                        selectedInfluencer.isActive !== false 
-
-                          ? 'bg-green-100 text-green-700' 
+                          ? 'bg-green-100 text-green-700'
 
                           : 'bg-red-100 text-red-700'
 
-                      }`}>
+                        }`}>
 
-                        <div className={`w-2 h-2 rounded-full ${
+                        <div className={`w-2 h-2 rounded-full ${selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
 
-                          selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
-
-                        }`} />
+                          }`} />
 
                         {selectedInfluencer.isActive !== false ? 'Active' : 'Inactive'}
 
@@ -2874,9 +2873,7 @@ const AdminDashboard = ({ config }) => {
                       <p className="text-sm text-gray-500">Location</p>
 
                       <p className="font-medium text-gray-900">
-
-                        {selectedInfluencer.location || 'Not specified'}
-
+                        {renderLocation(selectedInfluencer.location)}
                       </p>
 
                     </div>
@@ -2949,21 +2946,17 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="text-sm text-gray-500">Status</p>
 
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.isActive !== false
 
-                        selectedInfluencer.isActive !== false 
-
-                          ? 'bg-green-100 text-green-700' 
+                          ? 'bg-green-100 text-green-700'
 
                           : 'bg-red-100 text-red-700'
 
-                      }`}>
+                        }`}>
 
-                        <div className={`w-2 h-2 rounded-full ${
+                        <div className={`w-2 h-2 rounded-full ${selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
 
-                          selectedInfluencer.isActive !== false ? 'bg-green-500' : 'bg-red-500'
-
-                        }`} />
+                          }`} />
 
                         {selectedInfluencer.isActive !== false ? 'Active' : 'Inactive'}
 
@@ -3037,7 +3030,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
-                               className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-purple-600 hover:text-purple-700 text-sm">
 
                               Instagram
 
@@ -3055,7 +3048,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
-                               className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-purple-600 hover:text-purple-700 text-sm">
 
                               YouTube
 
@@ -3073,7 +3066,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
-                               className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-purple-600 hover:text-purple-700 text-sm">
 
                               Facebook
 
@@ -3091,7 +3084,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
-                               className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-purple-600 hover:text-purple-700 text-sm">
 
                               Website
 
@@ -3101,13 +3094,13 @@ const AdminDashboard = ({ config }) => {
 
                         )}
 
-                        {(!selectedInfluencer.socialLinks?.instagram && !selectedInfluencer.socialLinks?.youtube && 
+                        {(!selectedInfluencer.socialLinks?.instagram && !selectedInfluencer.socialLinks?.youtube &&
 
                           !selectedInfluencer.socialLinks?.facebook && !selectedInfluencer.socialLinks?.website) && (
 
-                          <span className="text-gray-500 text-sm">No social links provided</span>
+                            <span className="text-gray-500 text-sm">No social links provided</span>
 
-                        )}
+                          )}
 
                       </div>
 
@@ -3117,11 +3110,9 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="text-sm text-gray-500">ID Proof Status</p>
 
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.idProof ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
 
-                        selectedInfluencer.idProof ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
-
-                      }`}>
+                        }`}>
 
                         {selectedInfluencer.idProof ? '✓ Verified' : '⏳ Pending'}
 
@@ -3157,15 +3148,13 @@ const AdminDashboard = ({ config }) => {
 
                   onClick={() => handleToggleInfluencerStatus(selectedInfluencer._id || selectedInfluencer.id, selectedInfluencer.isActive !== false)}
 
-                  className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${
+                  className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${selectedInfluencer.isActive !== false
 
-                    selectedInfluencer.isActive !== false 
-
-                      ? 'bg-red-600 hover:bg-red-700' 
+                      ? 'bg-red-600 hover:bg-red-700'
 
                       : 'bg-green-600 hover:bg-green-700'
 
-                  }`}
+                    }`}
 
                 >
 
@@ -3423,21 +3412,10 @@ const AdminDashboard = ({ config }) => {
 
                     </div>
 
-                    <div>
-
-                      <p className="text-sm text-gray-500">Event Type</p>
-
-                      <p className="font-medium text-gray-900">
-
-                        {selectedInquiry.eventType || 'Not specified'}
-
-                      </p>
-
-                    </div>
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Event Date</p>
+                      <p className="text-sm text-gray-500">inquiry date</p>
 
                       <p className="font-medium text-gray-900">
 
@@ -3449,12 +3427,8 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Location</p>
-
                       <p className="font-medium text-gray-900">
-
-                        {selectedInquiry.location || 'Not specified'}
-
+                        {renderLocation(selectedInquiry.location)}
                       </p>
 
                     </div>
@@ -3509,9 +3483,9 @@ const AdminDashboard = ({ config }) => {
 
               <div className="mt-6">
 
-                <InquiryProgressBar 
+                <InquiryProgressBar
 
-                  status={selectedInquiry.status || 'sent'} 
+                  status={selectedInquiry.status || 'sent'}
 
                   progressPercentage={selectedInquiry.progressPercentage || 10}
 
@@ -3705,12 +3679,8 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Location</p>
-
                         <p className="font-medium text-gray-900">
-
-                          {selectedForwardedInfluencer.location || 'Not specified'}
-
+                          {renderLocation(selectedForwardedInfluencer.location)}
                         </p>
 
                       </div>
@@ -3853,7 +3823,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
-                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-purple-600 hover:text-purple-700 text-sm">
 
                             Instagram
 
@@ -3871,7 +3841,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
-                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-purple-600 hover:text-purple-700 text-sm">
 
                             YouTube
 
@@ -3889,7 +3859,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
-                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-purple-600 hover:text-purple-700 text-sm">
 
                             Facebook
 
@@ -3907,7 +3877,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
-                             className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-purple-600 hover:text-purple-700 text-sm">
 
                             Website
 
@@ -3917,13 +3887,13 @@ const AdminDashboard = ({ config }) => {
 
                       )}
 
-                      {(!selectedForwardedInfluencer.socialLinks?.instagram && !selectedForwardedInfluencer.socialLinks?.youtube && 
+                      {(!selectedForwardedInfluencer.socialLinks?.instagram && !selectedForwardedInfluencer.socialLinks?.youtube &&
 
                         !selectedForwardedInfluencer.socialLinks?.facebook && !selectedForwardedInfluencer.socialLinks?.website) && (
 
-                        <span className="text-gray-500 text-sm">No social links provided</span>
+                          <span className="text-gray-500 text-sm">No social links provided</span>
 
-                      )}
+                        )}
 
                     </div>
 
@@ -3938,11 +3908,10 @@ const AdminDashboard = ({ config }) => {
                 <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
                   <button
                     onClick={() => handleToggleInfluencerStatus(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id, selectedForwardedInfluencer.isActive !== false)}
-                    className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${
-                      selectedForwardedInfluencer.isActive !== false 
-                        ? 'bg-red-600 hover:bg-red-700' 
+                    className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${selectedForwardedInfluencer.isActive !== false
+                        ? 'bg-red-600 hover:bg-red-700'
                         : 'bg-green-600 hover:bg-green-700'
-                    }`}
+                      }`}
                   >
                     {selectedForwardedInfluencer.isActive !== false ? 'Deactivate Artist' : 'Activate Artist'}
                   </button>

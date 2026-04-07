@@ -11,13 +11,12 @@ exports.createInquiry = async (req, res) => {
             hiringFor,
             category,
             location,
-            eventType,
             eventDate,
             budget,
             requirements
         } = req.body;
 
-        console.log('Creating inquiry with data:', { name, email, phone, hiringFor, category, location, eventType, eventDate, budget });
+        console.log('Creating inquiry with data:', { name, email, phone, hiringFor, category, location, eventDate, budget });
 
         if (!req.user || !req.user._id) {
             console.error('Unauthorized inquiry attempt - no user in request');
@@ -32,8 +31,6 @@ exports.createInquiry = async (req, res) => {
         if (!hiringFor) missingFields.push('hiringFor');
         if (!category) missingFields.push('category');
         if (!location) missingFields.push('location');
-        if (!eventType) missingFields.push('eventType');
-        if (!eventDate) missingFields.push('eventDate');
         if (budget === undefined || budget === null || budget === '') missingFields.push('budget');
 
         if (missingFields.length > 0) {
@@ -45,10 +42,10 @@ exports.createInquiry = async (req, res) => {
         }
 
         // Validate hiringFor enum
-        if (!['artist', 'influencer'].includes(hiringFor)) {
+        if (!['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'].includes(hiringFor)) {
             return res.status(400).json({ 
                 success: false, 
-                message: 'hiringFor must be either "artist" or "influencer"' 
+                message: 'hiringFor must be "artist", "influencer", "creator", "celebrity", "city page", or "meme page"' 
             });
         }
 
@@ -79,8 +76,7 @@ exports.createInquiry = async (req, res) => {
             hiringFor,
             category,
             location,
-            eventType,
-            eventDate: new Date(eventDate),
+            eventDate: eventDate ? new Date(eventDate) : new Date(),
             budget: budgetNum,
             requirements: requirements || '',
             status: 'sent', // Use new workflow status

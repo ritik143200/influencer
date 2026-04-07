@@ -25,7 +25,7 @@ const TrendingInfluencers = ({ config }) => {
             <p className="text-gray-600">Discover talented influencers on our platform</p>
           </div>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={() => scroll('left')}
               className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
             >
@@ -33,7 +33,7 @@ const TrendingInfluencers = ({ config }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button 
+            <button
               onClick={() => scroll('right')}
               className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
             >
@@ -44,11 +44,11 @@ const TrendingInfluencers = ({ config }) => {
           </div>
         </div>
 
-        <div 
+        <div
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
         >
-          <div className="w-full text-center py-16 px-8 rounded-2xl border" style={{ 
+          <div className="w-full text-center py-16 px-8 rounded-2xl border" style={{
             backgroundColor: `${config.primary_action}08`,
             borderColor: `${config.primary_action}20`
           }}>
@@ -62,14 +62,14 @@ const TrendingInfluencers = ({ config }) => {
               Our featured influencers section is currently being updated. Register now to be featured when we launch our new discovery system.
             </p>
             <div className="flex gap-4 justify-center">
-              <button 
+              <button
                 onClick={() => navigate('influencer-registration')}
                 className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105"
                 style={{ backgroundColor: config.primary_action }}
               >
                 Become an Influencer
               </button>
-              <button 
+              <button
                 onClick={() => navigate('registration', { type: 'user' })}
                 className="px-6 py-3 rounded-xl font-semibold border transition-colors"
                 style={{

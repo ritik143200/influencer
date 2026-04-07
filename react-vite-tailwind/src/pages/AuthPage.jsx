@@ -10,6 +10,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   });
@@ -42,6 +43,26 @@ const AuthPage = ({ initialTab, embedded = false }) => {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Pre-fill from pendingInquiry if it exists
+  useEffect(() => {
+    if (!isLogin && !isForgotPassword) {
+      const pending = localStorage.getItem('pendingInquiry');
+      if (pending) {
+        try {
+          const data = JSON.parse(pending);
+          setFormData(prev => ({
+            ...prev,
+            name: data.name || prev.name,
+            email: data.email || prev.email,
+            phone: data.phone || prev.phone
+          }));
+        } catch (e) {
+          console.error('Error parsing pendingInquiry', e);
+        }
+      }
+    }
+  }, [isLogin, isForgotPassword]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -73,6 +94,14 @@ const AuthPage = ({ initialTab, embedded = false }) => {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
+    }
+
+    if (!isLogin && !isForgotPassword) {
+      if (!formData.phone) {
+        newErrors.phone = 'Phone number is required';
+      } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+      }
     }
 
     if (!formData.password) {
@@ -117,6 +146,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
         } : {
           name: formData.name,
           email: formData.email,
+          phone: formData.phone,
           password: formData.password
         }))
       });
@@ -136,6 +166,36 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
           login(userData);
           localStorage.setItem('userData', JSON.stringify(userData));
+
+          // Auto-submit pending inquiry if it exists during login OR registration
+          const pending = localStorage.getItem('pendingInquiry');
+          if (pending) {
+            try {
+              const inquiryData = JSON.parse(pending);
+              const apiRes = await fetch(`${API_BASE_URL}/api/inquiries`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${data.token}`
+                },
+                body: JSON.stringify({
+                  ...inquiryData,
+                  budget: Number(inquiryData.budget)
+                })
+              });
+
+              if (apiRes.ok) {
+                setMessage(prev => ({ 
+                  type: 'success', 
+                  text: `${prev.text} Your pending inquiry has also been submitted!` 
+                }));
+              }
+            } catch (err) {
+              console.error('Failed to auto-submit inquiry:', err);
+            }
+            // Always clear it after attempt to prevent stale data
+            localStorage.removeItem('pendingInquiry');
+          }
         }
 
         // Redirect based on user role
@@ -165,11 +225,17 @@ const AuthPage = ({ initialTab, embedded = false }) => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
       password: '',
       confirmPassword: ''
     });
     setErrors({});
     setMessage({ type: '', text: '' });
+  };
+
+  const handleGoogleLogin = () => {
+    const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+    window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 
   return (
@@ -309,6 +375,25 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                       icon={
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      }
+                    />
+                  </div>
+                )}
+
+                {!isLogin && !isForgotPassword && (
+                  <div>
+                    <AuthInput
+                      label="Phone Number"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      error={errors.phone}
+                      placeholder="Enter your phone number"
+                      icon={
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                         </svg>
                       }
                     />
@@ -478,6 +563,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <button
                       type="button"
+                      onClick={handleGoogleLogin}
                       className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                     >
                       <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">

@@ -151,7 +151,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
     setOtpError('');
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const formattedPhone = formatPhoneNumber(formData.phone);
       
       const response = await fetch(`${API_BASE_URL}/api/otp/send-otp`, {
@@ -190,7 +190,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
     setOtpError('');
 
     try {
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const formattedPhone = formatPhoneNumber(formData.phone);
 
       const response = await fetch(`${API_BASE_URL}/api/otp/verify-otp`, {
@@ -276,7 +276,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         termsAccepted: formData.termsAccepted
       };
 
-      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002';
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/influencer/register`, {
         method: 'POST',
         headers: {

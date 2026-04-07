@@ -7,19 +7,19 @@ const AuthInput = ({
   value,
   onChange,
   error,
+  icon,
   showPasswordToggle = false,
   onTogglePassword,
   className = '',
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false);
-  const [hasValue, setHasValue] = useState(false);
+
+  const hasValue = value && value.toString().length > 0;
 
   const inputType = type === 'text' && showPasswordToggle ? 'text' : type;
 
   const handleChange = (e) => {
-    const hasVal = e.target.value.length > 0;
-    setHasValue(hasVal);
     onChange(e);
   };
 
@@ -33,21 +33,31 @@ const AuthInput = ({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         className={`
-          w-full px-4 py-3 bg-white border-2 rounded-xl transition-all duration-300
+          w-full ${icon ? 'pl-11' : 'px-4'} py-3 bg-white border-2 rounded-xl transition-all duration-300
           ${isFocused ? 'border-brand-500 shadow-lg shadow-brand-500/20' : 'border-gray-200'}
           ${error ? 'border-red-500' : ''}
-          ${hasValue ? 'text-gray-900' : 'text-gray-500'}
+          ${hasValue ? 'text-gray-900 font-medium' : 'text-gray-500'}
           placeholder:text-gray-400
-          focus:outline-none
+          focus:outline-none focus:bg-white
           peer
         `}
         {...props}
       />
 
+      {icon && (
+        <div className={`
+          absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300
+          ${isFocused ? 'text-brand-500' : 'text-gray-400'}
+        `}>
+          {icon}
+        </div>
+      )}
+
       <label className={`
-        absolute left-4 transition-all duration-300 pointer-events-none bg-white px-1
-        ${hasValue || isFocused ? '-top-3 text-sm text-brand-500' : 'top-3.5 text-gray-500'}
-        peer-focus:-top-3 peer-focus:text-sm peer-focus:text-brand-500
+        absolute transition-all duration-300 pointer-events-none bg-white px-1
+        ${icon ? 'left-10' : 'left-4'}
+        ${hasValue || isFocused ? '-top-3 left-4 text-sm font-semibold text-brand-500 scale-95 origin-left' : 'top-3.5 text-gray-500'}
+        peer-focus:-top-3 peer-focus:left-4 peer-focus:text-sm peer-focus:text-brand-500 peer-focus:scale-95 peer-focus:font-semibold
       `}>
         {label}
       </label>

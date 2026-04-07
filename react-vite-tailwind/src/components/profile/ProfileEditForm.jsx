@@ -1,273 +1,480 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 
 const ARTIST_NICHES = ['Singer', 'Dancer', 'Musician', 'Painter', 'Photographer', 'Actor', 'Comedian', 'Magician', 'DJ', 'Makeup Artist', 'Fashion Designer', 'Writer'];
 const INFLUENCER_NICHES = ['Lifestyle', 'UGC Creator', 'Fashion', 'Fitness', 'Travel', 'Food', 'Tech', 'Finance', 'Gaming', 'Education', 'Motivation', 'Spiritual', 'Actor', 'Comedian', 'Model', 'Filmmaker', 'Influencer', 'Historical'];
 const PLATFORM_LIST = ['instagram', 'youtube', 'facebook'];
 
-
 const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
-  const [activeTab, setActiveTab] = useState(1);
   const role = formData.role || 'user';
   const niches = role === 'artist' ? ARTIST_NICHES : INFLUENCER_NICHES;
 
-  // Field handlers
+  // Calculate completion progress
+  const calculateCompletion = () => {
+    let completed = 0;
+    let total = 12;
+
+    if (formData.fullName?.trim()) completed++;
+    if (formData.email?.trim()) completed++;
+    if (formData.phone?.trim()) completed++;
+    if (formData.bio?.trim()) completed++;
+    if (formData.location?.city?.trim() || (typeof formData.location === 'string' && formData.location.trim())) completed++;
+    if (formData.location?.country?.trim()) completed++;
+    if (formData.niche) completed++;
+    if (formData.experience?.trim()) completed++;
+    if (formData.budgetMin) completed++;
+    if (formData.budgetMax) completed++;
+    if (formData.budget) completed++;
+    if (formData.socialLinks?.instagram?.trim() || formData.platforms?.instagram?.url?.trim() || formData.instagram?.trim()) completed++;
+
+    return { completed, total, percent: Math.round((completed / total) * 100) };
+  };
+
+  const progress = calculateCompletion();
   const handleField = (name, value) => {
-    onChange({ target: { name, value } });
+    // Coerce numeric budget fields to numbers so backend/validation sees them correctly
+    const numericFields = ['budget', 'budgetMin', 'budgetMax'];
+    let out = value;
+    if (numericFields.includes(name)) {
+      out = value === '' ? '' : Number(value);
+      if (Number.isNaN(out)) out = value;
+    }
+    onChange({ target: { name, value: out } });
   };
   const handleNestedField = (path, value) => {
-    onChange({ target: { name: path, value } });
+    // If nested field is a followers count, coerce to number
+    let out = value;
+    if (path.endsWith('.followers')) {
+      out = value === '' ? '' : Number(value);
+      if (Number.isNaN(out)) out = value;
+    }
+    onChange({ target: { name: path, value: out } });
   };
   const handlePlatformToggle = (platform) => {
     const current = formData.platforms?.[platform] || {};
     handleNestedField(`platforms.${platform}.hasAccount`, !current.hasAccount);
   };
 
-  // UI classes
-  const inputClass = "w-full px-4 py-2 rounded-md border border-gray-200 bg-white placeholder-gray-400 text-sm sm:text-base transition-shadow duration-150 shadow-sm hover:shadow-md focus:outline-none focus:ring-4 focus:ring-brand-100 focus:border-brand-500 focus:shadow-md";
-  const labelClass = "block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1 ml-1";
+  // UI classes - simplified and cleaner
+  const inputClass = "w-full px-4 py-3 rounded-lg border border-gray-300 bg-white placeholder-gray-500 text-sm transition-all focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100";
+  const labelClass = "block text-sm font-semibold text-gray-800 mb-2";
+  const requiredBadge = <span className="text-red-500 font-bold ml-1">*</span>;
+  const optionalBadge = <span className="text-gray-400 text-xs ml-1">(optional)</span>;
 
-  // Buttons
-  const SaveButton = ({ label }) => (
-    <button type="button" onClick={onSave}
-      className="px-6 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 transform-gpu transition-transform hover:-translate-y-0.5 shadow-xl flex items-center gap-2">
-      💾 {label || 'Save Changes'}
-    </button>
-  );
-  const CancelButton = () => (
-    <button type="button" onClick={onCancel}
-      className="px-6 py-2.5 rounded-full text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transform-gpu transition-transform hover:-translate-y-0.5 shadow-xl flex items-center gap-2">
-      ❌ Cancel
-    </button>
-  );
-
-  // Main render
+  // Main render - single page scrollable design
   return (
     <div className="w-full bg-transparent">
-      {/* Tabs Header */}
-      <div className="w-full bg-white/0 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            {['Basic Info', 'Profile Details', 'Social & Professional'].map((title, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveTab(i + 1)}
-                className={`py-3 px-3 text-center transition-all relative font-semibold text-sm tracking-wider ${
-                  activeTab === i + 1 ? 'text-brand-600' : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {title}
-                {activeTab === i + 1 && (
-                  <div className="absolute -bottom-px left-0 right-0 h-0.5 bg-brand-500 rounded-t-full" />
-                )}
-              </button>
-            ))}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+        {/* Page Header with Progress */}
+        <div className="mb-8">
+          <div className="flex justify-between items-start mb-3">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
+              <p className="text-gray-600 text-sm mt-1">Update your information to help us match you with better opportunities</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-semibold text-brand-600">{progress.completed}/{progress.total}</p>
+              <p className="text-xs text-gray-500 mt-0.5">Fields Completed</p>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-orange-400 to-brand-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">{progress.percent}% Complete</p>
+        </div>
+
+        {/* Basic Information Section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            </svg>
+            Basic Information
+          </h2>
+          
+          <div className="space-y-5">
+            <div>
+              <label className={labelClass}>
+                Full Name
+                {requiredBadge}
+              </label>
+              <input 
+                className={inputClass} 
+                value={formData.fullName || ''} 
+                onChange={e => handleField('fullName', e.target.value)} 
+                placeholder="John Doe"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Email Address
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  type="email" 
+                  value={formData.email || ''} 
+                  onChange={e => handleField('email', e.target.value)} 
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Phone Number
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  type="tel" 
+                  value={formData.phone || ''} 
+                  onChange={e => handleField('phone', e.target.value)} 
+                  placeholder="+91 9876543210"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Change Password
+                {optionalBadge}
+              </label>
+              <input 
+                className={inputClass} 
+                type="password" 
+                value={formData.password || ''} 
+                onChange={e => handleField('password', e.target.value)} 
+                placeholder="Leave blank to keep current password"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {/* Tab 1: Basic Info */}
-        {activeTab === 1 && (
+        {/* Profile Section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 2.586V4h3a2 2 0 012 2v2h1a1 1 0 110 2h-1v3h1a1 1 0 110 2h-1v3h1a1 1 0 110 2h-1v1a2 2 0 01-2 2h-3v-1a1 1 0 10-2 0v1H7a2 2 0 01-2-2v-1H4a2 2 0 01-2-2v-5H2a1 1 0 110-2h1V6H2a1 1 0 010-2h2V4z" />
+            </svg>
+            Profile Details
+          </h2>
+
+          <div className="space-y-5">
+            <div>
+              <label className={labelClass}>
+                About You
+                {requiredBadge}
+              </label>
+              <textarea 
+                className={`${inputClass} resize-none`} 
+                rows={4} 
+                maxLength={500}
+                value={formData.bio || ''} 
+                onChange={e => handleField('bio', e.target.value)} 
+                placeholder="Tell us about yourself, your expertise, and what makes you unique..."
+              />
+              <p className="text-xs text-gray-500 mt-1">{(formData.bio || '').length}/500 characters</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  City
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  value={formData.location?.city || (typeof formData.location === 'string' ? formData.location : '')} 
+                  onChange={e => handleNestedField('location.city', e.target.value)} 
+                  placeholder="Indore"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Country
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  value={formData.location?.country || ''} 
+                  onChange={e => handleNestedField('location.country', e.target.value)} 
+                  placeholder="India"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Professional Section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.3A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" />
+            </svg>
+            Professional Details
+          </h2>
+
+          <div className="space-y-5">
+            <div>
+              <label className={labelClass}>
+                {role === 'artist' ? 'Artist' : 'Influencer'} Niche
+                {requiredBadge}
+              </label>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {niches.map(n => (
+                  <button 
+                    key={n} 
+                    type="button" 
+                    onClick={() => handleField('niche', n)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                      formData.niche === n 
+                        ? 'bg-brand-600 text-white border-brand-600' 
+                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:border-brand-400'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Experience
+                  {requiredBadge}
+                </label>
+                <select 
+                  className={inputClass} 
+                  value={formData.experience || ''} 
+                  onChange={e => handleField('experience', e.target.value)}
+                >
+                  <option value="">Select your experience level</option>
+                  <option value="0-1">0-1 years</option>
+                  <option value="1-3">1-3 years</option>
+                  <option value="3-5">3-5 years</option>
+                  <option value="5-10">5-10 years</option>
+                  <option value="10+">10+ years</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Default Budget (per event)
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  type="number" 
+                  value={formData.budget || ''} 
+                  onChange={e => handleField('budget', e.target.value)} 
+                  placeholder="25000"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>
+                  Minimum Budget
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  type="number" 
+                  value={formData.budgetMin || ''} 
+                  onChange={e => handleField('budgetMin', e.target.value)} 
+                  placeholder="10000"
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Maximum Budget
+                  {requiredBadge}
+                </label>
+                <input 
+                  className={inputClass} 
+                  type="number" 
+                  value={formData.budgetMax || ''} 
+                  onChange={e => handleField('budgetMax', e.target.value)} 
+                  placeholder="100000"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                Previous Collaborations
+                {optionalBadge}
+              </label>
+              <textarea 
+                className={`${inputClass} resize-none`} 
+                rows={3} 
+                value={formData.previousCollaborations || ''} 
+                onChange={e => handleField('previousCollaborations', e.target.value)} 
+                placeholder="Mention brands or projects you've worked on..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Social Media Section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+            </svg>
+            Social Media Links
+          </h2>
+
           <div className="space-y-4">
-            {/* Basic Details Card */}
-            <div className="relative bg-white border border-gray-100 rounded-2xl shadow-lg p-6 overflow-hidden">
-              <span className="absolute left-0 top-6 bottom-6 w-1.5 bg-brand-500 rounded-r-md" />
-              <div className="pl-5">
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
-                  <h3 className="text-xl font-extrabold text-gray-800">Basic Details</h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Full Name *</label>
-                    <input className={inputClass} value={formData.fullName || ''} onChange={e => handleField('fullName', e.target.value)} placeholder="Enter your full name" />
-                  </div>
-                  {/* username removed per request */}
-                  <div>
-                    <label className={labelClass}>Email Address *</label>
-                    <input className={inputClass} type="email" value={formData.email || ''} onChange={e => handleField('email', e.target.value)} placeholder="your@email.com" />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Phone Number *</label>
-                    <input className={inputClass} type="tel" value={formData.phone || ''} onChange={e => handleField('phone', e.target.value)} placeholder="+91 XXXXX XXXXX" />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Password</label>
-                    <input className={inputClass} type="password" value={formData.password || ''} onChange={e => handleField('password', e.target.value)} placeholder="Leave blank to keep current" />
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-between gap-3">
-                  <CancelButton />
-                  <SaveButton label="Update Basic Info" />
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Information Card */}
-            <div className="relative bg-white border border-gray-100 rounded-2xl shadow-lg p-6 overflow-hidden">
-              <span className="absolute left-0 top-6 bottom-6 w-1.5 bg-brand-500 rounded-r-md" />
-              <div className="pl-5">
-                <div className="mb-2 flex items-center gap-3">
-                  <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
-                  <h3 className="text-xl font-extrabold text-gray-800">Profile Information</h3>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Bio / About</label>
-                    <textarea className={`${inputClass} resize-none`} rows={4} maxLength={1000} value={formData.bio || ''} onChange={e => handleField('bio', e.target.value)} placeholder="Write a short introduction about yourself..." />
-                  </div>
-                  <div>
-                    <label className={labelClass}>City</label>
-                    <input className={inputClass} value={formData.location?.city || (typeof formData.location === 'string' ? formData.location : '')} onChange={e => handleNestedField('location.city', e.target.value)} placeholder="e.g. Indore" />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Country</label>
-                    <input className={inputClass} value={formData.location?.country || ''} onChange={e => handleNestedField('location.country', e.target.value)} placeholder="e.g. India" />
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-between gap-3">
-                  <CancelButton />
-                  <SaveButton label="Update Profile Info" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Professional Details */}
-        {activeTab === 2 && (
-          <div className="animate-fadeIn">
-            <div className="relative bg-white border border-gray-100 rounded-2xl shadow-lg p-6 overflow-hidden">
-              <span className="absolute left-0 top-6 bottom-6 w-1.5 bg-brand-500 rounded-r-md" />
-              <div className="pl-5 space-y-4">
-                <div className="mb-2">
-                  <h3 className="text-xl font-extrabold text-gray-800">🔹 Professional Details</h3>
-                </div>
-
-                <div>
-                  <label className={labelClass}>{role === 'artist' ? 'Artist' : 'Influencer'} Niche / Category *</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {niches.map(n => (
-                      <button key={n} type="button" onClick={() => handleField('niche', n)}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${formData.niche === n ? 'bg-brand-500 text-white border-brand-500 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300'}`}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                  <div>
-                    <label className={labelClass}>Experience</label>
-                    <select className={inputClass} value={formData.experience || ''} onChange={e => handleField('experience', e.target.value)}>
-                      <option value="">Select experience</option>
-                      <option value="0-1">0-1 years</option>
-                      <option value="1-3">1-3 years</option>
-                      <option value="3-5">3-5 years</option>
-                      <option value="5-10">5-10 years</option>
-                      <option value="10+">10+ years</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Default Budget</label>
-                    <input className={inputClass} type="number" value={formData.budget || ''} onChange={e => handleField('budget', e.target.value)} placeholder="Enter default budget" />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Budget Range (Min)</label>
-                    <input className={inputClass} type="number" value={formData.budgetMin || ''} onChange={e => handleField('budgetMin', e.target.value)} placeholder="Minimum budget" />
-                  </div>
-
-                  <div>
-                    <label className={labelClass}>Budget Range (Max)</label>
-                    <input className={inputClass} type="number" value={formData.budgetMax || ''} onChange={e => handleField('budgetMax', e.target.value)} placeholder="Maximum budget" />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className={labelClass}>Previous Collaborations</label>
-                    <textarea className={`${inputClass} resize-none`} rows={3} value={formData.previousCollaborations || ''} onChange={e => handleField('previousCollaborations', e.target.value)} placeholder="List notable collaborations..." />
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <SaveButton label="Update Professional Details" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 3: Social Media & Portfolio */}
-        {activeTab === 3 && (
-          <div className="space-y-3 animate-fadeIn">
-            <div className="mb-2">
-              <h3 className="text-xl font-black text-gray-800">🔹 Social Media & Portfolio</h3>
-            </div>
-
-            <div className="space-y-4">
-              {PLATFORM_LIST.map(platform => {
-                let pData = formData.platforms?.[platform] || {};
-                if (!pData.url && formData.socialLinks?.[platform]) {
-                  pData = {
-                    ...pData,
-                    hasAccount: true,
-                    url: formData.socialLinks[platform]
-                  };
-                }
-                return (
-                  <div key={platform} className={`w-full border transition-all ${pData.hasAccount ? 'border-brand-200 bg-brand-50/10' : 'border-gray-100 bg-transparent'} p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow`}>
-                    <label className="flex items-center gap-3 cursor-pointer mb-4">
-                      <input type="checkbox" checked={!!pData.hasAccount} onChange={() => handlePlatformToggle(platform)}
-                        className="w-5 h-5 text-brand-500 rounded-lg border-gray-300 focus:ring-brand-500" />
-                      <span className="font-bold text-gray-800 capitalize text-base">{platform}</span>
-                    </label>
-                    {pData.hasAccount && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pl-6">
-                        <div><label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Profile URL</label><input className={inputClass} value={pData.url || ''} onChange={e => handleNestedField(`platforms.${platform}.url`, e.target.value)} placeholder="URL" /></div>
-                        <div><label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Followers</label><input className={inputClass} type="number" value={pData.followers || ''} onChange={e => handleNestedField(`platforms.${platform}.followers`, e.target.value)} placeholder="Count" /></div>
-                        <div><label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Engagement %</label><input className={inputClass} value={pData.engagementRate || ''} onChange={e => handleNestedField(`platforms.${platform}.engagementRate`, e.target.value)} placeholder="Rate" /></div>
+            {PLATFORM_LIST.map(platform => {
+              let pData = formData.platforms?.[platform] || {};
+              if (!pData.url && formData.socialLinks?.[platform]) {
+                pData = {
+                  ...pData,
+                  hasAccount: true,
+                  url: formData.socialLinks[platform]
+                };
+              }
+              return (
+                <div key={platform} className="pb-4 border-b border-gray-200 last:border-b-0">
+                  <label className="flex items-center gap-3 cursor-pointer mb-4">
+                    <input 
+                      type="checkbox" 
+                      checked={!!pData.hasAccount} 
+                      onChange={() => handlePlatformToggle(platform)}
+                      className="w-5 h-5 text-brand-600 rounded border-gray-300 focus:ring-2 focus:ring-brand-500"
+                    />
+                    <span className="font-semibold text-gray-900 capitalize">{platform}</span>
+                    <span className="text-xs text-gray-500 ml-auto">{pData.hasAccount ? 'Connected' : 'Not added'}</span>
+                  </label>
+                  
+                  {pData.hasAccount && (
+                    <div className="space-y-3 pl-8">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">Profile URL</label>
+                        <input 
+                          className={inputClass} 
+                          value={pData.url || ''} 
+                          onChange={e => handleNestedField(`platforms.${platform}.url`, e.target.value)} 
+                          placeholder={`https://${platform}.com/your-handle`}
+                        />
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <h3 className="text-lg font-bold text-gray-800 mt-5 mb-3">Portfolio / Sample Work</h3>
-            <div className="w-full border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-sm text-gray-500 mb-3">Add direct links to your best work (YouTube, Instagram, or Website URLs).</p>
-              <div className="flex gap-3">
-                <input id="portfolio-input" className={`${inputClass} flex-1 bg-white`} placeholder="Paste a portfolio URL here..." />
-                <button type="button" onClick={() => {
-                  const input = document.getElementById('portfolio-input');
-                  if (input?.value) { handleField('portfolio', [...(formData.portfolio || []), input.value]); input.value = ''; }
-                }} className="px-4 py-2 bg-brand-500 text-white rounded-md font-bold text-sm hover:bg-brand-600 transition-all">+ Add</button>
-              </div>
-
-              {formData.portfolio?.length > 0 && (
-                <div className="grid grid-cols-1 gap-2 mt-3">
-                  {formData.portfolio.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-3 p-3 bg-white border border-gray-100 rounded-lg text-sm group shadow-sm hover:shadow-md transition-shadow">
-                      <span className="flex-1 truncate text-gray-600 font-medium">{item}</span>
-                      <button type="button" onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
-                        className="text-red-500 hover:text-red-700 transition-colors p-1">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                      </button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Followers</label>
+                          <input 
+                            className={inputClass} 
+                            type="number" 
+                            value={pData.followers || ''} 
+                            onChange={e => handleNestedField(`platforms.${platform}.followers`, e.target.value)} 
+                            placeholder="50000"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Engagement %</label>
+                          <input 
+                            className={inputClass} 
+                            value={pData.engagementRate || ''} 
+                            onChange={e => handleNestedField(`platforms.${platform}.engagementRate`, e.target.value)} 
+                            placeholder="3.5%"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })}
+          </div>
+        </div>
 
-            <div className="pt-6 border-t border-gray-100 flex justify-between gap-3">
-              <CancelButton />
-              <SaveButton label="Update Social" />
+        {/* Portfolio Section */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" />
+            </svg>
+            Portfolio {optionalBadge}
+          </h2>
+
+          <div className="mb-4">
+            <p className="text-sm text-gray-600 mb-3">Add links to your best work (YouTube, Instagram, or personal website)</p>
+            <div className="flex gap-2">
+              <input 
+                id="portfolio-input" 
+                className={`${inputClass} flex-1`} 
+                placeholder="Paste a URL here..."
+              />
+              <button 
+                type="button" 
+                onClick={() => {
+                  const input = document.getElementById('portfolio-input');
+                  if (input?.value?.trim()) { 
+                    handleField('portfolio', [...(formData.portfolio || []), input.value]); 
+                    input.value = ''; 
+                  }
+                }}
+                className="px-4 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors"
+              >
+                Add
+              </button>
             </div>
           </div>
-        )}
+
+          {formData.portfolio?.length > 0 && (
+            <div className="space-y-2">
+              {formData.portfolio.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg group">
+                  <a 
+                    href={item} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 text-sm text-brand-600 hover:text-brand-700 truncate"
+                  >
+                    {item}
+                  </a>
+                  <button 
+                    type="button" 
+                    onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 sticky bottom-0 bg-white pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-lg font-semibold hover:bg-gray-200 transition-all"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            className="flex-1 px-6 py-3 text-white bg-brand-600 rounded-lg font-semibold hover:bg-brand-700 transition-all"
+          >
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
   );

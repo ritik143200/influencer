@@ -3,6 +3,7 @@ import { RouterProvider, useRouter } from './contexts/RouterContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import NotificationToast from './components/NotificationToast';
 import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
@@ -13,12 +14,14 @@ import ServicesInfluencersPage from './pages/ServicesInfluencersPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import ProfilePage from './pages/ProfilePage';
 import FAQPage from './pages/FAQPage';
+import ContactPage from './pages/ContactPage';
 import InfluencerRegistrationPage from './pages/InfluencerRegistrationPage';
 import RegistrationPage from './pages/RegistrationPage';
 import InquiryPage from './pages/InquiryPage';
 import UserDashboard from './pages/UserDashboard';
 import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AuthCallback from './pages/AuthCallback';
 import { defaultConfig } from './data/mockData';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -61,11 +64,11 @@ const AppContent = ({ config }) => {
   const isAuthPage = currentPath === 'auth' || currentPath === 'influencer-registration' || currentPath === 'registration';
 
   return (
-    <div 
+    <div
       className="min-h-full w-full overflow-x-hidden overflow-y-auto"
-      style={{ 
+      style={{
         backgroundColor: config.background_color,
-        fontFamily: `${config.font_family}, sans-serif` 
+        fontFamily: `${config.font_family}, sans-serif`
       }}
     >
       {!isAuthPage && <Navbar config={config} />}
@@ -84,7 +87,9 @@ const AppContent = ({ config }) => {
         </ProtectedRoute>
       )}
       {currentPath === 'faq' && <FAQPage config={config} />}
+      {currentPath === 'contact' && <ContactPage config={config} />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
+      {currentPath === 'auth/callback' && <AuthCallback />}
       {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && (
         <ProtectedRoute allowedRoles={['user']}>
@@ -101,6 +106,7 @@ const AppContent = ({ config }) => {
           <AdminDashboard config={config} />
         </ProtectedRoute>
       )}
+      {!isAuthPage && <Footer config={config} />}
     </div>
   );
 };

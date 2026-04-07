@@ -33,6 +33,13 @@ const InfluencerProfilePage = () => {
   if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   if (error) return <div className="flex justify-center items-center min-h-screen text-red-500">{error}</div>;
   if (!influencer) return null;
+  
+  const renderLocation = (loc) => {
+    if (!loc) return 'Not specified';
+    if (typeof loc === 'string') return loc;
+    const { city = '', country = '' } = loc;
+    return [city, country].filter(Boolean).join(', ') || 'Not specified';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-10 px-4">
@@ -54,7 +61,7 @@ const InfluencerProfilePage = () => {
                 <span key={i} className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">{skill}</span>
               ))}
             </div>
-            <div className="text-gray-600 mb-2">{influencer.location}</div>
+            <div className="text-gray-600 mb-2">{renderLocation(influencer.location)}</div>
             <div className="flex items-center gap-4 mb-2">
               <span className="text-lg font-semibold text-blue-700">₹{influencer.budget} / event</span>
               {influencer.rating && (

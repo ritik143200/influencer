@@ -100,6 +100,15 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
     if (!selectedInfluencer) return null;
 
     const verificationBadge = getVerificationBadge(selectedInfluencer.verificationStatus);
+    
+    // Helper to safely render location (handles both string and object formats)
+    const renderLocation = (loc) => {
+      if (!loc) return 'Not specified';
+      if (typeof loc === 'string') return loc;
+      const { city = '', country = '' } = loc;
+      const formatted = [city, country].filter(Boolean).join(', ');
+      return formatted || 'Not specified';
+    };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -132,7 +141,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <span>📧 {selectedInfluencer.email}</span>
                   <span>📱 {selectedInfluencer.phone}</span>
-                  <span>📍 {selectedInfluencer.location || 'Not specified'}</span>
+                  <span>📍 {renderLocation(selectedInfluencer.location)}</span>
                 </div>
                 <div className="flex items-center gap-3 mt-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCompletionColor(selectedInfluencer.profileCompletion)}`}>
@@ -300,6 +309,15 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         {filteredInfluencers.map((influencer) => {
           const verificationBadge = getVerificationBadge(influencer.verificationStatus);
           
+          // Helper to safely render location (handles both string and object formats)
+          const renderLocation = (loc) => {
+            if (!loc) return 'Not specified';
+            if (typeof loc === 'string') return loc;
+            const { city = '', country = '' } = loc;
+            const formatted = [city, country].filter(Boolean).join(', ');
+            return formatted || 'Not specified';
+          };
+          
           return (
             <div key={influencer._id} className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow">
               <div className="p-4 border-b border-gray-100">
@@ -350,7 +368,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   
                   <div className="flex justify-between mb-2">
                     <span className="font-medium">Location:</span>
-                    <span className="text-gray-600">{influencer.location || 'Not specified'}</span>
+                    <span className="text-gray-600">{renderLocation(influencer.location)}</span>
                   </div>
                   
                   <div className="flex justify-between mb-2">

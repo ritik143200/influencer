@@ -1,30 +1,72 @@
+import React from 'react';
+import { useRouter } from '../contexts/RouterContext';
+
 const Footer = ({ config }) => {
+  const { navigate } = useRouter();
+
+  const footerSections = [
+    {
+      title: 'For Creators',
+      links: [
+        { label: 'Join as Creator', path: 'registration' },
+        { label: 'Success Stories', path: '#' },
+        { label: 'Resources', path: '#' },
+        { label: 'Community', path: '#' }
+      ]
+    },
+    {
+      title: 'For Brands',
+      links: [
+        { label: 'Find Creators', path: 'home' },
+        { label: 'How it Works', path: 'how-it-works' },
+        { label: 'Pricing', path: '#' },
+        { label: 'Support', path: 'contact' }
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { label: 'About Us', path: 'about' },
+        { label: 'Contact', path: 'contact' },
+        { label: 'FAQ', path: 'faq' },
+        { label: 'Blog', path: '#' }
+      ]
+    }
+  ];
+
   return (
     <footer className="bg-gray-900 text-white py-12 lg:py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-xl font-bold text-brand-500">{config.platform_name}</span>
+            <div className="flex items-center mb-4">
+              <img 
+                src="/footer.png" 
+                alt={config.platform_name} 
+                className="h-16 w-auto object-contain cursor-pointer" 
+                onClick={() => navigate('home')}
+                onError={(e) => {
+                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='white'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
+                }}
+              />
             </div>
             <p className="text-gray-400 text-sm">
               Connecting creators and brands with trusted collaboration tools worldwide.
             </p>
           </div>
 
-          {[
-            { title: 'For Creators', links: ['Join as Creator', 'Success Stories', 'Resources', 'Community'] },
-            { title: 'For Brands', links: ['Find Creators', 'How it Works', 'Pricing', 'Support'] },
-            { title: 'Company', links: ['About Us', 'Careers', 'Blog', 'Contact'] }
-          ].map((col, i) => (
+          {footerSections.map((section, i) => (
             <div key={i}>
-              <h4 className="font-semibold mb-4">{col.title}</h4>
+              <h4 className="font-semibold mb-4">{section.title}</h4>
               <ul className="space-y-2">
-                {col.links.map((link, j) => (
+                {section.links.map((link, j) => (
                   <li key={j}>
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
-                      {link}
-                    </a>
+                    <button
+                      onClick={() => link.path !== '#' && navigate(link.path)}
+                      className="text-gray-400 hover:text-white transition-colors text-sm text-left"
+                    >
+                      {link.label}
+                    </button>
                   </li>
                 ))}
               </ul>

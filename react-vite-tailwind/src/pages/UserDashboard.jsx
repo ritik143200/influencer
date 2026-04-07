@@ -550,7 +550,6 @@ const UserDashboard = ({ config }) => {
       (inquiry.title?.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (inquiry.category?.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (inquiry.type?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (inquiry.eventType?.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (inquiry.description?.toLowerCase().includes(searchTerm.toLowerCase()));
     
     return matchesStatus && matchesDate && matchesSearch;
@@ -642,7 +641,7 @@ const UserDashboard = ({ config }) => {
                 {/* Top: Title, Category, Date */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
-                    <h4 className="text-lg font-semibold text-gray-800 mb-1">{inq.title || inq.eventType || 'Hiring Request'}</h4>
+                    <h4 className="text-lg font-semibold text-gray-800 mb-1">{inq.title || 'Hiring Request'}</h4>
                     <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                       <span className="inline-block px-2 py-0.5 bg-brand-50 text-brand-600 rounded-full font-medium">{inq.category || inq.type || '—'}</span>
                       <span className="inline-block px-2 py-0.5 bg-gray-50 text-gray-600 rounded-full font-medium">

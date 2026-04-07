@@ -8,6 +8,7 @@ const InfluencerDashboard = ({ config }) => {
   const { logout } = useAuth();
   const [influencerData, setInfluencerData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [inquiries, setInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
   const [earnings, setEarnings] = useState({
@@ -84,12 +85,268 @@ const InfluencerDashboard = ({ config }) => {
 
   }, []);
 
+  // Helper to parse location - handle both string and object formats
+  const parseLocation = (location) => {
+    let city = '';
+    let country = '';
+    
+    if (typeof location === 'string') {
+      // Handle old format: "Indore, India" or just "Indore"
+      const parts = location.split(',').map(p => p.trim());
+      city = parts[0] || '';
+      country = parts[1] || '';
+    } else if (location && typeof location === 'object') {
+      city = (location.city || '').trim();
+      country = (location.country || '').trim();
+    }
+    
+    return { city, country };
+  };
+
+  // Helper to check which required fields are missing
+  const getMissingFields = (data) => {
+    if (!data) return [];
+    
+    const missing = [];
+    
+    // Required fields check
+    const fullName = (data.fullName || data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim()).trim();
+    const email = (data.email || '').trim();
+    const phone = (data.phone || (data.contact && data.contact.phone) || '').trim();
+    const bio = (data.bio || '').trim();
+    
+    // Location check - use parseLocation helper
+    const { city, country } = parseLocation(data.location);
+    
+    const hasCategory = !!(data.niche || data.category || (data.categories && data.categories.length > 0));
+    const experience = (data.experience || '').trim();
+    const budgetMin = data.budgetMin;
+    const budgetMax = data.budgetMax;
+    const budgetDefault = data.budget;
+    const instagramLink = (data.socialLinks?.instagram || data.platforms?.instagram?.url || data.instagram || '').trim();
+    
+    // Track missing fields with readable names
+    if (!fullName) missing.push('Full Name');
+    if (!email) missing.push('Email Address');
+    if (!phone) missing.push('Phone Number');
+    if (!bio) missing.push('About You (Bio)');
+    if (!city) missing.push('City');
+    if (!country) missing.push('Country');
+    if (!hasCategory) missing.push('Niche/Category');
+    if (!experience) missing.push('Experience');
+    if (!budgetMin) missing.push('Budget Min');
+    if (!budgetMax) missing.push('Budget Max');
+    if (!budgetDefault) missing.push('Default Budget');
+    if (!instagramLink) missing.push('Instagram Link');
+    
+    console.log('🔍 Missing fields check:', {
+      fullName: fullName || 'MISSING',
+      email: email || 'MISSING',
+      phone: phone || 'MISSING',
+      bio: bio || 'MISSING',
+      city: city || 'MISSING',
+      country: country || 'MISSING',
+      hasCategory: hasCategory ? 'YES' : 'MISSING',
+      experience: experience || 'MISSING',
+      budgetMin: budgetMin || 'MISSING',
+      budgetMax: budgetMax || 'MISSING',
+      budgetDefault: budgetDefault || 'MISSING',
+      instagramLink: instagramLink || 'MISSING',
+      totalMissing: missing.length
+    });
+    
+    return missing;
+  };
+
+  // Helper to get the count of completed fields
+  const getProfileCompletionPercentage = (data) => {
+    if (!data) return 0;
+    const missing = getMissingFields(data);
+    const completed = 12 - missing.length;
+    return Math.round((completed / 12) * 100);
+  };
+
+  // Helper to determine which required fields are missing
+  const isProfileComplete = (data) => {
+    if (!data) {
+      console.log('❌ No data provided to isProfileComplete');
+      return false;
+    }
+    
+    // Required fields check with more robust validation
+    const fullName = (data.fullName || data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim()).trim();
+    const email = (data.email || '').trim();
+    const phone = (data.phone || (data.contact && data.contact.phone) || '').trim();
+    const bio = (data.bio || '').trim();
+    
+    // Location check - use parseLocation helper
+    const { city, country } = parseLocation(data.location);
+    
+    // Category/Niche check - more flexible validation
+    const hasCategory = !!(data.niche || data.category || (data.categories && data.categories.length > 0));
+    
+    // Experience check - allow various formats
+    const experience = (data.experience || '').trim();
+    
+    // Budget check - ensure they're valid numbers, not just empty strings
+    const budgetMin = data.budgetMin;
+    const budgetMax = data.budgetMax;
+    const budgetDefault = data.budget;
+    
+    // Instagram link check - more comprehensive
+    const instagramLink = (data.socialLinks?.instagram || 
+                          data.platforms?.instagram?.url || 
+                          data.instagram || '').trim();
+    
+    // Debug logging with actual values
+    console.log('🔍 Profile fields check (with values):', {
+      fullName: fullName || 'MISSING',
+      email: email || 'MISSING',
+      phone: phone || 'MISSING',
+      bio: bio || 'MISSING',
+      city: city || 'MISSING',
+      country: country || 'MISSING',
+      hasCategory: hasCategory ? 'YES' : 'MISSING',
+      experience: experience || 'MISSING',
+      budgetMin: budgetMin || 'MISSING',
+      budgetMax: budgetMax || 'MISSING',
+      budgetDefault: budgetDefault || 'MISSING',
+      instagramLink: instagramLink || 'MISSING'
+    });
+    
+    // All required fields must be filled and not empty/whitespace
+    const isComplete = !!(
+      fullName && 
+      email && 
+      phone && 
+      bio && 
+      city && 
+      country && 
+      hasCategory && 
+      experience && 
+      budgetMin && 
+      budgetMax && 
+      budgetDefault && 
+      instagramLink
+    );
+    
+    console.log('📊 Final profile completion result:', isComplete);
+    return isComplete;
+  };
+
   // Debug useEffect to monitor inquiries state (real-time only)
   useEffect(() => {
     console.log('🎨 Real-time inquiries state updated:', inquiries);
     console.log('🎨 Real-time inquiries length:', inquiries.length);
     console.log('🎨 Loading state:', loadingInquiries);
   }, [inquiries, loadingInquiries]);
+
+  // Auto-hide popup when profile becomes complete
+  useEffect(() => {
+    if (!showProfileModal) {
+      // Modal is not showing, don't need to check
+      console.log('📋 Modal not showing, skipping profile check');
+      return;
+    }
+
+    const checkAndHidePopup = () => {
+      const stored = localStorage.getItem('userData');
+      const data = stored ? JSON.parse(stored) : influencerData;
+      
+      console.log('🔍 Checking profile completion in modal:', {
+        hasData: !!data,
+        isComplete: data ? isProfileComplete(data) : false
+      });
+      
+      if (data && isProfileComplete(data)) {
+        console.log('✅ Profile is complete, closing modal and redirecting to inquiries');
+        setShowProfileModal(false);
+        setActiveTab('inquiries');
+      }
+    };
+
+    // Check immediately
+    checkAndHidePopup();
+
+    // Also listen for storage changes
+    const handleStorageChange = (e) => {
+      if (e.key === 'userData' && showProfileModal) {
+        console.log('🔄 userData changed, rechecking profile completion');
+        checkAndHidePopup();
+      }
+    };
+
+    // Listen for custom profile update event - fetch fresh data from server
+    const handleProfileUpdate = async (event) => {
+      console.log('📢 Profile update event received, fetching fresh profile data from server');
+      
+      try {
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const token = localStorage.getItem('userToken');
+        
+        const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+          const result = await res.json();
+          const freshData = result.data;
+          
+          console.log('🔄 Fresh profile data fetched from server:', freshData);
+          
+          // Update state with fresh data
+          setInfluencerData(freshData);
+          
+          // Update localStorage with fresh data
+          localStorage.setItem('userData', JSON.stringify(freshData));
+          
+          // Now check if profile is complete with fresh data
+          if (isProfileComplete(freshData)) {
+            console.log('✅ Profile is now complete! Closing modal and allowing access to inquiries');
+            setShowProfileModal(false);
+            setActiveTab('inquiries');
+          } else {
+            console.log('⚠️ Profile still incomplete, modal remains visible');
+          }
+        } else {
+          console.error('Failed to fetch fresh profile data');
+          checkAndHidePopup();
+        }
+      } catch (error) {
+        console.error('Error fetching fresh profile on update:', error);
+        // Fall back to checking cached data
+        checkAndHidePopup();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, [showProfileModal, influencerData]);
+
+  // Additional check on component mount and when localStorage changes
+  useEffect(() => {
+    const checkProfileOnMount = () => {
+      const stored = localStorage.getItem('userData');
+      if (stored) {
+        const data = JSON.parse(stored);
+        console.log('🏁 Component mount - checking initial profile state');
+        
+        // If profile is already complete and we haven't set modal to show, don't show it
+        // The modal will only show when user explicitly clicks the inquiries tab with incomplete profile
+        if (isProfileComplete(data)) {
+          console.log('✅ Profile complete on mount, modal stays hidden');
+          setShowProfileModal(false);
+        }
+      }
+    };
+
+    checkProfileOnMount();
+  }, []);
 
 
   const handleLogout = () => {
@@ -145,8 +402,17 @@ const InfluencerDashboard = ({ config }) => {
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-800">📋 Complete Inquiry Journey</h3>
-          <div className="text-sm text-gray-500">
-            Total: <span className="font-bold text-gray-800">{totalInquiries}</span> inquiries tracked
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-500">
+              Total: <span className="font-bold text-gray-800">{totalInquiries}</span> inquiries tracked
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('profile')}
+              className="inline-flex items-center text-sm bg-orange-500 text-white px-3 py-2 rounded-md font-medium hover:bg-orange-600 transition-colors shadow-sm"
+            >
+              View Profile
+            </button>
           </div>
         </div>
         
@@ -473,7 +739,16 @@ const InfluencerDashboard = ({ config }) => {
                   </div>
                   <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                     <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : '—'}</span>
-                    <span><strong>Location:</strong> {inq.location || '—'}</span>
+                    <span><strong>Location:</strong> {
+                      (() => {
+                        if (!inq.location) return '—';
+                        if (typeof inq.location === 'string') return inq.location;
+                        const city = (inq.location.city || '').trim();
+                        const country = (inq.location.country || '').trim();
+                        const out = [city, country].filter(Boolean).join(', ');
+                        return out || '—';
+                      })()
+                    }</span>
                     <span><strong>Forwarded:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : '—'}</span>
                   </div>
                 </div>
@@ -577,7 +852,64 @@ const InfluencerDashboard = ({ config }) => {
             {['overview', 'inquiries'].map((tab) => (
               <button
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={async () => {
+                  if (tab === 'inquiries') {
+                    // Fetch fresh profile data from server when user attempts to access inquiries
+                    try {
+                      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+                      const token = localStorage.getItem('userToken');
+                      
+                      console.log('🎯 Inquiries tab clicked - fetching fresh profile from server');
+                      
+                      const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                      });
+                      
+                      if (res.ok) {
+                        const result = await res.json();
+                        const freshData = result.data;
+                        
+                        console.log('🔄 Fresh profile data from server:', freshData);
+                        
+                        // Update state and localStorage with fresh data
+                        setInfluencerData(freshData);
+                        localStorage.setItem('userData', JSON.stringify(freshData));
+                        
+                        // Check profile completion with fresh data
+                        if (!isProfileComplete(freshData)) {
+                          console.log('🚫 Profile incomplete, showing popup');
+                          setShowProfileModal(true);
+                          return;
+                        } else {
+                          console.log('✅ Profile complete, allowing access to inquiries');
+                          setShowProfileModal(false);
+                        }
+                      } else {
+                        // Fallback to cached data if server fetch fails
+                        console.warn('Failed to fetch fresh profile, using cached data');
+                        const stored = localStorage.getItem('userData');
+                        const data = stored ? JSON.parse(stored) : influencerData;
+                        
+                        if (!isProfileComplete(data)) {
+                          console.log('🚫 Profile incomplete (cached data), showing popup');
+                          setShowProfileModal(true);
+                          return;
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error fetching profile on inquiries tab click:', error);
+                      // Fallback to cached data
+                      const stored = localStorage.getItem('userData');
+                      const data = stored ? JSON.parse(stored) : influencerData;
+                      
+                      if (!isProfileComplete(data)) {
+                        setShowProfileModal(true);
+                        return;
+                      }
+                    }
+                  }
+                  setActiveTab(tab);
+                }}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab
                   ? 'border-brand-500 text-brand-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -596,6 +928,111 @@ const InfluencerDashboard = ({ config }) => {
         {activeTab === 'overview' && renderOverview()}
         {activeTab === 'inquiries' && renderInquiries()}
       </div>
+      {/* Profile completion modal (blocks access to inquiries until complete) */}
+      {showProfileModal && (() => {
+        const stored = localStorage.getItem('userData');
+        const data = stored ? JSON.parse(stored) : influencerData;
+        const missingFields = getMissingFields(data);
+        const completionPercent = getProfileCompletionPercentage(data);
+        const totalFields = 12;
+        const completedFields = totalFields - missingFields.length;
+        
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-fadeIn" onClick={(e) => e.target === e.currentTarget && setShowProfileModal(false)}>
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-gray-100 transform transition-all animate-slideUp">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 mx-auto mb-4">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-1 text-center">Complete Your Profile</h3>
+              
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-sm text-gray-600">Profile Completion</p>
+                  <span className="text-sm font-bold text-brand-600">{completedFields}/{totalFields}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div 
+                    className="bg-gradient-to-r from-orange-400 to-brand-600 h-2.5 rounded-full transition-all duration-500"
+                    style={{ width: `${completionPercent}%` }}
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{completionPercent}% Complete</p>
+              </div>
+
+              {/* Missing Fields */}
+              {missingFields.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm font-semibold text-red-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Fields to Complete:
+                  </p>
+                  <ul className="text-sm text-red-800 space-y-1 max-h-32 overflow-y-auto">
+                    {missingFields.map((field, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <span className="text-red-500">•</span>
+                        <span>{field}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {completionPercent === 100 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                  <p className="text-sm font-semibold text-green-900 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    All fields completed! ✅
+                  </p>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('profile')}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg active:scale-95"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Go to Profile Editor
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const stored = localStorage.getItem('userData');
+                    const data = stored ? JSON.parse(stored) : influencerData;
+                    if (isProfileComplete(data)) {
+                      console.log('✅ Profile check confirmed - allowing inquiry access');
+                      setShowProfileModal(false);
+                      setActiveTab('inquiries');
+                    } else {
+                      const still = getMissingFields(data);
+                      console.log('⏳ Still incomplete, missing: ' + still.join(', '));
+                    }
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Check Again
+                </button>
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-5 text-center">💡 We need all details to match you with the best opportunities!</p>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

@@ -30,7 +30,7 @@ const CategorySection = ({ category, config }) => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => scroll('left')}
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
             >
@@ -38,7 +38,7 @@ const CategorySection = ({ category, config }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button 
+            <button
               onClick={() => scroll('right')}
               className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
             >
@@ -49,11 +49,11 @@ const CategorySection = ({ category, config }) => {
           </div>
         </div>
 
-        <div 
+        <div
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
         >
-          <div className="w-full text-center py-12 px-6 rounded-2xl border" style={{ 
+          <div className="w-full text-center py-12 px-6 rounded-2xl border" style={{
             backgroundColor: `${config.primary_action}08`,
             borderColor: `${config.primary_action}20`
           }}>
@@ -67,7 +67,7 @@ const CategorySection = ({ category, config }) => {
               The influencer browsing functionality has been removed. Please register as an influencer or sign in to access the platform.
             </p>
             <div className="flex gap-3 justify-center">
-              <button 
+              <button
                 onClick={() => navigate('influencer-registration')}
                 className="px-4 py-2 rounded-lg font-semibold text-sm transition-colors"
                 style={{
@@ -77,7 +77,7 @@ const CategorySection = ({ category, config }) => {
               >
                 Register as Influencer
               </button>
-              <button 
+              <button
                 onClick={() => navigate('registration', { type: 'user' })}
                 className="px-4 py-2 rounded-lg font-semibold text-sm border transition-colors"
                 style={{
