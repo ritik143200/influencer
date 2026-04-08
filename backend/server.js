@@ -18,6 +18,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const otpRoutes = require('./routes/otpRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 
 // Connect to database
 const connectDB = require('./config/db');
@@ -72,6 +73,7 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/otp', otpRoutes);
+app.use('/api/contacts', contactRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

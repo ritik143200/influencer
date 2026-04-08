@@ -1,30 +1,75 @@
 import React, { useState } from 'react';
+import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const ContactPage = ({ config }) => {
+  const { navigate } = useRouter();
+  const { isAuthenticated, user } = useAuth();
+
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
     subject: '',
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
+    // Check if user is authenticated - redirect to registration if not
+    if (!isAuthenticated) {
+      navigate('registration', { type: 'user' });
+      return;
+    }
+
     setIsSubmitting(true);
-    // Simulate submission
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const token = localStorage.getItem('userToken');
+
+      if (!token) {
+        setError('Authentication token is missing. Please sign in again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const res = await fetch(`${API_BASE_URL}/api/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Failed to submit contact form');
+        setIsSubmitting(false);
+        return;
+      }
+
       setSubmitted(true);
       setFormData({ name: '', phone: '', email: '', subject: '', message: '' });
+      setIsSubmitting(false);
+      
       setTimeout(() => setSubmitted(false), 4000);
-    }, 1500);
+    } catch (err) {
+      console.error('Error submitting contact:', err);
+      setError('Network error while submitting contact form');
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -186,6 +231,21 @@ const ContactPage = ({ config }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-8">
+                  {/* Error Notification */}
+                  {error && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 animate-fadeIn">
+                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-bold text-red-800 text-sm">Error</p>
+                        <p className="text-xs text-red-600">{error}</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Success Notification */}
                   {submitted && (
                     <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3 animate-fadeIn">

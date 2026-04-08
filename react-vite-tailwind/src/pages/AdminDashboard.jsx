@@ -48,6 +48,8 @@ const AdminDashboard = ({ config }) => {
 
   const [inquiries, setInquiries] = useState([]);
 
+  const [contacts, setContacts] = useState([]);
+
 
 
   // Influencer detail modal state
@@ -65,6 +67,10 @@ const AdminDashboard = ({ config }) => {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
 
   const [showInquiryDetailsModal, setShowInquiryDetailsModal] = useState(false);
+
+  const [selectedContact, setSelectedContact] = useState(null);
+
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState(null);
 
@@ -376,6 +382,21 @@ const AdminDashboard = ({ config }) => {
 
         setNotifications([]);
 
+      }
+
+      // Fetch contacts
+      try {
+        const contactsRes = await fetch(`${API_BASE_URL}/api/contacts`, {
+          headers: authHeader
+        });
+
+        if (contactsRes.ok) {
+          const contactsData = await contactsRes.json();
+          setContacts(contactsData.data || []);
+        }
+      } catch (contactsErr) {
+        console.error('Error fetching contacts:', contactsErr);
+        setContacts([]);
       }
 
 
@@ -1863,7 +1884,161 @@ const AdminDashboard = ({ config }) => {
     );
   };
 
+  const renderContacts = () => (
+    <div className="w-full">
+      {/* Header */}
+      <div className={`bg-gradient-to-r ${getCategoryColors(7)} p-6 shadow-lg`}>
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center">
+            <h3 className="text-2xl font-bold text-white">Contact Submissions</h3>
+            <div className="text-white/90 text-sm font-semibold">
+              Total: {contacts.length}
+            </div>
+          </div>
+        </div>
+      </div>
 
+      {/* Content */}
+      <div className="w-full p-6">
+        <div className="max-w-7xl mx-auto space-y-4">
+          {!contacts || contacts.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+              <div className="text-gray-400">No contact submissions found.</div>
+            </div>
+          ) : contacts.map((contact) => (
+            <div key={contact._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      Submitted
+                    </span>
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      contact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      contact.status === 'read' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {contact.status || 'pending'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
+                      <div className="text-sm text-gray-600">
+                        <div className="font-medium">{contact.name}</div>
+                        <div className="text-xs text-gray-400">{contact.email}</div>
+                        <div className="text-xs text-gray-400">{contact.phone}</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm mb-1">Subject</h4>
+                      <div className="text-sm text-gray-600">
+                        <div className="font-medium truncate">{contact.subject}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {new Date(contact.createdAt).toLocaleDateString('en-IN')}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm mb-1">Message Preview</h4>
+                      <div className="text-sm text-gray-600">
+                        <p className="truncate">{contact.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      setShowContactModal(true);
+                    }}
+                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Contact Detail Modal */}
+      {showContactModal && selectedContact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Contact Details</h2>
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Name</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedContact.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Email</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedContact.email}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Phone</p>
+                  <p className="text-lg font-semibold text-gray-900">{selectedContact.phone}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Status</p>
+                  <p className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
+                    selectedContact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                    selectedContact.status === 'read' ? 'bg-blue-100 text-blue-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {selectedContact.status || 'pending'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Subject</p>
+                <p className="text-gray-900">{selectedContact.subject}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Message</p>
+                <p className="text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">{selectedContact.message}</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Submitted On</p>
+                <p className="text-gray-900">{new Date(selectedContact.createdAt).toLocaleString('en-IN')}</p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex gap-3">
+              <button
+                onClick={() => setShowContactModal(false)}
+                className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-semibold transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 
   const renderAnalytics = () => (
 
@@ -2444,7 +2619,7 @@ const AdminDashboard = ({ config }) => {
 
           <div className="flex overflow-x-auto space-x-2 sm:space-x-4 scrollbar-hide">
 
-            {['overview', 'users', 'influencers', 'inquiries', 'analytics', 'settings'].map((tab, index) => (
+            {['overview', 'users', 'influencers', 'inquiries', 'contacts', 'analytics', 'settings'].map((tab, index) => (
 
               <button
 
@@ -2529,6 +2704,8 @@ const AdminDashboard = ({ config }) => {
         )}
 
         {activeTab === 'inquiries' && renderInquiries()}
+
+        {activeTab === 'contacts' && renderContacts()}
 
         {activeTab === 'analytics' && renderAnalytics()}
 

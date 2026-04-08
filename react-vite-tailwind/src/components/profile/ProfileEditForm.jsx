@@ -63,7 +63,7 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
   // Main render - single page scrollable design
   return (
     <div className="w-full bg-transparent">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-3xl w-full mx-auto px-2 sm:px-8 py-10 md:py-12">
         {/* Page Header with Progress */}
         <div className="mb-8">
           <div className="flex justify-between items-start mb-3">

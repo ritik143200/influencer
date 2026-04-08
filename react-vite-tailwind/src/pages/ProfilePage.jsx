@@ -196,7 +196,7 @@ const ProfilePage = ({ config }) => {
             <svg className="w-10 h-10 text-brand-500" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
           </div>
           <h1 className="text-3xl font-extrabold mb-3 text-gray-800">Sign In Required</h1>
-          <p className="text-gray-500 mb-6">Please sign in to view and manage your profile.</p>
+          <p className="text-gray-600 mb-6">Please sign in to view and manage your profile.</p>
           <button onClick={() => navigate('auth')} className="px-8 py-3 bg-brand-500 text-white rounded-xl font-bold hover:bg-brand-600 transition-all shadow-lg">
             Sign In →
           </button>
@@ -210,7 +210,7 @@ const ProfilePage = ({ config }) => {
       <div className="pt-24 pb-16 min-h-screen flex items-center justify-center" style={{ backgroundColor: config.background_color }}>
         <div className="text-center">
           <div className="w-14 h-14 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500 font-medium">Loading your profile...</p>
+          <p className="text-gray-600 font-medium">Loading your profile...</p>
         </div>
       </div>
     );
@@ -353,15 +353,15 @@ const ProfilePage = ({ config }) => {
                 )}
               </div>
               
-              <p className="text-lg font-semibold text-slate-600 mb-4">{userData.title} • {userData.handle2}</p>
+              <p className="text-lg font-semibold text-slate-700 mb-4">{userData.title} • {userData.handle2}</p>
               
               <div className="flex flex-wrap gap-3 mb-4">
                 <div className="flex items-center gap-2 text-slate-700 font-medium">
-                  <MapPin size={18} className="text-slate-400" />
+                  <MapPin size={18} className="text-slate-500" />
                   {userData.location}
                 </div>
                 <div className="flex items-center gap-2 text-slate-700 font-medium">
-                  <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                   {formData.email || 'email@example.com'}
@@ -376,7 +376,7 @@ const ProfilePage = ({ config }) => {
                     </span>
                   ))
                 ) : (
-                  <span className="text-slate-400 text-sm italic">No specializations added yet</span>
+                  <span className="text-slate-500 text-sm italic">No specializations added yet</span>
                 )}
               </div>
             </div>
@@ -404,11 +404,11 @@ const ProfilePage = ({ config }) => {
               <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">Professional Bio</h3>
               <span className="px-2 py-0.5 bg-indigo-100 text-indigo-600 text-[10px] font-black uppercase rounded-md tracking-widest">About Me</span>
             </div>
-            <div className="text-slate-600 text-base leading-relaxed max-w-4xl">
+            <div className="text-slate-700 text-base leading-relaxed max-w-4xl">
               {userData.bio && userData.bio !== 'Tell us about yourself...' ? (
                 <p className="whitespace-pre-wrap">{userData.bio}</p>
               ) : (
-                <p className="text-slate-400 italic">No professional bio shared yet. Introduce yourself to brands!</p>
+                <p className="text-slate-500 italic">No professional bio shared yet. Introduce yourself to brands!</p>
               )}
             </div>
           </div>
@@ -432,19 +432,19 @@ const ProfilePage = ({ config }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Full Name</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Full Name</label>
               <p className="text-base font-semibold text-slate-900">{userData.name || "—"}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Email</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Email</label>
               <p className="text-base font-semibold text-slate-900 break-all">{formData.email || "—"}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Phone</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Phone</label>
               <p className="text-base font-semibold text-slate-900">{formData.phone || "—"}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Location</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Location</label>
               <p className="text-base font-semibold text-slate-900">{formattedLocation || "—"}</p>
             </div>
           </div>
@@ -458,23 +458,23 @@ const ProfilePage = ({ config }) => {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Primary Niche</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Primary Niche</label>
               <p className="text-base font-semibold text-slate-900">{userData.professional.primaryNiche || "—"}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Experience</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Experience</label>
               <p className="text-base font-semibold text-slate-900">{userData.professional.experience || "—"}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Reach</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Total Reach</label>
               <p className="text-base font-semibold text-slate-900">{userData.stats.totalReach} followers</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Budget Range</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Budget Range</label>
               <p className="text-base font-semibold text-slate-900">{userData.budgetMin || userData.budgetMax ? `${userData.budgetMin || '₹0'} - ${userData.budgetMax || '₹0'}` : 'Not specified'}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Default Budget</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-1">Default Budget</label>
               <p className="text-base font-semibold text-slate-900">{userData.budget ? `₹${Number(userData.budget).toLocaleString()}` : 'Not specified'}</p>
             </div>
           </div>
@@ -518,7 +518,7 @@ const ProfilePage = ({ config }) => {
             ) : null}
 
             {!(formData.socialLinks?.instagram || userData.stats.instagram.url || formData.socialLinks?.youtube || userData.stats.youtube.url || formData.socialLinks?.facebook || userData.stats.facebook.url) && (
-              <p className="text-sm text-slate-500">No social links added yet. Click Edit to add profiles.</p>
+              <p className="text-sm text-slate-600">No social links added yet. Click Edit to add profiles.</p>
             )}
           </div>
         </div>
@@ -549,7 +549,7 @@ const ProfilePage = ({ config }) => {
                   ) : typeof item === 'object' && item?.url ? (
                     <img src={item.url} alt={item.title || `Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400 p-4 text-sm text-center font-medium capitalize">{item || 'Portfolio item'}</div>
+                    <div className="w-full h-full flex items-center justify-center text-slate-500 p-4 text-sm text-center font-medium capitalize">{item || 'Portfolio item'}</div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                     <p className="text-white text-[11px] font-bold tracking-wide uppercase">Project {idx + 1}</p>
@@ -562,7 +562,7 @@ const ProfilePage = ({ config }) => {
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
                 <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               </div>
-              <p className="text-slate-400 font-medium mb-6">No project showcase added yet.</p>
+              <p className="text-slate-600 font-medium mb-6">No project showcase added yet.</p>
               <button 
                 onClick={() => setIsEditing(true)} 
                 className="px-8 py-3 text-white rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95" style={{ background: 'rgb(238 119 17)' }}
