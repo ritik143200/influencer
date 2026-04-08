@@ -88,6 +88,7 @@ const AppContent = ({ config }) => {
       )}
       {currentPath === 'faq' && <FAQPage config={config} />}
       {currentPath === 'contact' && <ContactPage config={config} />}
+      {currentPath === 'reset-password' && <AuthPage />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
       {currentPath === 'auth/callback' && <AuthCallback />}
       {currentPath === 'home' && <HomePage config={config} />}

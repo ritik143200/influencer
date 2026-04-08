@@ -3,27 +3,52 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 const RouterContext = createContext();
 
 // Read initial path from URL query (?path=...) so pages can be opened directly during development
-const getInitialPathFromUrl = () => {
+const getUrlInfo = () => {
   try {
-    const params = new URLSearchParams(window.location.search);
-    const p = params.get('path');
-    return p || 'home';
+    const searchParams = new URLSearchParams(window.location.search);
+    const path = searchParams.get('path');
+    
+    // If ?path= is present, use it
+    if (path) {
+      const params = {};
+      for (const [key, value] of searchParams.entries()) {
+        if (key !== 'path') params[key] = value;
+      }
+      return { path, params };
+    }
+
+    // Otherwise, check pathname
+    const pathname = window.location.pathname.replace(/^\//, '');
+    if (pathname) {
+      const params = {};
+      for (const [key, value] of searchParams.entries()) {
+        params[key] = value;
+      }
+      return { path: pathname, params };
+    }
+
+    return { path: 'home', params: {} };
   } catch (e) {
-    return 'home';
+    return { path: 'home', params: {} };
   }
 };
 
 export const RouterProvider = ({ children }) => {
-  const [currentPath, setCurrentPath] = useState(getInitialPathFromUrl());
-  const [params, setParams] = useState({});
+  const initialInfo = getUrlInfo();
+  const [currentPath, setCurrentPath] = useState(initialInfo.path);
+  const [params, setParams] = useState(initialInfo.params);
 
   const navigate = (path, navParams = {}) => {
     setCurrentPath(path);
     setParams(navParams);
-    // Update URL so direct links work (preserve other query params)
     try {
       const url = new URL(window.location.href);
+      url.pathname = '/'; // Keep it simple and use query params for navigation within the app
+      url.search = '';
       url.searchParams.set('path', path);
+      Object.keys(navParams).forEach(key => {
+        url.searchParams.set(key, navParams[key]);
+      });
       window.history.pushState({}, '', url.toString());
     } catch (e) {
       // ignore
@@ -31,11 +56,11 @@ export const RouterProvider = ({ children }) => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  // Handle browser navigation (back/forward)
   useEffect(() => {
     const onPop = () => {
-      const path = getInitialPathFromUrl();
-      setCurrentPath(path);
+      const info = getUrlInfo();
+      setCurrentPath(info.path);
+      setParams(info.params);
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);

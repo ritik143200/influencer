@@ -25,30 +25,23 @@ const ContactPage = ({ config }) => {
     e.preventDefault();
     setError(null);
 
-    // Check if user is authenticated - redirect to registration if not
-    if (!isAuthenticated) {
-      navigate('registration', { type: 'user' });
-      return;
-    }
-
     setIsSubmitting(true);
 
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const token = localStorage.getItem('userToken');
 
-      if (!token) {
-        setError('Authentication token is missing. Please sign in again.');
-        setIsSubmitting(false);
-        return;
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
 
       const res = await fetch(`${API_BASE_URL}/api/contacts`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: headers,
         body: JSON.stringify(formData)
       });
 

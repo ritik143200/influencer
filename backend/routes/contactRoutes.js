@@ -3,8 +3,8 @@ const router = express.Router();
 const contactController = require('../controllers/contactController');
 const { protect } = require('../middleware/authMiddleware');
 
-// Submit a contact form (requires authentication)
-router.post('/', protect, contactController.submitContact);
+// Submit a contact form (publicly accessible)
+router.post('/', contactController.submitContact);
 
 // Get all contacts (admin only)
 router.get('/', protect, contactController.getAllContacts);

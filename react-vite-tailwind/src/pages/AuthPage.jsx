@@ -24,7 +24,15 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [resetToken, setResetToken] = useState('');
-  const { navigate, params } = useRouter();
+  const { navigate, params, currentPath } = useRouter();
+
+  useEffect(() => {
+    if (currentPath === 'reset-password') {
+      setIsResetPassword(true);
+      setIsLogin(false);
+      setResetToken(params.token || '');
+    }
+  }, [currentPath, params]);
 
   useEffect(() => {
     if (initialTab === 'register') {
@@ -76,6 +84,21 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   const validateForm = () => {
     const newErrors = {};
 
+    if (isResetPassword) {
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      } else if (formData.password.length < 6) {
+        newErrors.password = 'Password must be at least 6 characters';
+      }
+      if (!formData.confirmPassword) {
+        newErrors.confirmPassword = 'Please confirm your password';
+      } else if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    }
+
     if (isForgotPassword) {
       if (!formData.email) {
         newErrors.email = 'Email is required';
@@ -86,22 +109,21 @@ const AuthPage = ({ initialTab, embedded = false }) => {
       return Object.keys(newErrors).length === 0;
     }
 
-    if (!isLogin && !formData.name) {
-      newErrors.name = 'Name is required';
+    if (!isLogin) {
+      if (!formData.name) {
+        newErrors.name = 'Name is required';
+      }
+      if (!formData.phone) {
+        newErrors.phone = 'Phone number is required';
+      } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+      }
     }
 
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
-    }
-
-    if (!isLogin && !isForgotPassword) {
-      if (!formData.phone) {
-        newErrors.phone = 'Phone number is required';
-      } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-        newErrors.phone = 'Please enter a valid 10-digit phone number';
-      }
     }
 
     if (!formData.password) {
@@ -123,40 +145,58 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log('Validation failed', errors);
+      return;
+    }
 
     setIsLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      const endpoint = isForgotPassword ? 'forgot-password' : (isLogin ? 'login' : 'register');
+      const endpoint = isResetPassword ? 'reset-password' : (isForgotPassword ? 'forgot-password' : (isLogin ? 'login' : 'register'));
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      
+      const payload = isResetPassword ? {
+        token: resetToken,
+        password: formData.password
+      } : (isForgotPassword ? {
+        email: formData.email
+      } : (isLogin ? {
+        email: formData.email,
+        password: formData.password
+      } : {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password
+      }));
+
       const response = await fetch(`${API_BASE_URL}/api/auth/${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(isForgotPassword ? {
-          email: formData.email
-        } : (isLogin ? {
-          email: formData.email,
-          password: formData.password
-        } : {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password
-        }))
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: data.message || (isLogin ? 'Login successful!' : 'Registration successful!') });
+        setMessage({ type: 'success', text: data.message || 'Success!' });
 
         if (isForgotPassword) return;
+        
+        if (isResetPassword) {
+          setTimeout(() => {
+            setIsResetPassword(false);
+            setIsLogin(true);
+            toggleMode('login');
+          }, 2000);
+          return;
+        }
 
         // Save user data to localStorage and auth context
         if (data.token) {
@@ -167,12 +207,12 @@ const AuthPage = ({ initialTab, embedded = false }) => {
           login(userData);
           localStorage.setItem('userData', JSON.stringify(userData));
 
-          // Auto-submit pending inquiry if it exists during login OR registration
+          // Auto-submit pending inquiry if it exists
           const pending = localStorage.getItem('pendingInquiry');
           if (pending) {
             try {
               const inquiryData = JSON.parse(pending);
-              const apiRes = await fetch(`${API_BASE_URL}/api/inquiries`, {
+              await fetch(`${API_BASE_URL}/api/inquiries`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -183,17 +223,9 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   budget: Number(inquiryData.budget)
                 })
               });
-
-              if (apiRes.ok) {
-                setMessage(prev => ({ 
-                  type: 'success', 
-                  text: `${prev.text} Your pending inquiry has also been submitted!` 
-                }));
-              }
             } catch (err) {
               console.error('Failed to auto-submit inquiry:', err);
             }
-            // Always clear it after attempt to prevent stale data
             localStorage.removeItem('pendingInquiry');
           }
         }
@@ -209,9 +241,10 @@ const AuthPage = ({ initialTab, embedded = false }) => {
           }
         }, 1200);
       } else {
-        setMessage({ type: 'error', text: data.message || (isLogin ? 'Login failed' : 'Registration failed') });
+        setMessage({ type: 'error', text: data.message || 'Action failed' });
       }
     } catch (error) {
+      console.error('Auth error:', error);
       setMessage({ type: 'error', text: 'Network error. Please try again.' });
     } finally {
       setIsLoading(false);
@@ -467,7 +500,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   type="submit"
                   disabled={isLoading}
                   className={`w-full py-4 font-medium text-lg text-white rounded-[20px] transition-all duration-300 shadow-xl shadow-orange-200/50 flex items-center justify-center gap-2
-                    ${isLogin || isForgotPassword 
+                    ${isLogin || isForgotPassword || isResetPassword 
                       ? 'bg-gradient-to-r from-brand-500 to-brand-600 hover:shadow-brand-500/30 hover:scale-[1.02]' 
                       : 'bg-[#e65c00] hover:bg-[#d45500] hover:-translate-y-1 hover:scale-[1.01]'
                     }
@@ -477,7 +510,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   {isLoading && (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   )}
-                  {isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Register as a Brand →')}
+                  {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Register as a Brand →'))}
                 </button>
 
                 {!isLogin && !isForgotPassword && (

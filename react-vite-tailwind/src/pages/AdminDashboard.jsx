@@ -479,6 +479,34 @@ const AdminDashboard = ({ config }) => {
     }
   };
 
+  const handleUpdateContactStatus = async (contactId, status) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/contacts/${contactId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
+        },
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const updatedContact = data.data;
+        setContacts(prev => prev.map(c =>
+          (c._id === contactId || c.id === contactId) ? updatedContact : c
+        ));
+        setSelectedContact(updatedContact);
+        setSuccessMessage(`Contact status updated to ${status} successfully!`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        alert(data.message || 'Failed to update contact');
+      }
+    } catch (err) {
+      console.error('Error updating contact:', err);
+      alert('Network error while updating contact.');
+    }
+  };
+
   const handleLogout = () => {
     logout();
     navigate('home');
@@ -2026,7 +2054,23 @@ const AdminDashboard = ({ config }) => {
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex gap-3">
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex flex-wrap gap-3">
+              {selectedContact.status !== 'read' && selectedContact.status !== 'resolved' && (
+                <button
+                  onClick={() => handleUpdateContactStatus(selectedContact._id, 'read')}
+                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Mark as Read
+                </button>
+              )}
+              {selectedContact.status !== 'resolved' && (
+                <button
+                  onClick={() => handleUpdateContactStatus(selectedContact._id, 'resolved')}
+                  className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Mark as Resolved
+                </button>
+              )}
               <button
                 onClick={() => setShowContactModal(false)}
                 className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-semibold transition-colors"
@@ -2660,9 +2704,8 @@ const AdminDashboard = ({ config }) => {
                     {tab === 'influencers' && '🎨'}
 
                     {tab === 'inquiries' && '💬'}
-
+                    {tab === 'contacts' && '📧'}
                     {tab === 'analytics' && '📈'}
-
                     {tab === 'settings' && '⚙️'}
 
                   </span>

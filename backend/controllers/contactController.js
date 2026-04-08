@@ -6,10 +6,6 @@ exports.submitContact = async (req, res) => {
     const { name, phone, email, subject, message } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) {
-      return res.status(401).json({ success: false, message: 'User authentication required' });
-    }
-
     if (!name || !phone || !email || !subject || !message) {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }

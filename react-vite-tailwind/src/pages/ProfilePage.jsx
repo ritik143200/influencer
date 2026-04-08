@@ -155,6 +155,7 @@ const ProfilePage = ({ config }) => {
         pricing: formData.pricing,
         profileImage: formData.profileImage,
         profilePicture: formData.profilePicture,
+        portfolio: formData.portfolio,
       };
 
       // Only include password if user typed a new one
