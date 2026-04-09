@@ -69,6 +69,7 @@ const influencerSchema = new mongoose.Schema({
     facebook: { hasAccount: Boolean, url: String, followers: String, engagementRate: String }
   },
   portfolio: [{ type: String }],
+  unavailableDates: [{ type: Date }],
   previousCollaborations: { type: String },
 
   // Pricing
@@ -133,6 +134,7 @@ influencerSchema.index({ categories: 1 });
 influencerSchema.index({ location: 1 });
 influencerSchema.index({ verificationStatus: 1 });
 influencerSchema.index({ profileType: 1 });
+influencerSchema.index({ unavailableDates: 1 });
 
 // Virtual for display name (alternative to email)
 influencerSchema.virtual('displayName').get(function () {

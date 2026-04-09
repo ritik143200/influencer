@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import InquiryProgressBar from '../components/InquiryProgressBar';
+import { DayPicker } from 'react-day-picker';
+import 'react-day-picker/dist/style.css';
 
 const InfluencerDashboard = ({ config }) => {
   const { navigate } = useRouter();
@@ -11,57 +13,164 @@ const InfluencerDashboard = ({ config }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [inquiries, setInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
+  const [unavailableDates, setUnavailableDates] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [savingAvailability, setSavingAvailability] = useState(false);
+  const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [earnings, setEarnings] = useState({
     total: 0,
     thisMonth: 0,
     pending: 0
   });
 
+  // Filter states for inquiries
+  const [inquiryFilterStatus, setInquiryFilterStatus] = useState('all');
+  const [inquiryFilterCategory, setInquiryFilterCategory] = useState('all');
+  const [inquirySearchTerm, setInquirySearchTerm] = useState('');
+
   // Fetch inquiries for this influencer (moved outside useEffect)
+  const toYmd = (dateLike) => {
+    const d = new Date(dateLike);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+  };
+
+  // Format location into a readable string
+  const formatLocationString = (loc) => {
+    if (!loc) return '—';
+    if (typeof loc === 'string') return loc;
+    const { city, country } = parseLocation(loc);
+    const out = [city, country].filter(Boolean).join(', ');
+    return out || '—';
+  };
+
+  const fromYmd = (ymd) => new Date(`${ymd}T00:00:00.000Z`);
+
+  const fetchAvailability = async () => {
+    setAvailabilityLoading(true);
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+      });
+
+      if (!res.ok) {
+        setUnavailableDates([]);
+        return;
+      }
+
+      const result = await res.json();
+      const parsed = Array.isArray(result?.data?.unavailableDates)
+        ? result.data.unavailableDates.map(fromYmd).filter((d) => !Number.isNaN(d.getTime()))
+        : [];
+      setUnavailableDates(parsed);
+    } catch (error) {
+      console.error('Error fetching availability:', error);
+      setUnavailableDates([]);
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+
+  const saveAvailability = async () => {
+    setSavingAvailability(true);
+    setAvailabilityMessage('');
+    try {
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const payload = {
+        unavailableDates: (unavailableDates || [])
+          .map(toYmd)
+          .filter(Boolean)
+      };
+
+      const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAvailabilityMessage(result.message || 'Failed to update availability');
+        return;
+      }
+
+      setAvailabilityMessage('Availability updated successfully');
+      if (Array.isArray(result?.data?.unavailableDates)) {
+        setUnavailableDates(result.data.unavailableDates.map(fromYmd));
+      }
+    } catch (error) {
+      console.error('Error saving availability:', error);
+      setAvailabilityMessage('Network error while saving availability');
+    } finally {
+      setSavingAvailability(false);
+      setTimeout(() => setAvailabilityMessage(''), 3000);
+    }
+  };
+
   const fetchInquiries = async () => {
     setLoadingInquiries(true);
-    console.log('🎨 Starting real-time influencer inquiries fetch');
-    
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const influencerData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null;
       const influencerId = influencerData?._id || influencerData?.id;
-      
-      console.log('🎨 Current influencer data:', influencerData);
-      console.log('🎨 Influencer ID for filtering:', influencerId);
-      
+
       if (!influencerId) {
-        console.error('🎨 No influencer ID found, cannot fetch inquiries');
         setLoadingInquiries(false);
         return;
       }
-      
-      // Fetch inquiries directly from influencer inquiries endpoint
-      console.log('🎨 Fetching from influencer inquiries endpoint...');
+
       const res = await fetch(`${API_BASE_URL}/api/influencer/inquiries`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
       });
-      
+
       if (res.ok) {
         const result = await res.json();
-        console.log('🎨 Inquiry data fetched:', result);
-        
-        if (result.success && result.data) {
-          setInquiries(result.data);
-        } else {
-          setInquiries([]);
-        }
+        if (result.success && result.data) setInquiries(result.data);
+        else setInquiries([]);
       } else {
-        console.error('🎨 Failed to fetch inquiries:', res.status);
         setInquiries([]);
       }
-      
     } catch (error) {
-      console.error('🎨 Error fetching real-time inquiries:', error);
+      console.error('Error fetching inquiries:', error);
       setInquiries([]);
     } finally {
       setLoadingInquiries(false);
     }
+  };
+
+  // Get filtered inquiries based on status, category, and search term
+  const getFilteredInquiries = () => {
+    return inquiries.filter((inq) => {
+      const status = inq.status || 'forwarded';
+      const category = inq.category || inq.hiringFor || '';
+      const clientName = inq.userId?.name || inq.name || '';
+      const requirements = inq.requirements || '';
+      
+      // Filter by status
+      if (inquiryFilterStatus !== 'all' && status !== inquiryFilterStatus) {
+        return false;
+      }
+      
+      // Filter by category
+      if (inquiryFilterCategory !== 'all' && category.toLowerCase() !== inquiryFilterCategory.toLowerCase()) {
+        return false;
+      }
+      
+      // Filter by search term (search in client name and requirements)
+      if (inquirySearchTerm.trim()) {
+        const searchLower = inquirySearchTerm.toLowerCase();
+        const matchesName = clientName.toLowerCase().includes(searchLower);
+        const matchesReqs = requirements.toLowerCase().includes(searchLower);
+        if (!matchesName && !matchesReqs) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
   };
 
   useEffect(() => {
@@ -71,19 +180,254 @@ const InfluencerDashboard = ({ config }) => {
       setInfluencerData(JSON.parse(storedUser));
     }
 
-    const fetchInfluencerData = async () => {
-      try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-      } catch (error) {
-        console.error('Error fetching influencer dashboard data:', error);
-      }
-    };
-
-    fetchInfluencerData();
-
+    // Initialize data
     fetchInquiries();
+    fetchAvailability();
 
   }, []);
+
+  const renderAvailabilityManager = () => (
+    <div className="bg-gradient-to-br from-white via-orange-50/30 to-white rounded-3xl shadow-xl border border-orange-100/50 p-8 mb-6 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/20 to-orange-300/10 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-100/20 to-orange-200/10 rounded-full blur-2xl"></div>
+      
+      {/* Header Section */}
+      <div className="relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">Availability Calendar</h3>
+              <p className="text-sm text-gray-600 mt-1">Mark unavailable dates to avoid booking conflicts</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-orange-200/50 shadow-md">
+            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-gray-700">Busy dates:</span>
+            <span className="text-lg font-bold text-orange-600">{unavailableDates.length}</span>
+          </div>
+        </div>
+
+        {/* Main Calendar Container */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-orange-100/50 p-6 shadow-inner">
+          {availabilityLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 border-3 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
+                <p className="text-sm text-gray-500">Loading availability...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col xl:flex-row xl:items-start gap-6">
+              {/* Left: Selected Dates */}
+              <div className="w-full xl:w-80 flex-shrink-0">
+                <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200/50 rounded-2xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h4 className="text-base font-bold text-red-800">Selected Dates</h4>
+                    </div>
+                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
+                      {unavailableDates.length}
+                    </div>
+                  </div>
+
+                  {unavailableDates.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-500">No dates selected yet</p>
+                      <p className="text-xs text-gray-400 mt-1">Click on calendar dates to mark as unavailable</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+                      {unavailableDates
+                        .sort((a, b) => a.getTime() - b.getTime())
+                        .map((date, idx) => (
+                          <div key={idx} className="group flex items-center justify-between bg-white rounded-xl px-3 py-2.5 text-sm hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md border border-red-100/50">
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-sm">
+                                <span className="text-white text-xs font-bold">{date.getDate()}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-800 font-medium">
+                                  {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </span>
+                                <span className="text-gray-500 text-xs ml-1">
+                                  {date.toLocaleDateString('en-US', { year: 'numeric' })}
+                                </span>
+                              </div>
+                            </div>
+                            <button 
+                              onClick={() => setUnavailableDates(unavailableDates.filter((d) => d.getTime() !== date.getTime()))} 
+                              className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Center: Calendar */}
+              <div className="flex-1">
+                <div className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100/50">
+                  <DayPicker
+                    mode="multiple"
+                    selected={unavailableDates}
+                    onSelect={(days) => setUnavailableDates(days || [])}
+                    showOutsideDays
+                    className="mx-auto rdp-custom-modern"
+                    captionLayout="dropdown-buttons"
+                    showWeekNumber={false}
+                    disabled={{ before: new Date(new Date().setDate(new Date().getDate() - 1)) }}
+                    modifiers={{ selected: unavailableDates, today: [new Date()] }}
+                    modifiersClassNames={{
+                      selected: 'rdp-selected-modern',
+                      disabled: 'rdp-disabled-modern',
+                      today: 'rdp-today-modern'
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Right: Instructions */}
+              <div className="w-full xl:w-80 flex-shrink-0">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-2xl p-4 shadow-lg">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-base font-bold text-blue-800">How it works</h4>
+                  </div>
+                  
+                  <ul className="space-y-3 mb-4">
+                    <li className="flex items-start gap-2">
+                      <div className="w-5 h-5 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      </div>
+                      <span className="text-sm text-gray-700">Click dates to mark as <span className="font-semibold text-orange-600">Unavailable</span></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-5 h-5 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm text-gray-700">Past dates are disabled</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <div className="w-5 h-5 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm text-gray-700">Click selected dates to remove</span>
+                    </li>
+                  </ul>
+
+                  <div className="border-t border-blue-200/50 pt-4">
+                    <h5 className="text-sm font-semibold text-gray-700 mb-3">Legend</h5>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-white border-2 border-gray-200 rounded-lg"></div>
+                        <span className="text-xs text-gray-600">Available</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-lg relative">
+                          <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
+                        </div>
+                        <span className="text-xs text-gray-600">Selected (Unavailable)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-lg"></div>
+                        <span className="text-xs text-gray-600">Today</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-orange-100/50">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-gray-600">Selected dates are treated as unavailable/busy</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setUnavailableDates([])}
+              className="px-5 py-2.5 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-200 hover:shadow-md border border-gray-200"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Clear All
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={saveAvailability}
+              disabled={savingAvailability}
+              className="px-6 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed border border-orange-400/30"
+            >
+              <span className="flex items-center gap-2">
+                {savingAvailability ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+                    </svg>
+                    Save Availability
+                  </>
+                )}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {availabilityMessage && (
+          <div className="mt-4 flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-sm font-medium text-green-800">{availabilityMessage}</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   // Helper to parse location - handle both string and object formats
   const parseLocation = (location) => {
@@ -139,21 +483,7 @@ const InfluencerDashboard = ({ config }) => {
     if (!budgetDefault) missing.push('Default Budget');
     if (!instagramLink) missing.push('Instagram Link');
     
-    console.log('🔍 Missing fields check:', {
-      fullName: fullName || 'MISSING',
-      email: email || 'MISSING',
-      phone: phone || 'MISSING',
-      bio: bio || 'MISSING',
-      city: city || 'MISSING',
-      country: country || 'MISSING',
-      hasCategory: hasCategory ? 'YES' : 'MISSING',
-      experience: experience || 'MISSING',
-      budgetMin: budgetMin || 'MISSING',
-      budgetMax: budgetMax || 'MISSING',
-      budgetDefault: budgetDefault || 'MISSING',
-      instagramLink: instagramLink || 'MISSING',
-      totalMissing: missing.length
-    });
+    // Debug info intentionally removed for cleaner logs
     
     return missing;
   };
@@ -168,10 +498,7 @@ const InfluencerDashboard = ({ config }) => {
 
   // Helper to determine which required fields are missing
   const isProfileComplete = (data) => {
-    if (!data) {
-      console.log('❌ No data provided to isProfileComplete');
-      return false;
-    }
+    if (!data) return false;
     
     // Required fields check with more robust validation
     const fullName = (data.fullName || data.name || `${data.firstName || ''} ${data.lastName || ''}`.trim()).trim();
@@ -199,20 +526,6 @@ const InfluencerDashboard = ({ config }) => {
                           data.instagram || '').trim();
     
     // Debug logging with actual values
-    console.log('🔍 Profile fields check (with values):', {
-      fullName: fullName || 'MISSING',
-      email: email || 'MISSING',
-      phone: phone || 'MISSING',
-      bio: bio || 'MISSING',
-      city: city || 'MISSING',
-      country: country || 'MISSING',
-      hasCategory: hasCategory ? 'YES' : 'MISSING',
-      experience: experience || 'MISSING',
-      budgetMin: budgetMin || 'MISSING',
-      budgetMax: budgetMax || 'MISSING',
-      budgetDefault: budgetDefault || 'MISSING',
-      instagramLink: instagramLink || 'MISSING'
-    });
     
     // All required fields must be filled and not empty/whitespace
     const isComplete = !!(
@@ -230,36 +543,24 @@ const InfluencerDashboard = ({ config }) => {
       instagramLink
     );
     
-    console.log('📊 Final profile completion result:', isComplete);
+    // Profile completion computed
     return isComplete;
   };
 
   // Debug useEffect to monitor inquiries state (real-time only)
   useEffect(() => {
-    console.log('🎨 Real-time inquiries state updated:', inquiries);
-    console.log('🎨 Real-time inquiries length:', inquiries.length);
-    console.log('🎨 Loading state:', loadingInquiries);
+    // Inquiries state updated (logging removed)
   }, [inquiries, loadingInquiries]);
 
   // Auto-hide popup when profile becomes complete
   useEffect(() => {
-    if (!showProfileModal) {
-      // Modal is not showing, don't need to check
-      console.log('📋 Modal not showing, skipping profile check');
-      return;
-    }
+    if (!showProfileModal) return;
 
     const checkAndHidePopup = () => {
       const stored = localStorage.getItem('userData');
       const data = stored ? JSON.parse(stored) : influencerData;
       
-      console.log('🔍 Checking profile completion in modal:', {
-        hasData: !!data,
-        isComplete: data ? isProfileComplete(data) : false
-      });
-      
       if (data && isProfileComplete(data)) {
-        console.log('✅ Profile is complete, closing modal and redirecting to inquiries');
         setShowProfileModal(false);
         setActiveTab('inquiries');
       }
@@ -270,16 +571,11 @@ const InfluencerDashboard = ({ config }) => {
 
     // Also listen for storage changes
     const handleStorageChange = (e) => {
-      if (e.key === 'userData' && showProfileModal) {
-        console.log('🔄 userData changed, rechecking profile completion');
-        checkAndHidePopup();
-      }
+      if (e.key === 'userData' && showProfileModal) checkAndHidePopup();
     };
 
     // Listen for custom profile update event - fetch fresh data from server
     const handleProfileUpdate = async (event) => {
-      console.log('📢 Profile update event received, fetching fresh profile data from server');
-      
       try {
         const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
         const token = localStorage.getItem('userToken');
@@ -291,22 +587,11 @@ const InfluencerDashboard = ({ config }) => {
         if (res.ok) {
           const result = await res.json();
           const freshData = result.data;
-          
-          console.log('🔄 Fresh profile data fetched from server:', freshData);
-          
-          // Update state with fresh data
           setInfluencerData(freshData);
-          
-          // Update localStorage with fresh data
           localStorage.setItem('userData', JSON.stringify(freshData));
-          
-          // Now check if profile is complete with fresh data
           if (isProfileComplete(freshData)) {
-            console.log('✅ Profile is now complete! Closing modal and allowing access to inquiries');
             setShowProfileModal(false);
             setActiveTab('inquiries');
-          } else {
-            console.log('⚠️ Profile still incomplete, modal remains visible');
           }
         } else {
           console.error('Failed to fetch fresh profile data');
@@ -334,14 +619,7 @@ const InfluencerDashboard = ({ config }) => {
       const stored = localStorage.getItem('userData');
       if (stored) {
         const data = JSON.parse(stored);
-        console.log('🏁 Component mount - checking initial profile state');
-        
-        // If profile is already complete and we haven't set modal to show, don't show it
-        // The modal will only show when user explicitly clicks the inquiries tab with incomplete profile
-        if (isProfileComplete(data)) {
-          console.log('✅ Profile complete on mount, modal stays hidden');
-          setShowProfileModal(false);
-        }
+        if (isProfileComplete(data)) setShowProfileModal(false);
       }
     };
 
@@ -398,6 +676,7 @@ const InfluencerDashboard = ({ config }) => {
 
     return (
     <>
+
       {/* Enhanced Process Flow Header */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
         <div className="flex items-center justify-between mb-4">
@@ -661,37 +940,113 @@ const InfluencerDashboard = ({ config }) => {
   );
 };
 
-  const renderInquiries = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-gray-800">Inquiries Forwarded to You</h3>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => {
-              console.log('🎨 Debug: Refreshing real-time inquiries');
-              fetchInquiries();
-            }}
-            className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
-          >
-            Refresh Real-time
-          </button>
-          <p className="text-sm text-gray-500">{inquiries.length} total</p>
+  const renderInquiries = () => {
+    const filteredInquiries = getFilteredInquiries();
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-gray-800">Inquiries Forwarded to You</h3>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => fetchInquiries()}
+              className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600"
+            >
+              Refresh Real-time
+            </button>
+            <p className="text-sm text-gray-500">{inquiries.length} total</p>
+          </div>
         </div>
-      </div>
 
-      {loadingInquiries ? (
-        <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
-      ) : inquiries.length === 0 ? (
-        <div className="p-6 text-center text-gray-500">No inquiries have been forwarded to you yet.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {inquiries.map((inq) => {
-            const id = inq._id || inq.id;
-            const status = inq.status || 'forwarded';
-            const progressPercentage = inq.progressPercentage || 60;
+        {/* Filter Section */}
+        <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Status Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+              <select
+                value={inquiryFilterStatus}
+                onChange={(e) => setInquiryFilterStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              >
+                <option value="all">All Statuses</option>
+                <option value="forwarded">⏳ Pending</option>
+                <option value="artist_accepted">✓ Accepted</option>
+                <option value="artist_rejected">✕ Rejected</option>
+                <option value="completed">✓ Completed</option>
+              </select>
+            </div>
 
-            return (
-              <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-4">
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <select
+                value={inquiryFilterCategory}
+                onChange={(e) => setInquiryFilterCategory(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              >
+                <option value="all">All Categories</option>
+                <option value="artist">Artist</option>
+                <option value="influencer">Influencer</option>
+                <option value="creator">Creator</option>
+                <option value="celebrity">Celebrity</option>
+                <option value="city page">City Page</option>
+                <option value="meme page">Meme Page</option>
+              </select>
+            </div>
+
+            {/* Search Box */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+              <input
+                type="text"
+                placeholder="Search by client name or requirements..."
+                value={inquirySearchTerm}
+                onChange={(e) => setInquirySearchTerm(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+              />
+            </div>
+          </div>
+
+          {/* Reset Filters Button */}
+          {(inquiryFilterStatus !== 'all' || inquiryFilterCategory !== 'all' || inquirySearchTerm) && (
+            <div className="mt-3 flex justify-end">
+              <button
+                onClick={() => {
+                  setInquiryFilterStatus('all');
+                  setInquiryFilterCategory('all');
+                  setInquirySearchTerm('');
+                }}
+                className="text-xs text-gray-600 hover:text-gray-800 underline"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Results Count */}
+        {filteredInquiries.length !== inquiries.length && (
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+            Showing {filteredInquiries.length} of {inquiries.length} inquiries
+          </div>
+        )}
+
+        {loadingInquiries ? (
+          <div className="p-6 text-center text-gray-500">Loading inquiries…</div>
+        ) : inquiries.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">No inquiries have been forwarded to you yet.</div>
+        ) : filteredInquiries.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">No inquiries match your filters. Try adjusting them.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredInquiries.map((inq) => {
+              const id = inq._id || inq.id;
+              const status = inq.status || 'forwarded';
+              const progressPercentage = inq.progressPercentage || 60;
+
+              return (
+                <div key={id} className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 flex flex-col gap-4">
                 {/* Top: Client Info, Event Date */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
@@ -715,9 +1070,10 @@ const InfluencerDashboard = ({ config }) => {
                       status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
                       status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
                       status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
+                      status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
                     }`}>
-                      {status.replace('_', ' ')}
+                      {status === 'completed' ? 'Completed' : status.replace('_', ' ')}
                     </span>
                   </div>
                 </div>
@@ -739,16 +1095,7 @@ const InfluencerDashboard = ({ config }) => {
                   </div>
                   <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                     <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : '—'}</span>
-                    <span><strong>Location:</strong> {
-                      (() => {
-                        if (!inq.location) return '—';
-                        if (typeof inq.location === 'string') return inq.location;
-                        const city = (inq.location.city || '').trim();
-                        const country = (inq.location.country || '').trim();
-                        const out = [city, country].filter(Boolean).join(', ');
-                        return out || '—';
-                      })()
-                    }</span>
+                    <span><strong>Location:</strong> {formatLocationString(inq.location)}</span>
                     <span><strong>Forwarded:</strong> {inq.createdAt ? new Date(inq.createdAt).toLocaleString() : '—'}</span>
                   </div>
                 </div>
@@ -776,13 +1123,20 @@ const InfluencerDashboard = ({ config }) => {
                     You have already {status.includes('accepted') ? 'accepted' : 'declined'} this inquiry
                   </div>
                 )}
+
+                {status === 'completed' && (
+                  <div className="text-center text-sm text-blue-600 mt-2 bg-blue-50 p-2 rounded">
+                    ✓ This inquiry has been assigned to another professional and is now completed
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    );
+  };
 
   const handleInquiryResponse = async (inquiryId, action) => {
     try {
@@ -849,7 +1203,7 @@ const InfluencerDashboard = ({ config }) => {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['overview', 'inquiries'].map((tab) => (
+            {['overview', 'availability', 'inquiries'].map((tab) => (
               <button
                 key={tab}
                 onClick={async () => {
@@ -859,8 +1213,7 @@ const InfluencerDashboard = ({ config }) => {
                       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
                       const token = localStorage.getItem('userToken');
                       
-                      console.log('🎯 Inquiries tab clicked - fetching fresh profile from server');
-                      
+                      // Refresh profile before opening inquiries
                       const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                       });
@@ -869,7 +1222,6 @@ const InfluencerDashboard = ({ config }) => {
                         const result = await res.json();
                         const freshData = result.data;
                         
-                        console.log('🔄 Fresh profile data from server:', freshData);
                         
                         // Update state and localStorage with fresh data
                         setInfluencerData(freshData);
@@ -877,11 +1229,9 @@ const InfluencerDashboard = ({ config }) => {
                         
                         // Check profile completion with fresh data
                         if (!isProfileComplete(freshData)) {
-                          console.log('🚫 Profile incomplete, showing popup');
                           setShowProfileModal(true);
                           return;
                         } else {
-                          console.log('✅ Profile complete, allowing access to inquiries');
                           setShowProfileModal(false);
                         }
                       } else {
@@ -891,7 +1241,6 @@ const InfluencerDashboard = ({ config }) => {
                         const data = stored ? JSON.parse(stored) : influencerData;
                         
                         if (!isProfileComplete(data)) {
-                          console.log('🚫 Profile incomplete (cached data), showing popup');
                           setShowProfileModal(true);
                           return;
                         }
@@ -926,6 +1275,7 @@ const InfluencerDashboard = ({ config }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
+        {activeTab === 'availability' && renderAvailabilityManager()}
         {activeTab === 'inquiries' && renderInquiries()}
       </div>
       {/* Profile completion modal (blocks access to inquiries until complete) */}
@@ -1011,12 +1361,10 @@ const InfluencerDashboard = ({ config }) => {
                     const stored = localStorage.getItem('userData');
                     const data = stored ? JSON.parse(stored) : influencerData;
                     if (isProfileComplete(data)) {
-                      console.log('✅ Profile check confirmed - allowing inquiry access');
                       setShowProfileModal(false);
                       setActiveTab('inquiries');
                     } else {
                       const still = getMissingFields(data);
-                      console.log('⏳ Still incomplete, missing: ' + still.join(', '));
                     }
                   }}
                   className="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all"

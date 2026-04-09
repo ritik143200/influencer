@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 
+// Small helper to safely read env base
+const getApiBase = () => (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
 const ARTIST_NICHES = ['Singer', 'Dancer', 'Musician', 'Painter', 'Photographer', 'Actor', 'Comedian', 'Magician', 'DJ', 'Makeup Artist', 'Fashion Designer', 'Writer'];
 const INFLUENCER_NICHES = ['Lifestyle', 'UGC Creator', 'Fashion', 'Fitness', 'Travel', 'Food', 'Tech', 'Finance', 'Gaming', 'Education', 'Motivation', 'Spiritual', 'Actor', 'Comedian', 'Model', 'Filmmaker', 'Influencer', 'Historical'];
@@ -8,7 +10,9 @@ const PLATFORM_LIST = ['instagram', 'youtube', 'facebook'];
 
 const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const fileInputRef = useRef(null);
+  const avatarInputRef = useRef(null);
 
   const role = formData.role || 'user';
   const niches = role === 'artist' ? ARTIST_NICHES : INFLUENCER_NICHES;
@@ -102,6 +106,42 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
     }
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    const API_BASE_URL = getApiBase();
+    const token = localStorage.getItem('userToken');
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+
+      const response = await fetch(`${API_BASE_URL}/api/influencer/portfolio/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+      // Use returned url to update profile image fields
+      const url = data.url || data.path || data.data?.url;
+      if (url) {
+        handleField('profileImage', url);
+        handleField('profilePicture', url);
+      }
+    } catch (err) {
+      console.error('Avatar upload error', err);
+      alert('Failed to upload avatar. Try again.');
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
+  };
+
 
   // Main render - single page scrollable design
   return (
@@ -140,6 +180,30 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
           </h2>
           
           <div className="space-y-5">
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 border border-gray-200">
+                { (formData.profileImage || formData.profilePicture) ? (
+                  <img src={formData.profileImage || formData.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <ImageIcon className="w-8 h-8" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <input type="file" ref={avatarInputRef} onChange={handleAvatarUpload} accept="image/*" className="hidden" />
+                <div className="flex gap-2 items-center">
+                  <button type="button" onClick={() => avatarInputRef.current?.click()} className="px-3 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold hover:bg-brand-700 transition">
+                    {avatarUploading ? 'Uploading...' : 'Change Avatar'}
+                  </button>
+                  <button type="button" onClick={() => { handleField('profileImage', ''); handleField('profilePicture', ''); }} className="px-3 py-2 bg-gray-100 rounded-lg text-sm font-semibold hover:bg-gray-200 transition">
+                    Remove
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">PNG, JPG or WebP. Max 5MB.</p>
+              </div>
+            </div>
+
             <div>
               <label className={labelClass}>
                 Full Name

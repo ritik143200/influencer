@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import AuthPage from './AuthPage';
 import InfluencerRegistrationPage from './InfluencerRegistrationPage';

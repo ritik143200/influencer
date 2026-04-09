@@ -88,7 +88,15 @@ const inquirySchema = new mongoose.Schema({
         {
             userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Influencer' },
             forwardedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-            forwardedAt: { type: Date, default: Date.now }
+            forwardedAt: { type: Date, default: Date.now },
+            acceptanceStatus: {
+                type: String,
+                enum: ['pending', 'accepted', 'rejected', 'auto-rejected'],
+                default: 'pending'
+            },
+            acceptedAt: { type: Date },
+            rejectedAt: { type: Date },
+            response: { type: String, trim: true }
         }
     ],
     workflowHistory: [

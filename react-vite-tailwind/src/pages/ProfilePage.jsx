@@ -9,7 +9,6 @@ import {
   Instagram,
   Youtube,
   Facebook,
-  MessageSquare,
   Edit3
 } from 'lucide-react';
 
@@ -40,6 +39,7 @@ const ProfilePage = ({ config }) => {
   });
 
   const [profileLoading, setProfileLoading] = useState(false);
+  const accent = 'rgb(238, 119, 17)';
 
   // Helper to normalize raw API/user data into formData shape
   const normalizeProfile = (src) => ({
@@ -223,10 +223,10 @@ const ProfilePage = ({ config }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
           {saveMessage && (
             <div className="mb-6">
-              <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-2xl text-sm font-bold text-center animate-slideDown shadow-sm">
-                ✅ {saveMessage}
+              <div className="p-4 bg-green-50 border text-green-700 rounded-2xl text-sm font-bold text-center animate-slideDown shadow-sm" style={{ borderColor: accent }}>
+                  ✅ {saveMessage}
+                </div>
               </div>
-            </div>
           )}
           <ProfileEditForm formData={formData} onChange={handleInputChange} onSave={handleSave} onCancel={() => setIsEditing(false)} />
         </div>
@@ -314,7 +314,7 @@ const ProfilePage = ({ config }) => {
       {/* Hero Section with Profile Header */}
       <div className="w-full mb-12">
         {/* Banner */}
-        <div className="h-40 md:h-56 overflow-hidden relative bg-gradient-to-br from-brand-500 via-indigo-600 to-purple-700 -mt-20 pt-20">
+        <div className="h-40 md:h-56 overflow-hidden relative bg-gradient-to-br from-brand-700 via-indigo-200 to-purple-700 -mt-20 pt-200">
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
@@ -396,7 +396,7 @@ const ProfilePage = ({ config }) => {
 
       {/* Biography Section - Professional Profile */}
       <div className="max-w-6xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 hover:shadow-md transition-shadow">
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8 hover:shadow-md transition-shadow" style={{ borderColor: accent }}>
           <div className="flex-shrink-0 w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-3xl shadow-inner">
             📝
           </div>
@@ -415,7 +415,8 @@ const ProfilePage = ({ config }) => {
           </div>
           <button 
             onClick={() => setIsEditing(true)}
-            className="hidden md:block px-5 py-2 hover:bg-slate-50 text-indigo-600 rounded-xl text-sm font-bold transition-all border border-slate-100 hover:border-indigo-100"
+            className="hidden md:block px-5 py-2 hover:bg-slate-50 text-indigo-600 rounded-xl text-sm font-bold transition-all border hover:border-brand-100"
+            style={{ borderColor: accent }}
           >
             Edit Bio
           </button>
@@ -426,7 +427,7 @@ const ProfilePage = ({ config }) => {
       <div className="max-w-6xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Basic Information Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 transition-all hover:shadow-md">
+        <div className="bg-white rounded-3xl p-8 shadow-sm border transition-all hover:shadow-md" style={{ borderColor: accent }}>
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
             <h3 className="text-lg font-bold text-slate-900 tracking-tight">Basic Information</h3>
@@ -452,7 +453,7 @@ const ProfilePage = ({ config }) => {
         </div>
 
         {/* Professional Information Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 transition-all hover:shadow-md">
+        <div className="bg-white rounded-3xl p-8 shadow-sm border transition-all hover:shadow-md" style={{ borderColor: accent }}>
           <div className="flex items-center gap-3 mb-6">
             <div className="w-1.5 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
             <h3 className="text-lg font-bold text-slate-900 tracking-tight">Professional Profile</h3>
@@ -485,7 +486,7 @@ const ProfilePage = ({ config }) => {
 
       {/* Social Media Section */}
       <div className="max-w-6xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-8">
+        <div className="bg-white rounded-3xl p-6 shadow-sm border mb-8" style={{ borderColor: accent }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3">
               <div className="w-1 h-6 rounded-full" style={{ background: 'rgb(238 119 17)' }} />
@@ -527,7 +528,7 @@ const ProfilePage = ({ config }) => {
 
       {/* Modern Portfolio Section */}
       <div className="max-w-6xl mx-auto px-4 mt-8">
-        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 mb-8">
+        <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border mb-8" style={{ borderColor: accent }}>
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-8 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
@@ -535,7 +536,8 @@ const ProfilePage = ({ config }) => {
             </div>
             <button 
               onClick={() => setIsEditing(true)} 
-              className="px-6 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-bold transition-all border border-slate-100"
+              className="px-6 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-bold transition-all border"
+              style={{ borderColor: accent }}
             >
               Manage Work
             </button>
@@ -544,7 +546,7 @@ const ProfilePage = ({ config }) => {
           {formData.portfolio && formData.portfolio.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {formData.portfolio.map((item, idx) => (
-                <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1">
+                <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1" style={{ borderColor: accent }}>
                   {typeof item === 'string' && (item.startsWith('http') || item.startsWith('/')) ? (
                     <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                   ) : typeof item === 'object' && item?.url ? (

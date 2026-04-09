@@ -148,7 +148,6 @@ const AuthPage = ({ initialTab, embedded = false }) => {
     if (e) e.preventDefault();
 
     if (!validateForm()) {
-      console.log('Validation failed', errors);
       return;
     }
 
@@ -208,11 +207,15 @@ const AuthPage = ({ initialTab, embedded = false }) => {
           localStorage.setItem('userData', JSON.stringify(userData));
 
           // Auto-submit pending inquiry if it exists
+          let hadPendingInquiry = false;
           const pending = localStorage.getItem('pendingInquiry');
           if (pending) {
+            hadPendingInquiry = true;
             try {
               const inquiryData = JSON.parse(pending);
-              await fetch(`${API_BASE_URL}/api/inquiries`, {
+              console.log('Auto-submitting pending inquiry:', inquiryData);
+              
+              const inquiryResponse = await fetch(`${API_BASE_URL}/api/inquiries`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -223,25 +226,37 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                   budget: Number(inquiryData.budget)
                 })
               });
-            } catch (err) {
-              console.error('Failed to auto-submit inquiry:', err);
-            }
-            localStorage.removeItem('pendingInquiry');
-          }
-        }
 
-        // Redirect based on user role
-        setTimeout(() => {
-          if (data.role === 'admin') {
-            navigate('admin-dashboard');
-          } else if (data.role === 'artist' || data.role === 'influencer') {
-            navigate('influencer-dashboard');
-          } else {
-            navigate('user-dashboard');
+              const inquiryResult = await inquiryResponse.json();
+              
+              if (inquiryResponse.ok && inquiryResult.success) {
+                console.log('Inquiry auto-submitted successfully:', inquiryResult.data._id);
+              } else {
+                console.error('Failed to auto-submit inquiry:', inquiryResult.message);
+              }
+            } catch (err) {
+              console.error('Error during inquiry auto-submit:', err);
+            } finally {
+              localStorage.removeItem('pendingInquiry');
+            }
           }
-        }, 1200);
+
+          // Redirect based on user role - with proper timing for inquiry submission
+          const redirectDelay = hadPendingInquiry ? 1500 : 1200; // Longer delay if inquiry was auto-submitted
+          setTimeout(() => {
+            if (data.role === 'admin') {
+              navigate('admin-dashboard');
+            } else if (data.role === 'artist' || data.role === 'influencer') {
+              navigate('influencer-dashboard');
+            } else {
+              navigate('user-dashboard');
+            }
+          }, redirectDelay);
+        } else {
+          setMessage({ type: 'error', text: data.message || 'Action failed' });
+        }
       } else {
-        setMessage({ type: 'error', text: data.message || 'Action failed' });
+        setMessage({ type: 'error', text: data.message || 'Error occurred' });
       }
     } catch (error) {
       console.error('Auth error:', error);

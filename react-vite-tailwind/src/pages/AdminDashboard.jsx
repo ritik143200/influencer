@@ -13,77 +13,43 @@ import RecentActivity from '../components/RecentActivity';
 
 
 const AdminDashboard = ({ config }) => {
-
   const { navigate } = useRouter();
-
   const { user, logout } = useAuth();
 
   const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
   const [adminData, setAdminData] = useState(null);
-
   const [activeTab, setActiveTab] = useState('overview');
-
   const [loading, setLoading] = useState(true);
-
   const [error, setError] = useState(null);
-
   const [successMessage, setSuccessMessage] = useState(null);
 
-
-
   // Notifications state
-
   const [notifications, setNotifications] = useState([]);
-
   const [showNotifications, setShowNotifications] = useState(false);
 
-
-
   // Data states
-
   const [users, setUsers] = useState([]);
-
   const [influencers, setInfluencers] = useState([]);
-
   const [inquiries, setInquiries] = useState([]);
-
   const [contacts, setContacts] = useState([]);
 
-
-
   // Influencer detail modal state
-
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
-
   const [showInfluencerModal, setShowInfluencerModal] = useState(false);
-
   const [selectedForwardedInfluencer, setSelectedForwardedInfluencer] = useState(null);
-
   const [showInfluencerDetailsModal, setShowInfluencerDetailsModal] = useState(false);
-
   const [loadingInfluencerDetails, setLoadingInfluencerDetails] = useState(false);
-
   const [selectedInquiry, setSelectedInquiry] = useState(null);
-
   const [showInquiryDetailsModal, setShowInquiryDetailsModal] = useState(false);
-
   const [selectedContact, setSelectedContact] = useState(null);
-
   const [showContactModal, setShowContactModal] = useState(false);
-
   const [selectedUser, setSelectedUser] = useState(null);
-
   const [showUserModal, setShowUserModal] = useState(false);
 
-
-
   // Forward inquiry modal state
-
   const [showForwardModal, setShowForwardModal] = useState(false);
-
   const [forwardInquiryId, setForwardInquiryId] = useState(null);
-
   const [forwardRecipients, setForwardRecipients] = useState(new Set());
 
   const [analytics, setAnalytics] = useState({
@@ -113,25 +79,69 @@ const AdminDashboard = ({ config }) => {
   const [filterDate, setFilterDate] = useState('');
   const [searchTermInquiry, setSearchTermInquiry] = useState('');
 
-
-
+  // Filter states for Inquiries
   // Check admin role
 
   useEffect(() => {
 
     if (!user || user.role !== 'admin') {
-
-      console.log('🚫 Access denied: Not an admin');
-
       navigate('home');
-
       return;
-
     }
 
     setAdminData(user);
 
   }, [user, navigate]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('home');
+  };
+
+
+  const handleOpenForwardModal = (inquiryId) => {
+    setForwardInquiryId(inquiryId);
+    setForwardRecipients(new Set());
+    setShowForwardModal(true);
+  };
+
+  const handleViewInquiryDetails = (inquiry) => {
+    setSelectedInquiry(inquiry);
+    setShowInquiryDetailsModal(true);
+  };
+
+  const handleViewInfluencerDetails = async (influencer) => {
+    setLoadingInfluencerDetails(true);
+    try {
+      const influencerId = influencer._id || influencer.id;
+      let fullInfluencerData = influencer;
+
+      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
+        const existing = influencers.find(i => (i._id || i.id) === influencerId);
+        if (existing && (existing.email || existing.phone)) {
+          fullInfluencerData = { ...influencer, ...existing };
+        } else {
+          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) fullInfluencerData = data.data;
+          }
+        }
+      }
+
+      setSelectedForwardedInfluencer(fullInfluencerData);
+      setShowInfluencerDetailsModal(true);
+    } catch (err) {
+      console.error('Error fetching Influencer Details:', err);
+      alert('Failed to fetch complete Influencer Details. Showing available information.');
+      setSelectedForwardedInfluencer(influencer);
+      setShowInfluencerDetailsModal(true);
+    } finally {
+      setLoadingInfluencerDetails(false);
+    }
+  };
 
 
 
@@ -197,85 +207,31 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      console.log('Influencers fetch response status:', influencersRes.status);
-
-
-
       if (influencersRes.ok) {
-
         const influencersData = await influencersRes.json();
-
-        console.log('Influencers data received:', influencersData);
-
         const influencersArray = Array.isArray(influencersData.data) ? influencersData.data :
-
           Array.isArray(influencersData) ? influencersData :
-
             Array.isArray(influencersData.artists) ? influencersData.artists : [];
 
-        console.log('Influencers array after processing:', influencersArray);
-
-
-
         // Filter out influencers with missing required fields and create demo influencers if needed
-
         const validInfluencers = influencersArray.filter(influencer =>
           influencer && influencer.email &&
           (influencer.categories && influencer.categories.length > 0 || influencer.category)
         );
 
-
-
-        console.log('Valid influencers after filtering:', validInfluencers.length);
-
-
-
-        // If no valid influencers exist, create demo influencers for testing
-
         if (validInfluencers.length === 0) {
-
           const demoInfluencers = [
-
             {
-
               _id: 'demo1',
-
               fullName: 'Demo Influencer 1',
-
               email: 'influencer1@example.com',
-
               categories: ['Lifestyle'],
-
               profileType: 'influencer'
-
-            },
-
-            {
-
-              _id: 'demo2',
-
-              fullName: 'Demo Influencer 2',
-
-              email: 'influencer2@example.com',
-
-              categories: ['Fashion'],
-
-              profileType: 'influencer'
-
             }
-
           ];
-
-          console.log('Using demo influencers:', demoInfluencers);
-
           setInfluencers(demoInfluencers);
-
         } else {
-
-          console.log('Using real influencers:', validInfluencers);
-
           setInfluencers(validInfluencers);
-
         }
 
       } else {
@@ -489,6 +445,7 @@ const AdminDashboard = ({ config }) => {
         },
         body: JSON.stringify({ status })
       });
+
       const data = await res.json();
       if (res.ok && data.success) {
         const updatedContact = data.data;
@@ -507,77 +464,28 @@ const AdminDashboard = ({ config }) => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('home');
-  };
+  const handleAssignToArtist = async (inquiryId, artistId = null) => {
 
-  const handleOpenForwardModal = (inquiryId) => {
-    setForwardInquiryId(inquiryId);
-    setForwardRecipients(new Set());
-    setShowForwardModal(true);
-  };
-
-  const handleViewInquiryDetails = (inquiry) => {
-    setSelectedInquiry(inquiry);
-    setShowInquiryDetailsModal(true);
-  };
-
-  const handleViewInfluencerDetails = async (influencer) => {
-    setLoadingInfluencerDetails(true);
     try {
-      const influencerId = influencer._id || influencer.id;
-      let fullInfluencerData = influencer;
 
-      // If we have minimal influencer data, try multiple approaches to get full details
-      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
-
-        // First try to find in existing influencers array
-        const existingInfluencer = influencers.find(i => (i._id || i.id) === influencerId);
-        if (existingInfluencer && (existingInfluencer.email || existingInfluencer.phone)) {
-          fullInfluencerData = { ...influencer, ...existingInfluencer };
-        } else {
-          // Then try API call
-          const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-            }
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data) {
-              fullInfluencerData = data.data;
-            }
-          }
-        }
+      // Validate inputs
+      if (!inquiryId) {
+        alert('Error: Inquiry ID is missing');
+        return;
       }
 
-      setSelectedForwardedInfluencer(fullInfluencerData);
-      setShowInfluencerDetailsModal(true);
-    } catch (error) {
-      console.error('Error fetching Influencer Details:', error);
-      // Show error message to user and fallback to available data
-      alert('Failed to fetch complete Influencer Details. Showing available information.');
-      setSelectedForwardedInfluencer(influencer);
-      setShowInfluencerDetailsModal(true);
-    } finally {
-      setLoadingInfluencerDetails(false);
-    }
+      // Use provided artistId or use demo mode
+      const targetId = artistId ? String(artistId).trim() : 'demo';
 
-  };
+      if (targetId !== 'demo' && targetId.length < 10) {
+        console.error('Invalid artist ID:', targetId);
+        alert('Error: Invalid artist ID format');
+        return;
+      }
 
+      console.log('handleAssignToArtist called with:', { inquiryId, targetId });
 
-  const handleAssignToArtist = async (inquiryId) => {
-
-    // For now, just complete the inquiry
-
-    // In a real implementation, this would open a modal to select an artist
-
-    try {
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/assign/demo`, {
+      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/assign/${targetId}`, {
 
         method: 'PATCH',
 
@@ -591,13 +499,15 @@ const AdminDashboard = ({ config }) => {
 
         body: JSON.stringify({
 
-          notes: 'Inquiry completed by admin'
+          notes: artistId ? `Inquiry assigned to selected influencer` : 'Inquiry completed by admin'
 
         })
 
       });
 
       const data = await res.json();
+
+      console.log('Assign response:', { status: res.status, success: data.success, message: data.message, data });
 
       if (res.ok && data.success) {
 
@@ -607,21 +517,35 @@ const AdminDashboard = ({ config }) => {
 
         ));
 
-        setSuccessMessage('Inquiry completed successfully!');
+        // Also update selectedInquiry if it's the same one
+        if (selectedInquiry && (selectedInquiry._id === inquiryId || selectedInquiry.id === inquiryId)) {
 
-        setTimeout(() => setSuccessMessage(null), 3000);
+          setSelectedInquiry(data.data);
+
+        }
+
+        setSuccessMessage('Inquiry assigned successfully! Other influencers have been auto-rejected.');
+
+        setTimeout(() => setSuccessMessage(null), 4000);
 
       } else {
 
-        alert(data.message || 'Failed to complete inquiry');
+        const errorMsg = data.message || `Assignment failed (Status: ${res.status})`;
+        console.error('Assignment failed:', { 
+          errorMsg, 
+          errorName: data.errorName, 
+          errorDetails: data.errorDetails,
+          fullResponse: data 
+        });
+        alert(errorMsg);
 
       }
 
     } catch (err) {
 
-      console.error('Error completing inquiry:', err);
+      console.error('Error assigning inquiry:', err);
 
-      alert('Network error while completing inquiry.');
+      alert('Network error while assigning inquiry: ' + err.message);
 
     }
 
@@ -3696,6 +3620,451 @@ const AdminDashboard = ({ config }) => {
                 </div>
 
               </div>
+
+
+
+              {/* Unified Forwarded Influencers Tracking Section */}
+
+              {selectedInquiry.forwardedTo && selectedInquiry.forwardedTo.length > 0 && (
+
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 md:col-span-2 mb-6 border border-indigo-200 shadow-sm">
+
+                  <div className="flex items-center justify-between mb-6">
+
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+
+                      <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+
+                      </svg>
+
+                      Forwarded Influencers Status
+
+                    </h3>
+
+                    <div className="flex gap-3 text-sm flex-wrap">
+
+                      {(() => {
+
+                        const accepted = selectedInquiry.forwardedTo.filter(f => f.acceptanceStatus === 'accepted').length;
+
+                        const rejected = selectedInquiry.forwardedTo.filter(f => f.acceptanceStatus === 'rejected' || f.acceptanceStatus === 'auto-rejected').length;
+
+                        const pending = selectedInquiry.forwardedTo.filter(f => !f.acceptanceStatus || f.acceptanceStatus === 'pending').length;
+
+                        return (
+
+                          <>
+
+                            {accepted > 0 && <span className="px-3 py-1 bg-green-200 text-green-800 font-semibold rounded-full">✓ Accepted: {accepted}</span>}
+
+                            {rejected > 0 && <span className="px-3 py-1 bg-red-200 text-red-800 font-semibold rounded-full">✕ Rejected: {rejected}</span>}
+
+                            {pending > 0 && <span className="px-3 py-1 bg-yellow-200 text-yellow-800 font-semibold rounded-full">⏳ Pending: {pending}</span>}
+
+                          </>
+
+                        );
+
+                      })()}
+
+                    </div>
+
+                  </div>
+
+
+
+                  {/* Workflow Status Info Banner */}
+
+                  {(() => {
+
+                    const accepted = selectedInquiry.forwardedTo.filter(f => f.acceptanceStatus === 'accepted').length;
+
+                    const anyAssigned = selectedInquiry.assignedInfluencer && selectedInquiry.assignedInfluencer.userId;
+
+                    return (
+
+                      <div className={`rounded-lg p-4 mb-4 ${
+
+                        anyAssigned
+
+                          ? 'bg-emerald-100 border border-emerald-300'
+
+                          : accepted > 0
+
+                          ? 'bg-blue-100 border border-blue-300'
+
+                          : 'bg-amber-100 border border-amber-300'
+
+                      }`}>
+
+                        <p className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+
+                          {anyAssigned ? (
+
+                            <>
+
+                              <svg className="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+
+                              </svg>
+
+                              ✓ Inquiry Completed - Assigned to accepted influencer. Other influencers auto-rejected.
+
+                            </>
+
+                          ) : accepted > 0 ? (
+
+                            <>
+
+                              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+
+                              </svg>
+
+                              ℹ️ Action Required - Influencer(s) accepted. Click "Assign" button to finalize.
+
+                            </>
+
+                          ) : (
+
+                            <>
+
+                              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+                              </svg>
+
+                              ⏳ Waiting - No influencers have accepted yet.
+
+                            </>
+
+                          )}
+
+                        </p>
+
+                      </div>
+
+                    );
+
+                  })()}
+
+
+
+                  <div className="grid gap-3">
+
+                    {selectedInquiry.forwardedTo.map((forward, idx) => {
+
+                      const influencerData = forward.userId && typeof forward.userId === 'object' ? forward.userId : {};
+
+                      const influencerName = influencerData.fullName || 
+
+                        influencerData.name || 
+
+                        (influencerData.firstName && influencerData.lastName ? `${influencerData.firstName} ${influencerData.lastName}` : 'Unknown Influencer');
+
+                      const influencerEmail = influencerData.email || 'No email available';
+
+                      const influencerCategory = influencerData.profileType || 'General';
+
+                      const acceptanceStatus = forward.acceptanceStatus || 'pending';
+
+                      const forwardedDate = forward.forwardedAt ? new Date(forward.forwardedAt).toLocaleDateString('en-IN') : 'Unknown date';
+
+                      const responseDate = forward.acceptedAt 
+
+                        ? new Date(forward.acceptedAt).toLocaleDateString('en-IN') 
+
+                        : forward.rejectedAt 
+
+                        ? new Date(forward.rejectedAt).toLocaleDateString('en-IN') 
+
+                        : null;
+
+                      const isAssigned = selectedInquiry.assignedInfluencer && 
+
+                        selectedInquiry.assignedInfluencer.userId && 
+
+                        selectedInquiry.assignedInfluencer.userId.toString() === (influencerData._id || forward.userId)?.toString();
+
+
+
+                      return (
+
+                        <div
+
+                          key={idx}
+
+                          className={`flex items-start justify-between p-4 rounded-lg border-2 transition-all ${
+
+                            isAssigned
+
+                              ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300'
+
+                              : acceptanceStatus === 'accepted'
+
+                              ? 'bg-green-50 border-green-300'
+
+                              : acceptanceStatus === 'rejected' || acceptanceStatus === 'auto-rejected'
+
+                              ? 'bg-red-50 border-red-300 opacity-75'
+
+                              : 'bg-white border-gray-300 hover:border-indigo-300'
+
+                          }`}
+
+                        >
+
+                          <div className="flex-1">
+
+                            <div className="flex items-center gap-2 mb-2">
+
+                              <p className="font-semibold text-gray-900 flex items-center gap-1">
+
+                                {isAssigned && (
+
+                                  <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+
+                                  </svg>
+
+                                )}
+
+                                {influencerName}
+
+                              </p>
+
+                              <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+
+                                isAssigned
+
+                                  ? 'bg-emerald-200 text-emerald-800'
+
+                                  : acceptanceStatus === 'accepted'
+
+                                  ? 'bg-green-200 text-green-800'
+
+                                  : acceptanceStatus === 'rejected'
+
+                                  ? 'bg-red-200 text-red-800'
+
+                                  : acceptanceStatus === 'auto-rejected'
+
+                                  ? 'bg-red-300 text-red-900'
+
+                                  : 'bg-yellow-200 text-yellow-800'
+
+                              }`}>
+
+                                {isAssigned
+
+                                  ? '★ Completed'
+
+                                  : acceptanceStatus === 'accepted'
+
+                                  ? '✓ Accepted'
+
+                                  : acceptanceStatus === 'rejected'
+
+                                  ? '✕ Rejected'
+
+                                  : acceptanceStatus === 'auto-rejected'
+
+                                  ? '✕ Auto-rejected'
+
+                                  : '⏳ Pending'}
+
+                              </span>
+
+                            </div>
+
+
+
+                            <div className="text-sm text-gray-600 space-y-1">
+
+                              <p>
+
+                                <span className="font-medium text-gray-700">Category:</span> {influencerCategory}
+
+                              </p>
+
+                              <p>
+
+                                <span className="font-medium text-gray-700">Email:</span>{' '}
+
+                                <a href={`mailto:${influencerEmail}`} className="text-indigo-600 hover:underline">
+
+                                  {influencerEmail}
+
+                                </a>
+
+                              </p>
+
+                              <p>
+
+                                <span className="font-medium text-gray-700">Forwarded:</span> {forwardedDate}
+
+                              </p>
+
+                              {responseDate && (
+
+                                <p>
+
+                                  <span className="font-medium text-gray-700">
+
+                                    {acceptanceStatus === 'accepted' ? '✓ Accepted' : '✕ Responded'}:
+
+                                  </span>{' '}
+
+                                  {responseDate}
+
+                                </p>
+
+                              )}
+
+                              {forward.response && (
+
+                                <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border-l-2 border-gray-400">
+
+                                  <p className="text-xs text-gray-700">
+
+                                    <span className="font-semibold">Response:</span> {forward.response}
+
+                                  </p>
+
+                                </div>
+
+                              )}
+
+                            </div>
+
+                          </div>
+
+
+
+                          <div className="ml-4 flex flex-col gap-2">
+
+                            <button
+
+                              onClick={() => handleViewInfluencerDetails(influencerData)}
+
+                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+
+                            >
+
+                              View Profile
+
+                            </button>
+
+                            {acceptanceStatus === 'accepted' && !isAssigned && (
+
+                              <button
+
+                                onClick={() => {
+                                  const artistIdToUse = influencerData._id || influencerData.id || forward.userId?._id || forward.userId;
+                                  if (!artistIdToUse) {
+                                    alert('Error: Cannot get artist ID. Please refresh and try again.');
+                                    return;
+                                  }
+                                  handleAssignToArtist(selectedInquiry._id, String(artistIdToUse));
+                                }}
+
+                                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+
+                              >
+
+                                Assign
+
+                              </button>
+
+                            )}
+
+                          </div>
+
+                        </div>
+
+                      );
+
+                    })}
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+
+              {/* Admin Information Section */}
+
+              {(selectedInquiry.acceptedByAdmin || selectedInquiry.acceptedBy) && (
+
+                <div className="bg-blue-50 rounded-xl p-6 md:col-span-2 mb-6 border border-blue-200">
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+                    </svg>
+
+                    Accepted By Admin
+
+                  </h3>
+
+                  <div className="space-y-3">
+
+                    <div>
+
+                      <p className="text-sm text-gray-500">Admin Name</p>
+
+                      <p className="font-medium text-gray-900">
+
+                        {selectedInquiry.acceptedByAdmin?.name || selectedInquiry.acceptedByAdminName || 'Not specified'}
+
+                      </p>
+
+                    </div>
+
+                    <div>
+
+                      <p className="text-sm text-gray-500">Admin Email</p>
+
+                      <p className="font-medium text-gray-900">
+
+                        {selectedInquiry.acceptedByAdmin?.email || selectedInquiry.acceptedByAdminEmail || 'Not specified'}
+
+                      </p>
+
+                    </div>
+
+                    {selectedInquiry.acceptedAt && (
+
+                      <div>
+
+                        <p className="text-sm text-gray-500">Accepted On</p>
+
+                        <p className="font-medium text-gray-900">
+
+                          {new Date(selectedInquiry.acceptedAt).toLocaleString('en-IN')}
+
+                        </p>
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
 
 
 

@@ -6,6 +6,7 @@ const {
     getAllBookings, updateBookingStatus,
     getAllInquiries, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
     getAllUsers, updateUserAction, deleteUser,
+    getAvailableInfluencersByDate,
     updateArtistStatus,
     getAdminOverview
 } = require('../controllers/adminController');
@@ -45,6 +46,7 @@ router.post('/users/:id/:action', updateUserAction);
 router.delete('/users/:id', deleteUser);
 
 // Artists/Influencers Routing
+router.get('/influencers/available', getAvailableInfluencersByDate);
 router.patch('/artists/:id/status', updateArtistStatus);
 router.patch('/influencer/:id/status', updateArtistStatus);
 

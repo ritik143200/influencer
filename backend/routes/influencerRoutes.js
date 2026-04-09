@@ -9,12 +9,23 @@ const {
   searchInfluencers,
   getMyProfile,
   updateMyProfile,
+  getMyAvailability,
+  updateMyAvailability,
+  addMyUnavailableDates,
+  removeMyUnavailableDates,
   upload,
   getMyInquiries,
   respondToInquiry
 } = require('../controllers/influencerController');
 const { protect } = require('../middleware/authMiddleware');
 const { uploadPortfolio } = require('../config/cloudinary');
+
+const influencerOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== 'influencer') {
+    return res.status(403).json({ success: false, message: 'Only influencers can manage availability' });
+  }
+  return next();
+};
 
 
 // Configure file upload middleware
@@ -30,6 +41,10 @@ router.get('/search', searchInfluencers);
 // Protected: logged-in influencer's own profile
 router.get('/me', protect, getMyProfile);
 router.put('/me', protect, updateMyProfile);
+router.get('/me/availability', protect, influencerOnly, getMyAvailability);
+router.put('/me/availability', protect, influencerOnly, updateMyAvailability);
+router.post('/me/availability/add', protect, influencerOnly, addMyUnavailableDates);
+router.post('/me/availability/remove', protect, influencerOnly, removeMyUnavailableDates);
 router.post('/portfolio/upload', protect, uploadPortfolio.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: 'No file uploaded' });

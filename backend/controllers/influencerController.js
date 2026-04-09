@@ -7,6 +7,31 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const sendWhatsAppMessage = require('../utils/sendWhatsApp');
 
+const toDayStartUtc = (input) => {
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+};
+
+const normalizeDateArray = (dates) => {
+  if (!Array.isArray(dates)) return { ok: false, error: 'dates must be an array' };
+
+  const normalized = [];
+  const seen = new Set();
+  for (const raw of dates) {
+    const parsed = toDayStartUtc(raw);
+    if (!parsed) {
+      return { ok: false, error: `Invalid date value: ${raw}` };
+    }
+    const key = parsed.toISOString();
+    if (!seen.has(key)) {
+      seen.add(key);
+      normalized.push(parsed);
+    }
+  }
+  return { ok: true, data: normalized };
+};
+
 // Get logged-in influencer's own profile
 const getMyProfile = async (req, res) => {
   try {
@@ -60,6 +85,114 @@ const updateMyProfile = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
+  }
+};
+
+// Get logged-in influencer availability
+const getMyAvailability = async (req, res) => {
+  try {
+    const influencer = await Influencer.findById(req.user._id).select('unavailableDates');
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer not found' });
+    }
+
+    const unavailableDates = (influencer.unavailableDates || []).map((d) =>
+      new Date(d).toISOString().slice(0, 10)
+    );
+
+    return res.status(200).json({ success: true, data: { unavailableDates } });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch availability', error: error.message });
+  }
+};
+
+// Replace complete unavailable dates set
+const updateMyAvailability = async (req, res) => {
+  try {
+    const parsed = normalizeDateArray(req.body.unavailableDates);
+    if (!parsed.ok) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const influencer = await Influencer.findByIdAndUpdate(
+      req.user._id,
+      { $set: { unavailableDates: parsed.data } },
+      { new: true }
+    ).select('unavailableDates');
+
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Availability updated',
+      data: {
+        unavailableDates: (influencer.unavailableDates || []).map((d) => new Date(d).toISOString().slice(0, 10))
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to update availability', error: error.message });
+  }
+};
+
+// Add dates to unavailable set
+const addMyUnavailableDates = async (req, res) => {
+  try {
+    const parsed = normalizeDateArray(req.body.dates);
+    if (!parsed.ok) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const influencer = await Influencer.findByIdAndUpdate(
+      req.user._id,
+      { $addToSet: { unavailableDates: { $each: parsed.data } } },
+      { new: true }
+    ).select('unavailableDates');
+
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Unavailable dates added',
+      data: {
+        unavailableDates: (influencer.unavailableDates || []).map((d) => new Date(d).toISOString().slice(0, 10))
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to add unavailable dates', error: error.message });
+  }
+};
+
+// Remove dates from unavailable set
+const removeMyUnavailableDates = async (req, res) => {
+  try {
+    const parsed = normalizeDateArray(req.body.dates);
+    if (!parsed.ok) {
+      return res.status(400).json({ success: false, message: parsed.error });
+    }
+
+    const influencer = await Influencer.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { unavailableDates: { $in: parsed.data } } },
+      { new: true }
+    ).select('unavailableDates');
+
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Unavailable dates removed',
+      data: {
+        unavailableDates: (influencer.unavailableDates || []).map((d) => new Date(d).toISOString().slice(0, 10))
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: 'Failed to remove unavailable dates', error: error.message });
   }
 };
 
@@ -378,9 +511,49 @@ const getMyInquiries = async (req, res) => {
     .populate('forwardedTo.forwardedBy', 'name email')
     .sort({ createdAt: -1 });
     
+    // Transform each inquiry to show only this influencer's individual status
+    const transformedInquiries = inquiries.map(inquiry => {
+      const inquiryObj = inquiry.toObject();
+      
+      // Find this influencer's entry in forwardedTo
+      const myForwardedEntry = inquiryObj.forwardedTo.find(
+        f => f.userId && (f.userId._id?.toString?.() === req.user._id.toString() || f.userId.toString?.() === req.user._id.toString())
+      );
+      
+      if (myForwardedEntry) {
+        // Map individual acceptanceStatus to a status string that frontend can understand
+        let displayStatus;
+        
+        // Check if inquiry has been assigned to someone (and it's not this influencer)
+        const hasAssignedInfluencer = inquiryObj.assignedInfluencer?.userId;
+        const isThisInfluencerAssigned = hasAssignedInfluencer && 
+          (inquiryObj.assignedInfluencer.userId?.toString?.() === req.user._id.toString() || 
+           inquiryObj.assignedInfluencer.userId === req.user._id.toString());
+        const isAssignedToOtherInfluencer = hasAssignedInfluencer && !isThisInfluencerAssigned;
+        
+        // If assigned to another influencer, show completed status regardless of own response
+        if (isAssignedToOtherInfluencer) {
+          displayStatus = 'completed'; // Assigned to someone else - inquiry no longer available
+        } else if (myForwardedEntry.acceptanceStatus === 'accepted') {
+          displayStatus = 'artist_accepted'; // This influencer accepted (and wasn't auto-rejected)
+        } else if (myForwardedEntry.acceptanceStatus === 'rejected') {
+          displayStatus = 'artist_rejected';
+        } else if (myForwardedEntry.acceptanceStatus === 'auto-rejected') {
+          displayStatus = 'artist_rejected'; // Show as rejected to user
+        } else {
+          displayStatus = 'forwarded'; // pending status
+        }
+        
+        // Replace the global status with the individual status for this influencer
+        inquiryObj.status = displayStatus;
+      }
+      
+      return inquiryObj;
+    });
+    
     res.status(200).json({
       success: true,
-      data: inquiries
+      data: transformedInquiries
     });
   } catch (error) {
     console.error('Error fetching influencer inquiries:', error);
@@ -407,48 +580,81 @@ const respondToInquiry = async (req, res) => {
     }
 
     // Check if this inquiry was actually forwarded to this influencer
-    const isForwardedToMe = inquiry.forwardedTo && inquiry.forwardedTo.some(
+    const forwardIndex = inquiry.forwardedTo && inquiry.forwardedTo.findIndex(
       f => f.userId && f.userId.toString() === req.user._id.toString()
     );
 
-    if (!isForwardedToMe) {
+    if (forwardIndex === -1 || forwardIndex === undefined) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to respond to this inquiry (not forwarded to you)'
       });
     }
 
-    // Map incoming simplified status to model's status enum
-    // Model expects 'artist_accepted' or 'artist_rejected'
-    const newStatus = status === 'accepted' ? 'artist_accepted' : 'artist_rejected';
+    // Update ONLY this influencer's record in forwardedTo array
+    const acceptanceStatus = status === 'accepted' ? 'accepted' : 'rejected';
+    inquiry.forwardedTo[forwardIndex].acceptanceStatus = acceptanceStatus;
+    inquiry.forwardedTo[forwardIndex].response = responseMessage || '';
     
-    inquiry.status = newStatus;
-    inquiry.artistStatus = status === 'accepted' ? 'accepted' : 'rejected';
-    inquiry.progressPercentage = status === 'accepted' ? 70 : 100;
-
-    // If accepted, also set as assigned influencer
     if (status === 'accepted') {
-      inquiry.assignedInfluencer = {
-        userId: req.user._id,
-        assignedBy: req.user._id, // Self-assigned by acceptance
-        assignedAt: new Date()
-      };
+      inquiry.forwardedTo[forwardIndex].acceptedAt = new Date();
+    } else {
+      inquiry.forwardedTo[forwardIndex].rejectedAt = new Date();
     }
 
-    // Add to workflow history
-    inquiry.workflowHistory.push({
-      stage: 'artist_review',
-      status: newStatus,
-      updatedBy: req.user._id,
-      notes: responseMessage || `Influencer ${status}ed the inquiry`
-    });
+    // If accepted, set as assigned influencer (one-time assignment, first to accept)
+    if (status === 'accepted' && !inquiry.assignedInfluencer) {
+      inquiry.assignedInfluencer = {
+        userId: req.user._id,
+        assignedBy: req.user._id,
+        assignedAt: new Date()
+      };
+      
+      // Update global inquiry status only when someone accepts
+      inquiry.status = 'artist_accepted';
+      inquiry.artistStatus = 'accepted';
+      inquiry.progressPercentage = 70;
+
+      // Mark event date as unavailable for this influencer
+      if (inquiry.eventDate) {
+        const busyDay = toDayStartUtc(inquiry.eventDate);
+        if (busyDay) {
+          await Influencer.findByIdAndUpdate(req.user._id, {
+            $addToSet: { unavailableDates: busyDay }
+          });
+        }
+      }
+
+      // Add to workflow history
+      inquiry.workflowHistory.push({
+        stage: 'artist_review',
+        status: 'artist_accepted',
+        updatedBy: req.user._id,
+        notes: responseMessage || 'Influencer accepted the inquiry'
+      });
+    } else if (status === 'rejected') {
+      // If rejected, just log it but don't change overall status
+      inquiry.workflowHistory.push({
+        stage: 'artist_review',
+        status: 'artist_rejected',
+        updatedBy: req.user._id,
+        notes: responseMessage || 'Influencer rejected the inquiry'
+      });
+    }
 
     await inquiry.save();
+
+    // Return populated inquiry so frontend gets fresh data
+    const populated = await Inquiry.findById(id)
+      .populate('userId', 'name email phone')
+      .populate('assignedInfluencer.userId', 'firstName lastName email name profileType fullName')
+      .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
+      .populate('workflowHistory.updatedBy', 'name email');
 
     res.status(200).json({
       success: true,
       message: `Inquiry ${status}ed successfully`,
-      data: inquiry
+      data: populated
     });
   } catch (error) {
     res.status(500).json({
@@ -480,6 +686,10 @@ module.exports = {
   searchInfluencers,
   getMyProfile,
   updateMyProfile,
+  getMyAvailability,
+  updateMyAvailability,
+  addMyUnavailableDates,
+  removeMyUnavailableDates,
   upload,
   getMyInquiries,
   respondToInquiry
