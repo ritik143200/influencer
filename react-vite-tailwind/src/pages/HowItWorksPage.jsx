@@ -13,7 +13,7 @@ const HowItWorksPage = ({ config }) => {
             How It Works
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your simple journey to connect with talented influencers and creators
+            connect brands with  influencers and creators
           </p>
         </div>
 
@@ -35,7 +35,7 @@ const HowItWorksPage = ({ config }) => {
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
-                  Sign up in seconds with your email or social account. Choose whether you're looking for talent or want to showcase your skills.
+                  Sign up in seconds with your email or social account. Choose whether you are a brand or influencer to get started.
                 </p>
                 <div className="flex justify-end space-x-2">
                   <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
@@ -182,7 +182,7 @@ const HowItWorksPage = ({ config }) => {
                 <h3 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
                   For Clients & Brands
                 </h3>
-                <p className="text-gray-600">Find perfect talent for your projects</p>
+                <p className="text-gray-600">find the right influencers,run campaigns, and grow your brand </p>
               </div>
               
               {/* Hexagon Flow */}

@@ -10,10 +10,10 @@ const ServicesInfluencersPage = ({ config }) => {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
-            Influencer Services
+            Influencer & Brand Services
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Comprehensive platform services designed to help influencers grow their brand and monetize their content
+            Comprehensive platform services designed to helping brands run successful campaigns and influencers earn through real collaboration.
           </p>
         </div>
 
@@ -24,7 +24,7 @@ const ServicesInfluencersPage = ({ config }) => {
               Platform Overview
             </h2>
             <p className="text-center max-w-3xl mx-auto text-gray-600 mb-6">
-              Our influencer toolkit centralizes campaign workflows, analytics, and payments in a single, secure platform. We help creators streamline collaborations, understand performance, and scale monetization with transparency.
+             our platform helps and manage campaigns and influencers collaborate, track Derformance, and haidle payme nts easily,
             </p>
             <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
               {[

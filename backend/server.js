@@ -98,11 +98,16 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5002;
 
 const startServer = async () => {
   try {
-    await connectDB();
+    // Try to connect to DB but don't exit the process if it fails —
+    // keep the HTTP server running so we can inspect logs on Render.
+    await connectDB().catch(err => {
+      console.error('Database connection failed at startup:', err);
+    });
+
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📁 Uploads directory: ${uploadsDir}`);

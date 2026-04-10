@@ -32,19 +32,19 @@ const CategoryCircles = ({ config }) => {
       id: 'verified',
       icon: '🛡️',
       title: 'Trusted Profiles',
-      description: 'Explore curated artist profiles with clear specialties and transparent details.'
+      description: 'work with verified influencers with clear audience and engagement.'
     },
     {
       id: 'fast',
       icon: '⚡',
       title: 'Faster Discovery',
-      description: 'Navigate categories quickly and shortlist talent suited to your event style.'
+      description: 'lanuch campaigns quickly and connect with the real creators.'
     },
     {
       id: 'connect',
       icon: '🤝',
       title: 'Direct Connections',
-      description: 'Move from discovery to inquiry in just a few clicks with a clean booking flow.'
+      description: 'brands and influencers cannect easily for smooth deals.'
     }
   ];
 
@@ -120,13 +120,13 @@ const CategoryCircles = ({ config }) => {
                 className="text-xs font-semibold uppercase tracking-[0.2em]"
                 style={{ color: config.secondary_action }}
               >
-                Artist Platform
+                Influencer Platform
               </p>
               <h3 className="text-xl lg:text-2xl font-bold mt-2" style={{ color: config.text_color }}>
-                Connect with talented artists
+                Connect with talented Influencers
               </h3>
               <p className="text-sm lg:text-base mt-2" style={{ color: config.secondary_action }}>
-                Register as an influencer or sign in to access our influencer booking platform.
+                 brands can find the right influencers for campaigns, and influencers can  get real collaboration oporunities.
               </p>
             </div>
 
@@ -139,7 +139,8 @@ const CategoryCircles = ({ config }) => {
                   borderColor: `${config.secondary_action}30`
                 }}
               >
-                {resolvedCategories.length} Categories
+                {/* {resolvedCategories.length}  */}
+                30+ Categories
               </span>
               <span
                 className="px-4 py-2 rounded-full text-sm font-semibold border"
