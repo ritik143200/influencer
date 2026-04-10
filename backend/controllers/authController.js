@@ -5,7 +5,6 @@ const { logUserRegistration } = require('../middleware/activityLogger');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const sendWhatsAppMessage = require('../utils/sendWhatsApp');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -36,10 +35,6 @@ const registerUser = async (req, res) => {
     });
 
     if (user) {
-      // 📲 Send WhatsApp message
-      if (user.phone) {
-        await sendWhatsAppMessage(user.phone, user.name);
-      }
       try {
         await Notification.create({
           type: 'user',

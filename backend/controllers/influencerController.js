@@ -5,7 +5,6 @@ const { logInfluencerRegistration } = require('../middleware/activityLogger');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-const sendWhatsAppMessage = require('../utils/sendWhatsApp');
 
 const toDayStartUtc = (input) => {
   const d = new Date(input);
@@ -272,12 +271,6 @@ const registerInfluencer = async (req, res) => {
         });
       } catch (err) {
         console.error('Failed to create notification for new influencer:', err);
-      }
-
-      // 📲 Send WhatsApp message
-      if (newInfluencer.phone) {
-        const welcomeName = newInfluencer.firstName || newInfluencer.fullName || 'Creator';
-        await sendWhatsAppMessage(newInfluencer.phone, welcomeName);
       }
 
     // Log influencer registration activity
