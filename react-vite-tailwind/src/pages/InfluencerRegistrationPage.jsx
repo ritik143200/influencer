@@ -371,7 +371,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
               
               <div className="mb-8">
                 <h2 className="text-3xl font-medium text-gray-800 mb-2">I am an Influencer</h2>
-                <p className="text-gray-600">Showcase your reach, get brand deals, and grow your influence across Indore and beyond.</p>
+                <p className="text-gray-600">Join as an influencer, showcase your content, and get brand deals.</p>
               </div>
 
               {/* Status Messages */}

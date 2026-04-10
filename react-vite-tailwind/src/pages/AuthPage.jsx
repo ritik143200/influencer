@@ -392,7 +392,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
                     ? 'Enter your email to receive a password reset link'
                     : (isLogin
                       ? 'Sign in to manage your influencer profile'
-                      : 'Discover, book, and collaborate with verified local influencers for your campaigns.'
+                      : 'Find the right influencers, run campaigns, and grow your brand.'
                     )
                   )
                 }
