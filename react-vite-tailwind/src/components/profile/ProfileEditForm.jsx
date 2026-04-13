@@ -247,19 +247,7 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
               </div>
             </div>
 
-            <div>
-              <label className={labelClass}>
-                Change Password
-                {optionalBadge}
-              </label>
-              <input 
-                className={inputClass} 
-                type="password" 
-                value={formData.password || ''} 
-                onChange={e => handleField('password', e.target.value)} 
-                placeholder="Leave blank to keep current password"
-              />
-            </div>
+
           </div>
         </div>
 
@@ -334,22 +322,48 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
                 {role === 'artist' ? 'Artist' : 'Influencer'} Niche
                 {requiredBadge}
               </label>
+              <p className="text-xs text-gray-500 mb-2">Select one or more niches</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                {niches.map(n => (
-                  <button 
-                    key={n} 
-                    type="button" 
-                    onClick={() => handleField('niche', n)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-                      formData.niche === n 
-                        ? 'bg-brand-600 text-white border-brand-600' 
-                        : 'bg-gray-50 text-gray-700 border-gray-300 hover:border-brand-400'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {niches.map(n => {
+                  const selectedNiches = Array.isArray(formData.niche)
+                    ? formData.niche
+                    : (formData.niche ? [formData.niche] : []);
+                  const isSelected = selectedNiches.includes(n);
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => {
+                        const current = Array.isArray(formData.niche)
+                          ? formData.niche
+                          : (formData.niche ? [formData.niche] : []);
+                        const updated = isSelected
+                          ? current.filter(x => x !== n)
+                          : [...current, n];
+                        handleField('niche', updated);
+                      }}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all border flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
+                          : 'bg-gray-50 text-gray-700 border-gray-300 hover:border-brand-400'
+                      }`}
+                    >
+                      {isSelected && (
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      {n}
+                    </button>
+                  );
+                })}
               </div>
+              {(() => {
+                const count = Array.isArray(formData.niche) ? formData.niche.length : (formData.niche ? 1 : 0);
+                return count > 0 ? (
+                  <p className="text-xs text-brand-600 mt-2 font-semibold">{count} niche{count > 1 ? 's' : ''} selected</p>
+                ) : null;
+              })()}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -417,19 +431,6 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
               </div>
             </div>
 
-            <div>
-              <label className={labelClass}>
-                Previous Collaborations
-                {optionalBadge}
-              </label>
-              <textarea 
-                className={`${inputClass} resize-none`} 
-                rows={3} 
-                value={formData.previousCollaborations || ''} 
-                onChange={e => handleField('previousCollaborations', e.target.value)} 
-                placeholder="Mention brands or projects you've worked on..."
-              />
-            </div>
           </div>
         </div>
 
@@ -503,6 +504,24 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
               );
             })}
           </div>
+        </div>
+
+        {/* Previous Collaborations */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+            </svg>
+            Previous Collaborations
+            {optionalBadge}
+          </h2>
+          <textarea
+            className={`${inputClass} resize-none`}
+            rows={3}
+            value={formData.previousCollaborations || ''}
+            onChange={e => handleField('previousCollaborations', e.target.value)}
+            placeholder="Mention brands or projects you've worked on..."
+          />
         </div>
 
         {/* Portfolio Section */}

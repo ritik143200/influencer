@@ -529,18 +529,11 @@ const ProfilePage = ({ config }) => {
       {/* Modern Portfolio Section */}
       <div className="max-w-6xl mx-auto px-4 mt-8">
         <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border mb-8" style={{ borderColor: accent }}>
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center mb-8">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-8 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">Portfolio Canvas</h3>
             </div>
-            <button 
-              onClick={() => setIsEditing(true)} 
-              className="px-6 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-bold transition-all border"
-              style={{ borderColor: accent }}
-            >
-              Manage Work
-            </button>
           </div>
 
           {formData.portfolio && formData.portfolio.length > 0 ? (

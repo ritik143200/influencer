@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import InquiryProgressBar from '../components/InquiryProgressBar';
-import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css';
+// import { DayPicker } from 'react-day-picker';
+// import 'react-day-picker/dist/style.css';
 
 const InfluencerDashboard = ({ config }) => {
   const { navigate } = useRouter();
@@ -13,10 +13,10 @@ const InfluencerDashboard = ({ config }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [inquiries, setInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
-  const [unavailableDates, setUnavailableDates] = useState([]);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [savingAvailability, setSavingAvailability] = useState(false);
-  const [availabilityMessage, setAvailabilityMessage] = useState('');
+  // const [unavailableDates, setUnavailableDates] = useState([]);
+  // const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  // const [savingAvailability, setSavingAvailability] = useState(false);
+  // const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [earnings, setEarnings] = useState({
     total: 0,
     thisMonth: 0,
@@ -45,70 +45,53 @@ const InfluencerDashboard = ({ config }) => {
 
   const fromYmd = (ymd) => new Date(`${ymd}T00:00:00.000Z`);
 
-  const fetchAvailability = async () => {
-    setAvailabilityLoading(true);
-    try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-      const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-      });
-
-      if (!res.ok) {
-        setUnavailableDates([]);
-        return;
-      }
-
-      const result = await res.json();
-      const parsed = Array.isArray(result?.data?.unavailableDates)
-        ? result.data.unavailableDates.map(fromYmd).filter((d) => !Number.isNaN(d.getTime()))
-        : [];
-      setUnavailableDates(parsed);
-    } catch (error) {
-      console.error('Error fetching availability:', error);
-      setUnavailableDates([]);
-    } finally {
-      setAvailabilityLoading(false);
-    }
-  };
-
-  const saveAvailability = async () => {
-    setSavingAvailability(true);
-    setAvailabilityMessage('');
-    try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-      const payload = {
-        unavailableDates: (unavailableDates || [])
-          .map(toYmd)
-          .filter(Boolean)
-      };
-
-      const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setAvailabilityMessage(result.message || 'Failed to update availability');
-        return;
-      }
-
-      setAvailabilityMessage('Availability updated successfully');
-      if (Array.isArray(result?.data?.unavailableDates)) {
-        setUnavailableDates(result.data.unavailableDates.map(fromYmd));
-      }
-    } catch (error) {
-      console.error('Error saving availability:', error);
-      setAvailabilityMessage('Network error while saving availability');
-    } finally {
-      setSavingAvailability(false);
-      setTimeout(() => setAvailabilityMessage(''), 3000);
-    }
-  };
+  // --- Availability Calendar (commented out) ---
+  // const fetchAvailability = async () => {
+  //   setAvailabilityLoading(true);
+  //   try {
+  //     const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  //     const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
+  //       headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+  //     });
+  //     if (!res.ok) { setUnavailableDates([]); return; }
+  //     const result = await res.json();
+  //     const parsed = Array.isArray(result?.data?.unavailableDates)
+  //       ? result.data.unavailableDates.map(fromYmd).filter((d) => !Number.isNaN(d.getTime()))
+  //       : [];
+  //     setUnavailableDates(parsed);
+  //   } catch (error) {
+  //     console.error('Error fetching availability:', error);
+  //     setUnavailableDates([]);
+  //   } finally {
+  //     setAvailabilityLoading(false);
+  //   }
+  // };
+  // const saveAvailability = async () => {
+  //   setSavingAvailability(true);
+  //   setAvailabilityMessage('');
+  //   try {
+  //     const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  //     const payload = { unavailableDates: (unavailableDates || []).map(toYmd).filter(Boolean) };
+  //     const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
+  //       method: 'PUT',
+  //       headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}`, 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload)
+  //     });
+  //     const result = await res.json().catch(() => ({}));
+  //     if (!res.ok) { setAvailabilityMessage(result.message || 'Failed to update availability'); return; }
+  //     setAvailabilityMessage('Availability updated successfully');
+  //     if (Array.isArray(result?.data?.unavailableDates)) {
+  //       setUnavailableDates(result.data.unavailableDates.map(fromYmd));
+  //     }
+  //   } catch (error) {
+  //     console.error('Error saving availability:', error);
+  //     setAvailabilityMessage('Network error while saving availability');
+  //   } finally {
+  //     setSavingAvailability(false);
+  //     setTimeout(() => setAvailabilityMessage(''), 3000);
+  //   }
+  // };
+  // --- End Availability Calendar ---
 
   const fetchInquiries = async () => {
     setLoadingInquiries(true);
@@ -182,252 +165,13 @@ const InfluencerDashboard = ({ config }) => {
 
     // Initialize data
     fetchInquiries();
-    fetchAvailability();
+    // fetchAvailability(); // Availability Calendar commented out
 
   }, []);
 
-  const renderAvailabilityManager = () => (
-    <div className="bg-gradient-to-br from-white via-orange-50/30 to-white rounded-3xl shadow-xl border border-orange-100/50 p-8 mb-6 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/20 to-orange-300/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-100/20 to-orange-200/10 rounded-full blur-2xl"></div>
-      
-      {/* Header Section */}
-      <div className="relative z-10">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-800 bg-clip-text text-transparent">Availability Calendar</h3>
-              <p className="text-sm text-gray-600 mt-1">Mark unavailable dates to avoid booking conflicts</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-orange-200/50 shadow-md">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-semibold text-gray-700">Busy dates:</span>
-            <span className="text-lg font-bold text-orange-600">{unavailableDates.length}</span>
-          </div>
-        </div>
+  // --- Availability Calendar disabled (returns null) ---
+  const renderAvailabilityManager = () => null;
 
-        {/* Main Calendar Container */}
-        <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-orange-100/50 p-6 shadow-inner">
-          {availabilityLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 border-3 border-orange-200 border-t-orange-600 rounded-full animate-spin"></div>
-                <p className="text-sm text-gray-500">Loading availability...</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col xl:flex-row xl:items-start gap-6">
-              {/* Left: Selected Dates */}
-              <div className="w-full xl:w-80 flex-shrink-0">
-                <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200/50 rounded-2xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-md">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <h4 className="text-base font-bold text-red-800">Selected Dates</h4>
-                    </div>
-                    <div className="bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-md">
-                      {unavailableDates.length}
-                    </div>
-                  </div>
-
-                  {unavailableDates.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <p className="text-sm text-gray-500">No dates selected yet</p>
-                      <p className="text-xs text-gray-400 mt-1">Click on calendar dates to mark as unavailable</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
-                      {unavailableDates
-                        .sort((a, b) => a.getTime() - b.getTime())
-                        .map((date, idx) => (
-                          <div key={idx} className="group flex items-center justify-between bg-white rounded-xl px-3 py-2.5 text-sm hover:bg-red-50 transition-all duration-200 shadow-sm hover:shadow-md border border-red-100/50">
-                            <div className="flex items-center gap-3">
-                              <div className="w-6 h-6 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center shadow-sm">
-                                <span className="text-white text-xs font-bold">{date.getDate()}</span>
-                              </div>
-                              <div>
-                                <span className="text-gray-800 font-medium">
-                                  {date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                </span>
-                                <span className="text-gray-500 text-xs ml-1">
-                                  {date.toLocaleDateString('en-US', { year: 'numeric' })}
-                                </span>
-                              </div>
-                            </div>
-                            <button 
-                              onClick={() => setUnavailableDates(unavailableDates.filter((d) => d.getTime() !== date.getTime()))} 
-                              className="w-7 h-7 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:scale-110"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Center: Calendar */}
-              <div className="flex-1">
-                <div className="bg-white rounded-2xl p-4 shadow-lg border border-orange-100/50">
-                  <DayPicker
-                    mode="multiple"
-                    selected={unavailableDates}
-                    onSelect={(days) => setUnavailableDates(days || [])}
-                    showOutsideDays
-                    className="mx-auto rdp-custom-modern"
-                    captionLayout="dropdown-buttons"
-                    showWeekNumber={false}
-                    disabled={{ before: new Date(new Date().setDate(new Date().getDate() - 1)) }}
-                    modifiers={{ selected: unavailableDates, today: [new Date()] }}
-                    modifiersClassNames={{
-                      selected: 'rdp-selected-modern',
-                      disabled: 'rdp-disabled-modern',
-                      today: 'rdp-today-modern'
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Right: Instructions */}
-              <div className="w-full xl:w-80 flex-shrink-0">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/50 rounded-2xl p-4 shadow-lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <h4 className="text-base font-bold text-blue-800">How it works</h4>
-                  </div>
-                  
-                  <ul className="space-y-3 mb-4">
-                    <li className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      </div>
-                      <span className="text-sm text-gray-700">Click dates to mark as <span className="font-semibold text-orange-600">Unavailable</span></span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <span className="text-sm text-gray-700">Past dates are disabled</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <span className="text-sm text-gray-700">Click selected dates to remove</span>
-                    </li>
-                  </ul>
-
-                  <div className="border-t border-blue-200/50 pt-4">
-                    <h5 className="text-sm font-semibold text-gray-700 mb-3">Legend</h5>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-white border-2 border-gray-200 rounded-lg"></div>
-                        <span className="text-xs text-gray-600">Available</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-lg relative">
-                          <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></div>
-                        </div>
-                        <span className="text-xs text-gray-600">Selected (Unavailable)</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300 rounded-lg"></div>
-                        <span className="text-xs text-gray-600">Today</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center justify-between bg-white/40 backdrop-blur-sm rounded-2xl p-4 border border-orange-100/50">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-sm text-gray-600">Selected dates are treated as unavailable/busy</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setUnavailableDates([])}
-              className="px-5 py-2.5 text-sm font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-200 hover:shadow-md border border-gray-200"
-            >
-              <span className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Clear All
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={saveAvailability}
-              disabled={savingAvailability}
-              className="px-6 py-2.5 text-sm font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed border border-orange-400/30"
-            >
-              <span className="flex items-center gap-2">
-                {savingAvailability ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
-                    </svg>
-                    Save Availability
-                  </>
-                )}
-              </span>
-            </button>
-          </div>
-        </div>
-
-        {availabilityMessage && (
-          <div className="mt-4 flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="text-sm font-medium text-green-800">{availabilityMessage}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
 
   // Helper to parse location - handle both string and object formats
   const parseLocation = (location) => {
@@ -676,96 +420,154 @@ const InfluencerDashboard = ({ config }) => {
 
     return (
     <>
-
-      {/* Enhanced Process Flow Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">📋 Complete Inquiry Journey</h3>
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-500">
-              Total: <span className="font-bold text-gray-800">{totalInquiries}</span> inquiries tracked
+      {/* Enhanced Hero Welcome Banner */}
+      <div className="bg-gradient-to-br from-orange-500/10 via-white to-orange-50/20 p-8 rounded-3xl border border-orange-100/50 mb-8 relative overflow-hidden transition-all hover:shadow-xl group">
+        {/* Decorative Shapes */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-400/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-orange-400/10 transition-colors duration-500"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/5 rounded-full blur-2xl -ml-20 -mb-20"></div>
+        
+        <div className="max-w-3xl relative z-10">
+          <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 animate-pulse">
+            <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+            Inquiry Center Active
+          </div>
+          
+          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">
+            🚀 Elevate Your Digital Presence
+          </h2>
+          
+          <p className="text-lg text-gray-600 leading-relaxed font-medium">
+            Welcome back, <span className="text-orange-600 font-bold italic">{influencerData?.fullName || influencerData?.firstName || 'Creator'}</span>. 
+            Every inquiry is a new opportunity to showcase your craft. Stay responsive, 
+            track your growth, and let's build something iconic together.
+          </p>
+          
+          <div className="flex flex-wrap gap-4 mt-6">
+            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-green-100 shadow-sm transition-transform hover:scale-105">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+              </span>
+              <span className="text-sm font-bold text-gray-700">
+                {receivedInquiries} New Opportunities Waiting
+              </span>
             </div>
+            
+            <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-blue-100 shadow-sm transition-transform hover:scale-105">
+              <span className="text-lg">⭐</span>
+              <span className="text-sm font-bold text-gray-700">Top Rated Creator</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Redesigned Compact & Attractive Inquiry Journey */}
+      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8 relative overflow-hidden transition-all hover:shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+          <div>
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <span className="bg-orange-100 p-1.5 rounded-lg text-lg">📋</span> Complete Inquiry Journey
+            </h3>
+            <p className="text-sm text-gray-500 mt-1 font-medium">Your progress from first contact to final confirmation</p>
+          </div>
+          <div className="flex items-center gap-5 bg-gray-50/80 backdrop-blur-sm px-5 py-2.5 rounded-2xl border border-gray-100 shadow-inner">
+            <div className="text-right">
+              <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest leading-none mb-1">Total inquiries</p>
+              <p className="text-xl font-black text-gray-900 leading-none">{totalInquiries}</p>
+            </div>
+            <div className="w-px h-8 bg-gray-200"></div>
             <button
               type="button"
               onClick={() => navigate('profile')}
-              className="inline-flex items-center text-sm bg-orange-500 text-white px-3 py-2 rounded-md font-medium hover:bg-orange-600 transition-colors shadow-sm"
+              className="bg-orange-500 text-white px-5 py-2 rounded-xl font-bold text-sm hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95"
             >
               View Profile
             </button>
           </div>
         </div>
         
-        {/* Enhanced Visual Process Flow */}
-        <div className="flex items-center justify-between mb-6 overflow-x-auto">
-          <div className="flex items-center min-w-max">
-            <div className="text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
-                receivedInquiries > 0 ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+        {/* The Journey Track */}
+        <div className="relative px-2">
+          {/* Connector Line (Desktop) */}
+          <div className="absolute top-6 left-12 right-12 h-1 bg-gray-100 rounded-full hidden md:block">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-amber-500 rounded-full transition-all duration-1000"
+              style={{ width: confirmedByBoth > 0 ? '100%' : (acceptedByInfluencer > 0 ? '66%' : (viewedByInfluencer > 0 ? '33%' : '0%')) }}
+            ></div>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center justify-between gap-10 md:gap-0 relative z-10">
+            {/* Step 1: Received */}
+            <div className="flex flex-col items-center text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-500 ${
+                receivedInquiries > 0 
+                  ? 'bg-blue-600 text-white shadow-xl shadow-blue-200 ring-4 ring-blue-50' 
+                  : 'bg-white text-gray-300 border border-gray-100'
               }`}>
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-gray-700">Received</div>
-              <div className="text-xs text-gray-500">{receivedInquiries}</div>
+              <span className={`text-[13px] font-black uppercase tracking-tight ${receivedInquiries > 0 ? 'text-gray-900' : 'text-gray-400'}`}>Received</span>
+              <div className="mt-1.5 px-3 py-0.5 bg-blue-50 rounded-full border border-blue-100">
+                <span className="text-xs font-bold text-blue-600">{receivedInquiries}</span>
+              </div>
             </div>
-            
-            <div className="flex items-center mx-4">
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-            
-            <div className="text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
-                viewedByInfluencer > 0 ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400'
+
+            {/* Step 2: Viewed */}
+            <div className="flex flex-col items-center text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-500 ${
+                viewedByInfluencer > 0 
+                  ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 ring-4 ring-indigo-50' 
+                  : 'bg-white text-gray-300 border border-gray-100'
               }`}>
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 8C4.732 6 7.823 6 9.5c0 1.097.865 2 1.932 2h8.136c1.067 0 1.932-.903 1.932-2V8.5c0-1.097-.865-2-1.932-2H9.5C7.823 6 6.732 6 5.458 6c-.5 0-.903.402-.903.903v2.194c0 .5.403.903.903.903h8.136c1.067 0 1.932-.903 1.932-2V8.5c0-1.097-.865-2-1.932-2H9.5C7.823 6 6.732 6 5.458 6c-.5 0-.903.402-.903.903v2.194c0 .5.403.903.903.903h8.136c1.067 0 1.932-.903 1.932-2V8.5c0-1.097-.865-2-1.932-2H9.5z" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C2.458 5.458 12 2.458 12 2.458s9.542 3 9.542 9.542z" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-gray-700">Viewed</div>
-              <div className="text-xs text-gray-500">{viewedByInfluencer}</div>
+              <span className={`text-[13px] font-black uppercase tracking-tight ${viewedByInfluencer > 0 ? 'text-gray-900' : 'text-gray-400'}`}>Viewed</span>
+              <div className="mt-1.5 px-3 py-0.5 bg-indigo-50 rounded-full border border-indigo-100">
+                <span className="text-xs font-bold text-indigo-600">{viewedByInfluencer}</span>
+              </div>
             </div>
-            
-            <div className="flex items-center mx-4">
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-            
-            <div className="text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
-                acceptedByInfluencer > 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-gray-100 text-gray-400'
+
+            {/* Step 3: Your Action */}
+            <div className="flex flex-col items-center text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-500 ${
+                acceptedByInfluencer > 0 
+                  ? 'bg-amber-500 text-white shadow-xl shadow-amber-200 ring-4 ring-amber-50' 
+                  : 'bg-white text-gray-300 border border-gray-100'
               }`}>
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-gray-700">Your Action</div>
-              <div className="text-xs text-gray-500">{acceptedByInfluencer} accepted</div>
+              <span className={`text-[13px] font-black uppercase tracking-tight ${acceptedByInfluencer > 0 ? 'text-gray-900' : 'text-gray-400'}`}>Accepted</span>
+              <div className="mt-1.5 px-3 py-0.5 bg-amber-50 rounded-full border border-amber-100">
+                <span className="text-xs font-bold text-amber-600">{acceptedByInfluencer}</span>
+              </div>
             </div>
-            
-            <div className="flex items-center mx-4">
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </div>
-            
-            <div className="text-center">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
-                confirmedByBoth > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+
+            {/* Step 4: Confirmed */}
+            <div className="flex flex-col items-center text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-500 ${
+                confirmedByBoth > 0 
+                  ? 'bg-green-600 text-white shadow-xl shadow-green-200 ring-4 ring-green-50' 
+                  : 'bg-white text-gray-300 border border-gray-100'
               }`}>
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016a11.955 11.955 0 011.618 6.376A11.955 11.955 0 0112 21a11.955 11.955 0 01-6.618-1.64A11.955 11.955 0 013.382 12.016 11.945 11.945 0 0112 3.024a11.945 11.945 0 018.618 8.992z" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <div className="text-sm font-medium text-gray-700">Confirmed</div>
-              <div className="text-xs text-gray-500">{confirmedByBoth}</div>
+              <span className={`text-[13px] font-black uppercase tracking-tight ${confirmedByBoth > 0 ? 'text-gray-900' : 'text-gray-400'}`}>Confirmed</span>
+              <div className="mt-1.5 px-3 py-0.5 bg-green-50 rounded-full border border-green-100">
+                <span className="text-xs font-bold text-green-600">{confirmedByBoth}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
 
       {/* Enhanced Detailed Status Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -826,60 +628,6 @@ const InfluencerDashboard = ({ config }) => {
         </div>
       </div>
 
-      {/* Enhanced Rejection Tracking Section */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">❌ Rejection Analysis</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Rejected by Influencer */}
-          <div className="text-center p-6 bg-red-50 rounded-lg border border-red-200">
-            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-red-600 mb-2">{rejectedByInfluencer}</div>
-            <div className="text-lg font-semibold text-red-700 mb-1">Rejected by You</div>
-            <div className="text-sm text-gray-600">Inquiries you declined</div>
-            <div className="text-xs text-gray-500 mt-2">
-              {rejectedByInfluencer > 0 && (
-                <div>These inquiries were rejected by you and cannot be recovered</div>
-              )}
-            </div>
-          </div>
-
-          {/* Rejected by Admin */}
-          <div className="text-center p-6 bg-orange-50 rounded-lg border border-orange-200">
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h-6m-6 0h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2" />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-orange-600 mb-2">{rejectedByAdmin}</div>
-            <div className="text-lg font-semibold text-orange-700 mb-1">Rejected by Admin</div>
-            <div className="text-sm text-gray-600">Your acceptances rejected by admin</div>
-            <div className="text-xs text-gray-500 mt-2">
-              {rejectedByAdmin > 0 && (
-                <div>Admin rejected inquiries you had accepted</div>
-              )}
-            </div>
-          </div>
-
-          {/* Total Rejected */}
-          <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0017.977 21.48l.463 1.463A2 2 0 0021.48 17.977l-1.463-1.463A2 2 0 0017.977 2.52V7a2 2 0 00-2-2h-4z" />
-              </svg>
-            </div>
-            <div className="text-3xl font-bold text-gray-600 mb-2">{rejectedByInfluencer + rejectedByAdmin}</div>
-            <div className="text-lg font-semibold text-gray-700 mb-1">Total Rejected</div>
-            <div className="text-sm text-gray-600">All rejected inquiries</div>
-            <div className="text-xs text-gray-500 mt-2">
-              Combined total of all rejections
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Confirmed Section */}
       <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
@@ -1185,15 +933,7 @@ const InfluencerDashboard = ({ config }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
               </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4 4m4-4H3m2 4h6M5 12H3m2 4h6m6 4h6m2 4h6a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                </svg>
-                Logout
-              </button>
+
             </div>
           </div>
         </div>
@@ -1203,7 +943,7 @@ const InfluencerDashboard = ({ config }) => {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
-            {['overview', 'availability', 'inquiries'].map((tab) => (
+            {['overview', /* 'availability', */ 'inquiries'].map((tab) => (
               <button
                 key={tab}
                 onClick={async () => {
@@ -1275,7 +1015,7 @@ const InfluencerDashboard = ({ config }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tab Content */}
         {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'availability' && renderAvailabilityManager()}
+        {/* activeTab === 'availability' && renderAvailabilityManager() */}
         {activeTab === 'inquiries' && renderInquiries()}
       </div>
       {/* Profile completion modal (blocks access to inquiries until complete) */}

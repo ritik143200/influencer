@@ -63,4 +63,4 @@ export const defaultConfig = {
   primary_action: '#ee7711',
   secondary_action: '#6b7280',
   font_family: 'Outfit'
-};
+}; 

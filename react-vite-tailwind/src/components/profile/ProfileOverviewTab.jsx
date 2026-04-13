@@ -27,20 +27,7 @@ const ProfileOverviewTab = ({ formData }) => {
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-          <span className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center text-brand-600">📝</span>
-          About
-        </h3>
-        <p className="text-gray-600 leading-relaxed">{formData.bio || 'No bio added yet. Tell the world about yourself!'}</p>
-      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        <InfoCard icon="📧" label="Email" value={formData.email} color="blue" />
-        <InfoCard icon="📱" label="Phone" value={formData.phone} color="green" />
-        <InfoCard icon="🎯" label="Category / Niche" value={formData.niche || formData.category} color="brand" />
-        <InfoCard icon="⏳" label="Experience" value={formData.experience} color="purple" />
-              </div>
 
       {activePlatforms.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
@@ -69,52 +56,8 @@ const ProfileOverviewTab = ({ formData }) => {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-          <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600">💼</span>
-          Professional Details
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Experience</p>
-            <p className="text-gray-800 font-medium">{formData.experience || 'Not specified'}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-1">Collaborations</p>
-            <p className="text-gray-800 font-medium">{formData.previousCollaborations || 'None listed'}</p>
-          </div>
-          {formData.skills && formData.skills.length > 0 && (
-            <div className="sm:col-span-2">
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium mb-2">Skills</p>
-              <div className="flex flex-wrap gap-2">
-                {formData.skills.map((skill, i) => (
-                  <span key={i} className="px-3 py-1 bg-brand-50 text-brand-600 rounded-full text-xs font-semibold border border-brand-100">{skill}</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {formData.portfolio && formData.portfolio.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-green-600">🎨</span>
-            Portfolio
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {formData.portfolio.slice(0, 6).map((item, idx) => (
-              <div key={idx} className="aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200 hover:shadow-lg transition-shadow">
-                {typeof item === 'string' && (item.startsWith('http') || item.startsWith('/')) ? (
-                  <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm p-2 text-center">{item}</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
