@@ -370,18 +370,12 @@ const InfluencerDashboard = ({ config }) => {
     checkProfileOnMount();
   }, []);
 
-
-  const handleLogout = () => {
-    logout();
-    navigate('home');
-  };
-
-
   const renderOverview = () => {
     // Enhanced inquiry statistics with comprehensive tracking
     const totalInquiries = inquiries.length;
     
     // Process Flow Stages - Enhanced tracking
+    // ... (rest of the code remains the same)
     const receivedInquiries = inquiries.filter(inq => 
       inq.status === 'forwarded' || inq.status === 'sent' || 
       (!inq.status && !inq.adminStatus) || 
@@ -421,30 +415,30 @@ const InfluencerDashboard = ({ config }) => {
     return (
     <>
       {/* Enhanced Hero Welcome Banner */}
-      <div className="bg-gradient-to-br from-orange-500/10 via-white to-orange-50/20 p-8 rounded-3xl border border-orange-100/50 mb-8 relative overflow-hidden transition-all hover:shadow-xl group">
+      <div className="bg-gradient-to-br from-orange-500/10 via-white to-orange-50/20 px-5 py-4 md:px-6 md:py-4 rounded-2xl border border-orange-100/50 mb-6 relative overflow-hidden transition-all hover:shadow-xl group">
         {/* Decorative Shapes */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-400/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-orange-400/10 transition-colors duration-500"></div>
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-400/5 rounded-full blur-2xl -ml-20 -mb-20"></div>
+        <div className="absolute top-0 right-0 w-48 h-48 bg-orange-400/5 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-orange-400/10 transition-colors duration-500"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-purple-400/5 rounded-full blur-2xl -ml-20 -mb-20"></div>
         
-        <div className="max-w-3xl relative z-10">
-          <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 animate-pulse">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-3">
             <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
             Inquiry Center Active
           </div>
           
-          <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">
+          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-2 tracking-tight">
             🚀 Elevate Your Digital Presence
           </h2>
           
-          <p className="text-lg text-gray-600 leading-relaxed font-medium">
+          <p className="text-sm md:text-base text-gray-600 leading-relaxed font-medium">
             Welcome back, <span className="text-orange-600 font-bold italic">{influencerData?.fullName || influencerData?.firstName || 'Creator'}</span>. 
             Every inquiry is a new opportunity to showcase your craft. Stay responsive, 
             track your growth, and let's build something iconic together.
           </p>
           
-          <div className="flex flex-wrap gap-4 mt-6">
+          <div className="flex flex-wrap gap-3 mt-4">
             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-green-100 shadow-sm transition-transform hover:scale-105">
-              <span className="relative flex h-3 w-3">
+              <span className="relative flex h-1 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </span>
@@ -458,6 +452,71 @@ const InfluencerDashboard = ({ config }) => {
               <span className="text-sm font-bold text-gray-700">Top Rated Creator</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl p-6 md:p-7 shadow-sm border border-gray-100 mb-8 relative overflow-hidden">
+        <div className="absolute -top-16 -right-16 w-48 h-48 bg-orange-500/5 rounded-full blur-2xl"></div>
+        <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-purple-500/5 rounded-full blur-2xl"></div>
+
+        <div className="relative z-10 flex flex-col lg:flex-row gap-6 lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-3">
+              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+              How you earn here
+            </div>
+            <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Complete your profile. Get inquiries. Earn money.</h3>
+            <p className="text-sm md:text-base text-gray-600 mt-2 leading-relaxed font-medium max-w-2xl">
+              Brands can only send you inquiries when your profile has the important details (bio, niche, location, budget, and social links).
+              A complete profile helps you get noticed faster and convert inquiries into paid collaborations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+            <div className="flex items-start gap-3 p-4 rounded-2xl border bg-brand-50 text-brand-600 border-brand-100">
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm">🧾</div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider opacity-80">Step 1</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">Complete profile</p>
+                <p className="text-xs text-gray-600 mt-1">Add bio, niche, budget</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 rounded-2xl border bg-purple-50 text-purple-600 border-purple-100">
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm">📩</div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider opacity-80">Step 2</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">Receive inquiries</p>
+                <p className="text-xs text-gray-600 mt-1">Brands contact you</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 rounded-2xl border bg-green-50 text-green-600 border-green-100">
+              <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm">💸</div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-wider opacity-80">Step 3</p>
+                <p className="text-sm font-bold text-gray-900 mt-0.5">Earn money</p>
+                <p className="text-xs text-gray-600 mt-1">Close paid deals</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2 text-xs text-gray-500 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-gray-300"></span>
+            Tip: keep your budget & social links updated for faster matches.
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('profile')}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl font-bold text-sm bg-orange-500 text-white hover:bg-orange-600 transition-all shadow-lg shadow-orange-200 active:scale-95"
+          >
+            Complete Profile
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
         </div>
       </div>
 

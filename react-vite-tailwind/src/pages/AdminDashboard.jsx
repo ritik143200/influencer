@@ -507,8 +507,6 @@ const AdminDashboard = ({ config }) => {
 
       const data = await res.json();
 
-      console.log('Assign response:', { status: res.status, success: data.success, message: data.message, data });
-
       if (res.ok && data.success) {
 
         setInquiries(prev => prev.map(i =>

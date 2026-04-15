@@ -41,7 +41,7 @@ const influencerSchema = new mongoose.Schema({
   category: { type: String },
   subcategory: { type: String },
   subcategories: [{ type: String }],
-  niche: { type: String },
+  niche: [{ type: String }],
   location: {
     type: mongoose.Schema.Types.Mixed,
     required: false

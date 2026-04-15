@@ -80,20 +80,38 @@ const InfluencerProfilePage = () => {
             </button>
           </div>
         </div>
-        {/* Portfolio Section */}
-        {influencer.portfolio && influencer.portfolio.length > 0 && (
+        {/* Portfolio Section (Images Only) */}
+        {influencer.portfolio && influencer.portfolio.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 && (
           <div className="mt-10">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Portfolio</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {influencer.portfolio.map((item, i) => (
-                <img
-                  key={i}
-                  src={item}
-                  alt={`Portfolio ${i + 1}`}
-                  className="w-full h-40 object-cover rounded-lg shadow"
-                />
-              ))}
+              {influencer.portfolio
+                .filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))
+                .map((item, i) => (
+                  <img
+                    key={i}
+                    src={item}
+                    alt={`Portfolio ${i + 1}`}
+                    className="w-full h-40 object-cover rounded-lg shadow"
+                  />
+                ))}
             </div>
+          </div>
+        )}
+
+        {/* Other Links Section (Non-image links) */}
+        {influencer.portfolio && influencer.portfolio.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
+          <div className="mt-10">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Other Links</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              {influencer.portfolio
+                .filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))))
+                .map((item, i) => (
+                  <li key={i}>
+                    <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
+                  </li>
+                ))}
+            </ul>
           </div>
         )}
       </div>

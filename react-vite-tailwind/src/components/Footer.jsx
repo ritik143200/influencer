@@ -29,7 +29,15 @@ const Footer = ({ config }) => {
         { label: 'About Us', path: 'about' },
         { label: 'Contact', path: 'contact' },
         { label: 'FAQ', path: 'faq' },
-        { label: 'Blog', path: '#' }
+        { label: 'Blog', path: '#' },
+        { label: 'Terms & Conditions', path: 'terms-and-condition' },
+        { label: 'Privacy Policy', path: 'privet-policy' }
+      ]
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Privacy Policy', path: 'privet-policy' }
       ]
     }
   ];

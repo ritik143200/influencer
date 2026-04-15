@@ -383,7 +383,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
               {/* Form Title */}
               <h2 className="text-3xl font-medium text-gray-800 mb-2">
-                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : 'I want to Hire'))}
+                {isResetPassword ? 'Reset Password' : (isForgotPassword ? 'Forgot Password' : (isLogin ? 'Welcome Back!' : ''))}
               </h2>
               <p className="text-gray-600 mb-8">
                 {isResetPassword

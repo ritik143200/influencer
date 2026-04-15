@@ -415,7 +415,7 @@ const InquiryPage = ({ config }) => {
               <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
-                  <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+                  <h2 className="text-lg font-semibold text-gray-900">campaigns  Details</h2>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">Help us understand the timeline and context.</p>
 

@@ -21,7 +21,7 @@ const ProfilePage = ({ config }) => {
     firstName: '', lastName: '', username: '', email: '', password: '', phone: '',
     profilePicture: '', profileImage: '', bio: '',
     location: { city: '', country: '' },
-    niche: '', category: '',
+    niche: [], category: '',
     platforms: {
       instagram: { hasAccount: false, url: '', followers: '', engagementRate: '' },
       youtube: { hasAccount: false, url: '', followers: '', engagementRate: '' },
@@ -54,7 +54,7 @@ const ProfilePage = ({ config }) => {
     location: typeof src.location === 'string'
       ? { city: src.location, country: '' }
       : { city: src?.location?.city || '', country: src?.location?.country || '' },
-    niche: src.niche || src.category || '',
+    niche: Array.isArray(src.niche) ? src.niche : (src.niche ? [src.niche] : []),
     category: src.category || '',
     experience: src.experience || '',
     subcategories: src.subcategories || [],
@@ -150,7 +150,7 @@ const ProfilePage = ({ config }) => {
         budgetMax: formData.budgetMax,
         socialLinks: formData.socialLinks,
         platforms: formData.platforms,
-        niche: formData.niche,
+        niche: Array.isArray(formData.niche) ? formData.niche : (formData.niche ? [formData.niche] : []),
         category: formData.category,
         pricing: formData.pricing,
         profileImage: formData.profileImage,
@@ -175,6 +175,10 @@ const ProfilePage = ({ config }) => {
       if (response.ok) {
         const result = await response.json();
         const updatedUser = result.data || { ...user, ...payload };
+        // Ensure niche is always array after save
+        if (updatedUser.niche && !Array.isArray(updatedUser.niche)) {
+          updatedUser.niche = [updatedUser.niche];
+        }
         updateUser(updatedUser);
         setSaveMessage('Profile updated successfully!');
       } else {
@@ -240,7 +244,14 @@ const ProfilePage = ({ config }) => {
     ? formData.location 
     : [locCity, locCountry].filter(Boolean).join(', ') || 'Global';
 
-  const nicheOrCategory = formData.niche || formData.category;
+  const normalizeNiches = (niche) => {
+    if (!niche) return [];
+    return Array.isArray(niche) ? niche : (typeof niche === 'string' ? [niche] : []);
+  };
+
+  const normalizedNiches = normalizeNiches(formData.niche);
+  const displayNiches = normalizedNiches.length > 0 ? normalizedNiches : (formData.category ? [formData.category] : []);
+  const nicheOrCategory = displayNiches.length > 0 ? displayNiches.join(', ') : formData.category;
   const displayRole = (formData.role === 'artist' || formData.role === 'influencer') ? 'Influencer' : 'User';
 
   const userData = {
@@ -276,7 +287,7 @@ const ProfilePage = ({ config }) => {
     // pricing UI removed; keep raw pricing in formData for backend compatibility
     professional: {
       experience: formData.experience ? `${formData.experience} Years` : '0 Years',
-      primaryNiche: nicheOrCategory || 'General',
+      primaryNiche: displayNiches.length > 0 ? (displayNiches.length === 1 ? displayNiches[0] : displayNiches.join(', ')) : (formData.category || 'General'),
       location: formattedLocation || 'Global'
     },
     // Budget fields
@@ -314,7 +325,7 @@ const ProfilePage = ({ config }) => {
       {/* Hero Section with Profile Header */}
       <div className="w-full mb-12">
         {/* Banner */}
-        <div className="h-40 md:h-56 overflow-hidden relative bg-gradient-to-br from-brand-700 via-indigo-200 to-purple-700 -mt-20 pt-200">
+        <div className="h-40 md:h-56 overflow-hidden relative bg-gradient-to-br to-white font-sans to-white font-sans to-white font-sans -mt-20 pt-200">
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
@@ -324,7 +335,7 @@ const ProfilePage = ({ config }) => {
             alt="Profile Cover"
             className="w-full h-full object-cover mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/1 via-black/0 to-transparent"></div>
         </div>
 
         {/* Profile Info Section */}
@@ -536,22 +547,22 @@ const ProfilePage = ({ config }) => {
             </div>
           </div>
 
-          {formData.portfolio && formData.portfolio.length > 0 ? (
+          {/* Portfolio Images Only */}
+          {formData.portfolio && formData.portfolio.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {formData.portfolio.map((item, idx) => (
-                <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1" style={{ borderColor: accent }}>
-                  {typeof item === 'string' && (item.startsWith('http') || item.startsWith('/')) ? (
-                    <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  ) : typeof item === 'object' && item?.url ? (
-                    <img src={item.url} alt={item.title || `Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-500 p-4 text-sm text-center font-medium capitalize">{item || 'Portfolio item'}</div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <p className="text-white text-[11px] font-bold tracking-wide uppercase">Project {idx + 1}</p>
-                  </div>
-                </div>
-              ))}
+              {formData.portfolio
+                .map((item, idx) => {
+                  const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
+                  if (!isImage) return null;
+                  return (
+                    <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1" style={{ borderColor: accent }}>
+                      <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                        <p className="text-white text-[11px] font-bold tracking-wide uppercase">Project {idx + 1}</p>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           ) : (
             <div className="py-20 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
@@ -565,6 +576,25 @@ const ProfilePage = ({ config }) => {
               >
                 Upload First Work
               </button>
+            </div>
+          )}
+
+          {/* Other Links Section (Non-image links) */}
+          {formData.portfolio && formData.portfolio.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
+            <div className="mt-10">
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-4">Other Links</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                {formData.portfolio
+                  .map((item, idx) => {
+                    const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
+                    if (isImage) return null;
+                    return (
+                      <li key={idx}>
+                        <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
           )}
         </div>

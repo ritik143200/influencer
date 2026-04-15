@@ -440,7 +440,6 @@ const assignInquiryToArtist = async (req, res) => {
 
         // Save inquiry
         await inquiry.save();
-        console.log('Inquiry saved successfully');
 
         // Populate and return
         const populated = await Inquiry.findById(id)
@@ -449,7 +448,6 @@ const assignInquiryToArtist = async (req, res) => {
             .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
             .populate('workflowHistory.updatedBy', 'name email');
 
-        console.log('Inquiry populated and returning response');
         res.status(200).json({ success: true, data: populated });
     } catch (error) {
         console.error('Error assigning inquiry to artist:', error.message);

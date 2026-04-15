@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Influencer Registration Page Component
@@ -8,12 +9,14 @@ import { useRouter } from '../contexts/RouterContext';
  */
 const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const { navigate } = useRouter();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
 
   const [formData, setFormData] = useState({
+    fullName: '',
     email: '',
     phone: '',
     password: '',
@@ -30,6 +33,47 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+  // Helper: Reverse geocode lat/lon to city, country using OpenStreetMap Nominatim
+  const reverseGeocode = async (lat, lon) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+      const data = await response.json();
+      // Try to get city and country
+      const city = data.address.city || data.address.town || data.address.village || data.address.hamlet || '';
+      const country = data.address.country || '';
+      return [city, country].filter(Boolean).join(', ');
+    } catch (e) {
+      return '';
+    }
+  };
+
+  // Handler: Fetch user location
+  const handleFetchLocation = async () => {
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser.');
+      return;
+    }
+    setFetchingLocation(true);
+    setError('');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const locString = await reverseGeocode(latitude, longitude);
+        if (locString) {
+          handleInputChange('location', locString);
+        } else {
+          handleInputChange('location', `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        }
+        setFetchingLocation(false);
+      },
+      (err) => {
+        setError('Unable to fetch location.');
+        setFetchingLocation(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const influencerCategories = [
     { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
@@ -83,6 +127,12 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const validateForm = () => {
     setError('');
     
+    // Name validation
+    if (!formData.fullName) {
+      setError('Please enter your full name');
+      return false;
+    }
+    
     // Common validations for both artists and influencers
     if (!formData.email || !formData.phone || !formData.password) {
       setError('Please fill all required fields');
@@ -133,6 +183,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
     try {
       const payload = {
+        fullName: formData.fullName,
         email: formData.email,
         phone: formatPhoneNumber(formData.phone),
         password: formData.password,
@@ -160,9 +211,28 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
       if (data.success) {
         setSuccess('Registration successful! Your application is under review.');
+        
+        // Auto-login the user
+        const userData = {
+          email: formData.email,
+          fullName: formData.fullName,
+          phone: formData.phone,
+          role: 'influencer',
+          verificationStatus: 'pending'
+        };
+        login(userData);
+        
+        // Store token if available
+        if (data.token) {
+          localStorage.setItem('userToken', data.token);
+        }
+        
+        // Store user data
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
         setTimeout(() => {
-          navigate('home');
-        }, 3000);
+          navigate('influencer-dashboard');
+        }, 2000);
       } else {
         setError(data.message || 'Registration failed');
       }
@@ -259,6 +329,26 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
               {/* Form Fields */}
               <div className="space-y-6">
+                {/* Full Name Field */}
+                <div className="space-y-2">
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 ml-1">Full Name</label>
+                  <div className="relative group">
+                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </span>
+                    <input
+                      id="fullName"
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={(e) => handleInputChange('fullName', e.target.value)}
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {/* Email */}
                   <div className="space-y-2">
@@ -348,8 +438,23 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
                         placeholder="Indore, India"
                         value={formData.location}
                         onChange={(e) => handleInputChange('location', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
+                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
+                        autoComplete="off"
                       />
+                      <button
+                        type="button"
+                        title="Detect my location"
+                        onClick={handleFetchLocation}
+                        disabled={fetchingLocation}
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50"
+                        style={{ outline: 'none', border: 'none', background: 'none', cursor: fetchingLocation ? 'not-allowed' : 'pointer' }}
+                      >
+                        {fetchingLocation ? (
+                          <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="4" className="opacity-25" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                        ) : (
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 19.07l-.71-.71M21 12h-1M4 12H3m16.66-4.66l-.71-.71M4.05 4.93l-.71.71" /><circle cx="12" cy="12" r="5" strokeWidth="2" /></svg>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>

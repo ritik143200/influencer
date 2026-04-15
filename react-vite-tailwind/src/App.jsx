@@ -21,8 +21,11 @@ import InquiryPage from './pages/InquiryPage';
 import UserDashboard from './pages/UserDashboard';
 import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import TermsAndCondition from './pages/TermsAndCondition';
+import PrivacyPolicy from './pages/privetPolice';
 import AuthCallback from './pages/AuthCallback';
 import { defaultConfig } from './data/mockData';
+
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -81,6 +84,8 @@ const AppContent = ({ config }) => {
       {currentPath === 'services' && <ServicesPage config={config} />}
       {currentPath === 'services-influencers' && <ServicesInfluencersPage config={config} />}
       {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
+      {currentPath === 'terms-and-condition' && <TermsAndCondition config={config} />}
+      {currentPath === 'privet-policy' && <PrivacyPolicy config={config} />}
       {currentPath === 'profile' && (
         <ProtectedRoute>
           <ProfilePage config={config} />

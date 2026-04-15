@@ -598,31 +598,50 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
             </div>
           </div>
 
-          {formData.portfolio?.length > 0 && (
+          {/* Portfolio Images Only */}
+          {formData.portfolio?.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {formData.portfolio.map((item, idx) => {
-                const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)/i));
-                return (
-                  <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                    {isImage ? (
+              {formData.portfolio
+                .map((item, idx) => {
+                  const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
+                  if (!isImage) return null;
+                  return (
+                    <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
                       <img src={item} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
-                        <ImageIcon className="w-6 h-6 text-gray-300 mb-1" />
-                        <p className="text-[10px] text-gray-500 font-medium truncate w-full px-1">{item}</p>
-                      </div>
-                    )}
-                    
-                    <button 
-                      type="button" 
-                      onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
-                      className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                );
-              })}
+                      <button 
+                        type="button" 
+                        onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+
+          {/* Other Links Section (Non-image links) */}
+          {formData.portfolio?.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-md font-bold text-gray-800 mb-2">Other Links</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                {formData.portfolio
+                  .map((item, idx) => {
+                    const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
+                    if (isImage) return null;
+                    return (
+                      <li key={idx}>
+                        <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
+                        <button 
+                          type="button" 
+                          onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
+                          className="ml-2 text-xs text-red-500 hover:underline"
+                        >Remove</button>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
           )}
         </div>

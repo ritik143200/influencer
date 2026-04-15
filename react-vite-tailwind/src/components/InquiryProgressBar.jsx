@@ -67,12 +67,12 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
       <div className="mb-4">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium text-gray-700">Progress</span>
-          <span className="text-sm font-medium text-gray-700">{progressPercentage}%</span>
+          <span className="text-sm font-medium text-gray-700">{progressPercentage || 10}%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2.5">
           <div
             className={`${getStatusColor(status)} h-2.5 rounded-full transition-all duration-300 ease-in-out`}
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${progressPercentage || 10}%` }}
           ></div>
         </div>
       </div>
