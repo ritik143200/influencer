@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
@@ -9,9 +9,82 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
   const [availabilityDate, setAvailabilityDate] = useState('');
   const [availableIds, setAvailableIds] = useState(null);
   const [loadingAvailable, setLoadingAvailable] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(9); // 3x3 grid layout
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchTerm, sortBy, availabilityDate, availableIds]);
 
   // Shared helpers
   const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+
+  // Pagination helper function
+  const getPaginationNumbers = () => {
+    const pages = [];
+    
+    // Show max 5 page numbers
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+    
+    // Add first page if not visible
+    if (startPage > 1) {
+      pages.push(
+        <button
+          key={1}
+          onClick={() => setCurrentPage(1)}
+          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+      }
+    }
+    
+    // Add page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          onClick={() => setCurrentPage(i)}
+          className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
+            i === currentPage
+              ? 'bg-orange-600 text-white border-orange-600'
+              : 'border-gray-300 hover:bg-gray-50'
+          }`}
+        >
+          {i}
+        </button>
+      );
+    }
+    
+    // Add last page if not visible
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+      }
+      pages.push(
+        <button
+          key={totalPages}
+          onClick={() => setCurrentPage(totalPages)}
+          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          {totalPages}
+        </button>
+      );
+    }
+    
+    return pages;
+  };
 
   // Safely render location (handles both string and object formats)
   const renderLocation = (loc) => {
@@ -48,6 +121,12 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       }
       return 0;
     });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredInfluencers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInfluencers = filteredInfluencers.slice(startIndex, endIndex);
 
   const fetchAvailableInfluencers = async () => {
     if (!availabilityDate) {
@@ -501,19 +580,41 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         </div>
       )}
 
+      {/* Pagination Info Bar */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-gray-600">
+            Showing {Math.min(startIndex + 1, filteredInfluencers.length)} to {Math.min(endIndex, filteredInfluencers.length)} of {filteredInfluencers.length} influencers
+          </div>
+          
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Previous
+            </button>
+            
+            {getPaginationNumbers()}
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredInfluencers.map((influencer) => {
+        {paginatedInfluencers.map((influencer) => {
           const verificationBadge = getVerificationBadge(influencer.verificationStatus);
           
-          // Helper to safely render location (handles both string and object formats)
-          const renderLocation = (loc) => {
-            if (!loc) return 'Not specified';
-            if (typeof loc === 'string') return loc;
-            const { city = '', country = '' } = loc;
-            const formatted = [city, country].filter(Boolean).join(', ');
-            return formatted || 'Not specified';
-          };
-          
+                    
           const isAvailable = availableIds && availableIds.has(String(influencer._id || influencer.id));
           const isUnavailable = availableIds && !isAvailable;
           
@@ -711,6 +812,13 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
           );
         })}
       </div>
+
+      {/* Empty State */}
+      {paginatedInfluencers.length === 0 && filteredInfluencers.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+          <div className="text-gray-400">No influencers found on this page.</div>
+        </div>
+      )}
 
       {filteredInfluencers.length === 0 && (
         <div className={`relative overflow-hidden rounded-2xl p-8 ${availableIds ? 'bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 border-2 border-red-200' : 'bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 border border-gray-200'} shadow-lg`}>

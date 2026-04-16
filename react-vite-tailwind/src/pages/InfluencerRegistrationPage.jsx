@@ -9,7 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
  */
 const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const { navigate } = useRouter();
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -164,12 +164,22 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
    */
   const formatPhoneNumber = (phone) => {
     let cleaned = phone.replace(/\D/g, '');
+    
+    // If phone already starts with +, just clean and return
+    if (phone.startsWith('+')) {
+      return cleaned.startsWith('91') ? cleaned : `+91${cleaned}`;
+    }
+    
+    // If phone is 10 digits (Indian number), add +91
     if (cleaned.length === 10) {
       return `+91${cleaned}`;
     }
+    
+    // Otherwise, add +91
     if (!phone.startsWith('+')) {
-      return `+${cleaned}`;
+      return `+91${cleaned}`;
     }
+    
     return phone;
   };
 
@@ -211,25 +221,44 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
       if (data.success) {
         setSuccess('Registration successful! Your application is under review.');
-        
-        // Auto-login the user
-        const userData = {
-          email: formData.email,
-          fullName: formData.fullName,
-          phone: formData.phone,
-          role: 'influencer',
-          verificationStatus: 'pending'
-        };
+
+        // Map selected category ids to readable names so profile shows proper niches
+        const mappedNiches = (formData.categories || [])
+          .map(id => (influencerCategories.find(c => c.id === id) || {}).name)
+          .filter(Boolean);
+
+        // Build local user object (prefer server-returned user when available)
+        const serverUser = data.data || null;
+        const userData = serverUser
+          ? { ...serverUser, niche: serverUser.niche || mappedNiches, location: serverUser.location || formData.location, socialLinks: serverUser.socialLinks || formData.socialLinks, fullName: serverUser.fullName || formData.fullName, phone: serverUser.phone || formatPhoneNumber(formData.phone) }
+          : {
+              email: formData.email,
+              fullName: formData.fullName,
+              phone: formatPhoneNumber(formData.phone),
+              role: 'influencer',
+              verificationStatus: 'pending',
+              niche: mappedNiches,
+              location: formData.location,
+              socialLinks: formData.socialLinks
+            };
+
+
+        // Update auth context and local cache so profile reads the chosen specialties
+        console.log('Registration: setting logged-in user', userData);
         login(userData);
-        
+        try { updateUser(userData); } catch (e) { /* ignore if not available */ }
+        // Ensure persistent storage uses the same key as AuthContext expects
+        try { localStorage.setItem('loggedInUser', JSON.stringify(userData)); } catch (e) { console.warn('Could not write loggedInUser to localStorage', e); }
+        console.log('Registration: localStorage.loggedInUser set', localStorage.getItem('loggedInUser'));
+
         // Store token if available
         if (data.token) {
           localStorage.setItem('userToken', data.token);
         }
-        
-        // Store user data
+
+        // Also keep a lightweight stored copy for other flows
         localStorage.setItem('userData', JSON.stringify(userData));
-        
+
         setTimeout(() => {
           navigate('influencer-dashboard');
         }, 2000);
@@ -287,15 +316,13 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
             <div className="w-full max-w-md bg-white/40 backdrop-blur-md rounded-[32px] p-8 border border-white/60 shadow-xl space-y-8">
               {[
-                { title: 'Collaborate with Top Brands', subtitle: 'Work with the best businesses in Indore', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /> },
-                { title: 'Monetize Your Content', subtitle: 'Get paid for your creativity and reach', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
-                { title: 'Grow Your Audience', subtitle: 'Tools to expand your social presence', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> }
+                { title: 'Collaborate with Top Brands', subtitle: 'Work with the best businesses in Indore', icon: '🤝' },
+                { title: 'Monetize Your Content', subtitle: 'Get paid for your creativity and reach', icon: '💰' },
+                { title: 'Grow Your Audience', subtitle: 'Tools to expand your social presence', icon: '📈' }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center space-x-4 group cursor-default">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
-                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      {item.icon}
-                    </svg>
+                    <span className="text-2xl">{item.icon}</span>
                   </div>
                   <div className="text-left">
                     <h3 className="text-lg font-medium text-gray-900 leading-none mb-1">{item.title}</h3>

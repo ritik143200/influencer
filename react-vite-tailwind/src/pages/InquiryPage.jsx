@@ -252,7 +252,7 @@ const InquiryPage = ({ config }) => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
                 <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
                   <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />

@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist, influencers = [] }) => {
+const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArtist, influencers = [], assignedInfluencer }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'sent':
@@ -55,7 +55,19 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
   };
 
   const stages = getStages();
-  const currentStageIndex = stages.findIndex(stage => stage.completed.includes(status));
+  
+  // Check if inquiry has been assigned (step 5 completion)
+  const isAssigned = assignedInfluencer && assignedInfluencer.userId;
+  
+  // Custom logic for step 5 completion
+  const checkStageCompletion = (stage, currentStatus) => {
+    if (stage.key === 'completed') {
+      return currentStatus === 'completed' || isAssigned;
+    }
+    return stage.completed.includes(currentStatus);
+  };
+  
+  const currentStageIndex = stages.findIndex(stage => checkStageCompletion(stage, status));
 
 
   const getArtistName = (artist) => artist.fullName || artist.name || artist.artistName || 'Unknown Artist';
@@ -80,7 +92,7 @@ const InquiryProgressBar = ({ status, progressPercentage, forwardedTo, onViewArt
       {/* Status Stages */}
       <div className="flex items-center justify-between mb-4">
         {stages.map((stage, index) => {
-          const isCompleted = stage.completed.includes(status);
+          const isCompleted = checkStageCompletion(stage, status);
           const isCurrent = index === currentStageIndex;
           const isRejected = status.includes('rejected') && isCurrent;
 

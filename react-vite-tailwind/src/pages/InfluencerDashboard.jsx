@@ -27,6 +27,7 @@ const InfluencerDashboard = ({ config }) => {
   const [inquiryFilterStatus, setInquiryFilterStatus] = useState('all');
   const [inquiryFilterCategory, setInquiryFilterCategory] = useState('all');
   const [inquirySearchTerm, setInquirySearchTerm] = useState('');
+  const [respondingInquiry, setRespondingInquiry] = useState(null);
 
   // Fetch inquiries for this influencer (moved outside useEffect)
   const toYmd = (dateLike) => {
@@ -887,7 +888,7 @@ const InfluencerDashboard = ({ config }) => {
 
                 {/* Progress Bar Component */}
                 <div className="mt-2">
-                  <InquiryProgressBar status={status} progressPercentage={progressPercentage} />
+                  <InquiryProgressBar status={status} progressPercentage={progressPercentage} assignedInfluencer={inq.assignedInfluencer} />
                 </div>
 
                 {/* Inquiry Details */}
@@ -912,22 +913,35 @@ const InfluencerDashboard = ({ config }) => {
                   <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => handleInquiryResponse(id, 'accept')}
-                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
+                      disabled={respondingInquiry === id}
+                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Accept Inquiry
+                      {respondingInquiry === id ? 'Accepting...' : 'Accept Inquiry'}
                     </button>
                     <button
                       onClick={() => handleInquiryResponse(id, 'reject')}
-                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+                      disabled={respondingInquiry === id}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Decline Inquiry
+                      {respondingInquiry === id ? 'Declining...' : 'Decline Inquiry'}
                     </button>
                   </div>
                 )}
 
-                {(status === 'artist_accepted' || status === 'artist_rejected') && (
+                {status === 'artist_accepted' && (
+                  <div className="text-center mt-4">
+                    <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg border border-green-200">
+                      <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-semibold">Accepted</span>
+                    </div>
+                  </div>
+                )}
+
+                {status === 'artist_rejected' && (
                   <div className="text-center text-sm text-gray-500 mt-2">
-                    You have already {status.includes('accepted') ? 'accepted' : 'declined'} this inquiry
+                    You have declined this inquiry
                   </div>
                 )}
 
@@ -946,7 +960,41 @@ const InfluencerDashboard = ({ config }) => {
   };
 
   const handleInquiryResponse = async (inquiryId, action) => {
+    // Prevent multiple submissions
+    if (respondingInquiry) {
+      return;
+    }
+
     try {
+      setRespondingInquiry(inquiryId);
+      
+      // Optimistic update - update UI immediately
+      const newStatus = action === 'accept' ? 'artist_accepted' : 'artist_rejected';
+      const newArtistStatus = action === 'accept' ? 'accepted' : 'rejected';
+      
+      setInquiries(prev => prev.map(inq => {
+        if (inq._id === inquiryId || inq.id === inquiryId) {
+          console.log('Optimistic update:', { 
+            oldStatus: inq.status, 
+            newStatus, 
+            action,
+            inquiryId 
+          });
+          return {
+            ...inq,
+            status: newStatus,
+            artistStatus: newArtistStatus,
+            progressPercentage: action === 'accept' ? 70 : inq.progressPercentage,
+            assignedInfluencer: action === 'accept' ? {
+              userId: influencerData._id,
+              assignedBy: influencerData._id,
+              assignedAt: new Date()
+            } : inq.assignedInfluencer
+          };
+        }
+        return inq;
+      }));
+
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/influencer/inquiries/${inquiryId}/respond`, {
         method: 'PATCH',
@@ -959,17 +1007,82 @@ const InfluencerDashboard = ({ config }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setInquiries(prev => prev.map(inq => 
-          (inq._id === inquiryId || inq.id === inquiryId) ? data.data : inq
-        ));
-        alert(`Inquiry ${action}ed successfully!`);
+        console.log('Server response:', data); // Debug log
+        
+        // Update with server response data but preserve optimistic changes
+        setInquiries(prev => prev.map(inq => {
+          if (inq._id === inquiryId || inq.id === inquiryId) {
+            const updatedInquiry = data.data;
+            console.log('Merging server data:', { 
+              serverStatus: updatedInquiry.status,
+              optimisticStatus: newStatus,
+              serverData: updatedInquiry,
+              originalInquiry: inq
+            });
+            
+            // Create merged inquiry with priority to optimistic changes
+            const mergedInquiry = {
+              ...inq,                    // Keep original inquiry data
+              ...updatedInquiry,         // Merge server data
+              // Force status to remain as expected (don't let server override)
+              status: newStatus,
+              artistStatus: newArtistStatus,
+              // Preserve optimistic assignment if it was an accept action
+              assignedInfluencer: action === 'accept' ? {
+                userId: influencerData._id,
+                assignedBy: influencerData._id,
+                assignedAt: new Date()
+              } : (updatedInquiry.assignedInfluencer || inq.assignedInfluencer),
+              // Preserve progress percentage
+              progressPercentage: action === 'accept' ? 70 : (updatedInquiry.progressPercentage || inq.progressPercentage)
+            };
+            
+            console.log('Final merged inquiry:', mergedInquiry);
+            return mergedInquiry;
+          }
+          return inq;
+        }));
+        
+        // Show success message without blocking alert
+        console.log(`Inquiry ${action}ed successfully!`);
+        // Optional: Show a toast notification instead of alert
       } else {
+        // Revert optimistic update on error
+        console.log('Error occurred, reverting optimistic update');
+        setInquiries(prev => prev.map(inq => {
+          if (inq._id === inquiryId || inq.id === inquiryId) {
+            return {
+              ...inq,
+              status: 'forwarded',
+              artistStatus: null,
+              progressPercentage: 60,
+              assignedInfluencer: null
+            };
+          }
+          return inq;
+        }));
         const errData = await response.json();
         alert(errData.message || `Failed to ${action} inquiry`);
       }
     } catch (error) {
       console.error(`Error ${action}ing inquiry:`, error);
+      // Revert optimistic update on error
+      console.log('Network error, reverting optimistic update');
+      setInquiries(prev => prev.map(inq => {
+        if (inq._id === inquiryId || inq.id === inquiryId) {
+          return {
+            ...inq,
+            status: 'forwarded',
+            artistStatus: null,
+            progressPercentage: 60,
+            assignedInfluencer: null
+          };
+        }
+        return inq;
+      }));
       alert('Network error occurred while updating inquiry.');
+    } finally {
+      setRespondingInquiry(null);
     }
   };
 

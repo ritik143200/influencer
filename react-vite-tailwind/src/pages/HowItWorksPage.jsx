@@ -9,35 +9,35 @@ const HowItWorksPage = ({ config }) => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
             How It Works
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
             connect brands with  influencers and creators
           </p>
         </div>
 
         {/* Interactive Timeline Design */}
         <div className="relative mb-20">
-          {/* Main Timeline Line */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-brand-500 to-purple-500 rounded-full"></div>
+          {/* Main Timeline Line - Hidden on mobile */}
+          <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-brand-500 to-purple-500 rounded-full"></div>
           
           {/* Step 1 - Left Side */}
-          <div className="relative flex items-center mb-16">
-            <div className="w-1/2 pr-8 text-right">
-              <div className="inline-block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md">
-                <div className="flex items-center justify-end mb-4">
-                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mr-3">
+          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
+            <div className="w-full sm:w-1/2 pr-0 sm:pr-8 text-center sm:text-right mb-6 sm:mb-0">
+              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
+                <div className="flex sm:items-center justify-center sm:justify-end mb-4">
+                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center sm:mr-3">
                     <span className="text-2xl">👤</span>
                   </div>
-                  <h3 className="text-xl font-bold" style={{ color: config.text_color }}>
+                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-right" style={{ color: config.text_color }}>
                     Create Account
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
                   Sign up in seconds with your email or social account. Choose whether you are a brand or influencer to get started.
                 </p>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-center sm:justify-end space-x-2">
                   <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
                     Quick Registration
                   </span>
@@ -49,36 +49,44 @@ const HowItWorksPage = ({ config }) => {
             </div>
             
             {/* Center Circle */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-16 h-16 bg-brand-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
+            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
+              1
+            </div>
+            {/* Mobile Circle */}
+            <div className="flex sm:hidden w-12 h-12 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
               1
             </div>
             
-            <div className="w-1/2 pl-8"></div>
+            <div className="w-1/2 pl-0 sm:pl-8"></div>
           </div>
 
           {/* Step 2 - Right Side */}
-          <div className="relative flex items-center mb-16">
-            <div className="w-1/2 pr-8"></div>
+          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
+            <div className="w-1/2 pr-0 sm:pr-8 mb-6 sm:mb-0"></div>
             
             {/* Center Circle */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
+            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-purple-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
+              2
+            </div>
+            {/* Mobile Circle */}
+            <div className="flex sm:hidden w-12 h-12 bg-purple-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
               2
             </div>
             
-            <div className="w-1/2 pl-8">
-              <div className="inline-block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mr-3">
+            <div className="w-full sm:w-1/2 pl-0 sm:pl-8">
+              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
+                <div className="flex items-center justify-center sm:justify-start mb-4">
+                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center sm:mr-3">
                     <span className="text-2xl">📝</span>
                   </div>
-                  <h3 className="text-xl font-bold" style={{ color: config.text_color }}>
+                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-left" style={{ color: config.text_color }}>
                     Complete Profile
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
                   Build your comprehensive profile with photos, skills, and preferences. The more complete your profile, the better your matches.
                 </p>
-                <div className="flex space-x-2">
+                <div className="flex justify-center sm:justify-start space-x-2">
                   <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
                     Portfolio
                   </span>
@@ -94,21 +102,21 @@ const HowItWorksPage = ({ config }) => {
           </div>
 
           {/* Step 3 - Left Side */}
-          <div className="relative flex items-center mb-16">
-            <div className="w-1/2 pr-8 text-right">
-              <div className="inline-block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md">
-                <div className="flex items-center justify-end mb-4">
-                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mr-3">
+          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
+            <div className="w-full sm:w-1/2 pr-0 sm:pr-8 text-center sm:text-right mb-6 sm:mb-0">
+              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
+                <div className="flex sm:items-center justify-center sm:justify-end mb-4">
+                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center sm:mr-3">
                     <span className="text-2xl">🔍</span>
                   </div>
-                  <h3 className="text-xl font-bold" style={{ color: config.text_color }}>
+                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-right" style={{ color: config.text_color }}>
                     Connect & Collaborate
                   </h3>
                 </div>
                 <p className="text-gray-600 mb-4">
                   Search for talent or opportunities, connect directly, and start collaborating. Manage everything through your dashboard.
                 </p>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-center sm:justify-end space-x-2">
                   <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
                     Search
                   </span>
@@ -123,11 +131,15 @@ const HowItWorksPage = ({ config }) => {
             </div>
             
             {/* Center Circle */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-16 h-16 bg-brand-500 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
+            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
+              3
+            </div>
+            {/* Mobile Circle */}
+            <div className="flex sm:hidden w-12 h-12 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
               3
             </div>
             
-            <div className="w-1/2 pl-8"></div>
+            <div className="w-1/2 pl-0 sm:pl-8"></div>
           </div>
         </div>
 
@@ -137,7 +149,7 @@ const HowItWorksPage = ({ config }) => {
             Choose Your Path
           </h2>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {/* Influencers Path */}
             <div className="relative">
               <div className="text-center mb-8">
@@ -152,20 +164,20 @@ const HowItWorksPage = ({ config }) => {
               
               {/* Hexagon Flow */}
               <div className="relative flex justify-center items-center">
-                <div className="flex flex-wrap justify-center gap-4 max-w-md">
-                  <div className="w-24 h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">📝</span>
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-md">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
+                    <span className="text-xl sm:text-2xl mb-1">📝</span>
                     <span className="text-xs font-medium text-center">Register</span>
                   </div>
-                  <div className="w-24 h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">🎨</span>
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
+                    <span className="text-xl sm:text-2xl mb-1">🎨</span>
                     <span className="text-xs font-medium text-center">Showcase</span>
                   </div>
-                  <div className="w-24 h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">📅</span>
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
+                    <span className="text-xl sm:text-2xl mb-1">📅</span>
                     <span className="text-xs font-medium text-center">Get Booked</span>
                   </div>
-                  <div className="w-24 h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
                     <span className="text-2xl mb-1">💰</span>
                     <span className="text-xs font-medium text-center">Earn</span>
                   </div>

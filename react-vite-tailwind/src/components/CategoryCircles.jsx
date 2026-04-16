@@ -115,14 +115,14 @@ const CategoryCircles = ({ config }) => {
           }}
         >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <div>
+            <div className="text-center lg:text-left">
               <p
                 className="text-xs font-semibold uppercase tracking-[0.2em]"
                 style={{ color: config.secondary_action }}
               >
                 Influencer Platform
               </p>
-              <h3 className="text-xl lg:text-2xl font-bold mt-2" style={{ color: config.text_color }}>
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mt-2" style={{ color: config.text_color }}>
                 Connect with talented Influencers
               </h3>
               <p className="text-sm lg:text-base mt-2" style={{ color: config.secondary_action }}>
@@ -130,9 +130,9 @@ const CategoryCircles = ({ config }) => {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center lg:justify-end">
               <span
-                className="px-4 py-2 rounded-full text-sm font-semibold border"
+                className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold border"
                 style={{
                   backgroundColor: config.surface_color,
                   color: config.text_color,
@@ -143,7 +143,7 @@ const CategoryCircles = ({ config }) => {
                 30+ Categories
               </span>
               <span
-                className="px-4 py-2 rounded-full text-sm font-semibold border"
+                className="px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-semibold border"
                 style={{
                   backgroundColor: config.surface_color,
                   color: config.text_color,
@@ -155,26 +155,26 @@ const CategoryCircles = ({ config }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {quickHighlights.map((item) => (
               <div
                 key={item.id}
-                className="rounded-2xl p-5 transition-transform duration-300 hover:-translate-y-1"
+                className="rounded-2xl p-4 sm:p-5 transition-transform duration-300 hover:-translate-y-1"
                 style={{
                   backgroundColor: config.surface_color,
                   border: `1px solid ${config.secondary_action}22`
                 }}
               >
                 <div
-                  className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl mb-3"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center text-xl sm:text-2xl mb-3"
                   style={{ backgroundColor: `${config.primary_action}14` }}
                 >
                   {item.icon}
                 </div>
-                <h4 className="font-semibold text-base mb-2" style={{ color: config.text_color }}>
+                <h4 className="font-semibold text-sm sm:text-base mb-2" style={{ color: config.text_color }}>
                   {item.title}
                 </h4>
-                <p className="text-sm leading-relaxed" style={{ color: config.secondary_action }}>
+                <p className="text-xs sm:text-sm leading-relaxed" style={{ color: config.secondary_action }}>
                   {item.description}
                 </p>
               </div>

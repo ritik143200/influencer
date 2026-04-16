@@ -17,14 +17,14 @@ const TrendingInfluencers = ({ config }) => {
   return (
     <section className="py-12 lg:py-16" style={{ backgroundColor: config.surface_color }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl lg:text-3xl font-bold mb-2" style={{ color: config.text_color }}>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+          <div className="text-center sm:text-left">
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2" style={{ color: config.text_color }}>
               Featured Profiles
             </h2>
-            <p className="text-gray-600">Discover talented influencers on our platform</p>
+            <p className="text-sm sm:text-base text-gray-600">Discover talented influencers on our platform</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 justify-center sm:justify-end">
             <button
               onClick={() => scroll('left')}
               className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
@@ -48,14 +48,14 @@ const TrendingInfluencers = ({ config }) => {
           ref={scrollRef}
           className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
         >
-          <div className="w-full text-center py-16 px-8 rounded-2xl border" style={{
+          <div className="w-full text-center py-12 sm:py-16 px-6 sm:px-8 rounded-2xl border" style={{
             backgroundColor: `${config.primary_action}08`,
             borderColor: `${config.primary_action}20`
           }}>
-            <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${config.primary_action}15` }}>
-              <span className="text-3xl opacity-50">🌟</span>
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full flex items-center justify-center" style={{ backgroundColor: `${config.primary_action}15` }}>
+              <span className="text-2xl sm:text-3xl opacity-50">??</span>
             </div>
-            <h3 className="text-xl font-semibold mb-3" style={{ color: config.text_color }}>
+            <h3 className="text-lg sm:text-xl font-semibold mb-3" style={{ color: config.text_color }}>
               Featured Influencers Coming Soon
             </h3>
             <p className="text-sm mb-6 max-w-md mx-auto" style={{ color: config.secondary_action }}>

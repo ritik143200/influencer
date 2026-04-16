@@ -51,23 +51,47 @@ const AdminDashboard = ({ config }) => {
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardInquiryId, setForwardInquiryId] = useState(null);
   const [forwardRecipients, setForwardRecipients] = useState(new Set());
+  const [isFilteringInfluencers, setIsFilteringInfluencers] = useState(false);
 
+  // Pagination state for inquiries
+  const [inquiryCurrentPage, setInquiryCurrentPage] = useState(1);
+  const [inquiryItemsPerPage] = useState(10);
+
+  // Pagination state for users
+  const [userCurrentPage, setUserCurrentPage] = useState(1);
+  const [userItemsPerPage] = useState(10);
+
+  // Pagination state for contacts
+  const [contactCurrentPage, setContactCurrentPage] = useState(1);
+  const [contactItemsPerPage] = useState(10);
+
+  // Analytics state
   const [analytics, setAnalytics] = useState({
     totalRevenue: 245678,
     thisMonthRevenue: 45678,
     lastMonthRevenue: 38956,
-    totalUsers: users.length,
-    totalInfluencers: influencers.length,
-    totalInquiries: inquiries.length,
-    pendingInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length,
-    processedInquiries: inquiries.filter(i => (i.status || '').toLowerCase() !== 'pending').length,
-    completedInquiries: inquiries.filter(i => (i.status || '').toLowerCase() === 'completed').length,
-    topInquirer: null,
-    activeUsers: Math.floor(users.length * 0.8),
-    conversionRate: 12.5
+    totalUsers: 0,
+    totalInfluencers: 0,
+    totalInquiries: 0,
+    pendingInquiries: 0,
+    processedInquiries: 0,
+    completedInquiries: 0,
   });
 
+  // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (showForwardModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showForwardModal]);
 
   // Filter states for Users
   const [filterRole, setFilterRole] = useState('all');
@@ -78,6 +102,52 @@ const AdminDashboard = ({ config }) => {
   const [filterStatusInquiry, setFilterStatusInquiry] = useState('all');
   const [filterDate, setFilterDate] = useState('');
   const [searchTermInquiry, setSearchTermInquiry] = useState('');
+
+  // Forward modal filters (search by category, budget, location)
+  const [forwardSearchCategory, setForwardSearchCategory] = useState('');
+  const [forwardFilterBudgetMin, setForwardFilterBudgetMin] = useState('');
+  const [forwardFilterBudgetMax, setForwardFilterBudgetMax] = useState('');
+  const [forwardFilterLocation, setForwardFilterLocation] = useState('');
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setInquiryCurrentPage(1);
+  }, [filterStatusInquiry, filterDate, searchTermInquiry]);
+
+  // Reset pagination when user filters change
+  useEffect(() => {
+    setUserCurrentPage(1);
+  }, [filterRole, filterStatus, searchTerm]);
+
+  // Reset pagination when contact filters change (if any)
+  useEffect(() => {
+    setContactCurrentPage(1);
+  }, []); // Add contact filter dependencies when available
+
+  // Derived filtered influencers for forward modal
+  const filteredInfluencersForForward = (Array.isArray(influencers) ? influencers : []).filter(i => {
+    // Category check
+    const cats = (i.categories || (i.category ? [i.category] : [])).map(c => String(c).toLowerCase());
+    const catQuery = (forwardSearchCategory || '').trim().toLowerCase();
+    const matchesCategory = !catQuery || cats.some(c => c.includes(catQuery));
+
+    // Location check
+    const locStr = (typeof i.location === 'string') ? i.location : ((i.location && (i.location.city || i.location.country)) ? `${i.location.city || ''} ${i.location.country || ''}` : '');
+    const locQuery = (forwardFilterLocation || '').trim().toLowerCase();
+    const matchesLocation = !locQuery || String(locStr).toLowerCase().includes(locQuery);
+
+    // Budget check (tolerant - accept if influencer has any budget-like field overlapping requested range)
+    let matchesBudget = true;
+    if (forwardFilterBudgetMin || forwardFilterBudgetMax) {
+      const min = forwardFilterBudgetMin ? Number(forwardFilterBudgetMin) : Number.NEGATIVE_INFINITY;
+      const max = forwardFilterBudgetMax ? Number(forwardFilterBudgetMax) : Number.POSITIVE_INFINITY;
+      const infMin = Number(i.budgetMin || i.minBudget || i.expectedBudget || i.budget || 0) || 0;
+      const infMax = Number(i.budgetMax || i.maxBudget || i.expectedBudget || i.budget || infMin) || infMin;
+      matchesBudget = (infMax >= min && infMin <= max);
+    }
+
+    return matchesCategory && matchesLocation && matchesBudget;
+  });
 
   // Filter states for Inquiries
   // Check admin role
@@ -583,6 +653,9 @@ const AdminDashboard = ({ config }) => {
 
     }
 
+    // Set loading state
+    setIsFilteringInfluencers(true);
+
     try {
 
       const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${forwardInquiryId}/forward`, {
@@ -624,6 +697,10 @@ const AdminDashboard = ({ config }) => {
       console.error('Error forwarding inquiry:', err);
 
       alert('Network error while forwarding inquiry');
+
+    } finally {
+
+      setIsFilteringInfluencers(false);
 
     }
 
@@ -990,11 +1067,7 @@ const AdminDashboard = ({ config }) => {
 
               <div className={`w-14 h-14 bg-gradient-to-br ${getCategoryColors(0)} rounded-2xl flex items-center justify-center shadow-lg`}>
 
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-
-                </svg>
+                <span className="text-2xl">👤</span>
 
               </div>
 
@@ -1044,11 +1117,7 @@ const AdminDashboard = ({ config }) => {
 
               <div className={`w-14 h-14 bg-gradient-to-br ${getCategoryColors(1)} rounded-2xl flex items-center justify-center shadow-lg`}>
 
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-
-                </svg>
+                <span className="text-2xl">👥</span>
 
               </div>
 
@@ -1310,71 +1379,26 @@ const AdminDashboard = ({ config }) => {
         <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
           style={{ backgroundColor: getThemeColor('surface') }}>
           <div className={`bg-gradient-to-r ${getCategoryColors(4)} p-6`}>
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Recent Activity
-            </h3>
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Recent Activity
+              </h3>
+              <div className="text-white/90 text-sm font-medium">
+                Live Updates
+              </div>
+            </div>
           </div>
-          <div className="p-6">
+          <div className="p-6 max-h-96 overflow-y-auto">
             <RecentActivity API_BASE_URL={API_BASE_URL} getThemeColor={getThemeColor} />
           </div>
         </div>
 
 
 
-        <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-
-          style={{ backgroundColor: getThemeColor('surface') }}>
-
-          <div className={`bg-gradient-to-r ${getCategoryColors(5)} p-6`}>
-
-            <h3 className="text-xl font-bold text-white flex items-center gap-2">
-
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-
-              </svg>
-
-              Quick Stats
-
-            </h3>
-
-          </div>
-
-          <div className="p-6 space-y-4">
-
-            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-xl">
-
-              <span className="font-medium text-blue-800">Conversion Rate</span>
-
-              <span className="text-2xl font-bold text-blue-600">{analytics.conversionRate}%</span>
-
-            </div>
-
-            <div className="flex justify-between items-center p-4 bg-green-50 rounded-xl">
-
-              <span className="font-medium text-green-800">Total Influencers</span>
-
-              <span className="text-2xl font-bold text-green-600">{analytics.totalInfluencers}</span>
-
-            </div>
-
-            <div className="flex justify-between items-center p-4 bg-orange-50 rounded-xl">
-
-              <span className="font-medium text-orange-800">Avg. Booking Value</span>
-
-              <span className="text-2xl font-bold text-orange-600">₹2,500</span>
-
-            </div>
-
-          </div>
-
         </div>
-
-      </div>
 
     </div>
 
@@ -1464,11 +1488,111 @@ const AdminDashboard = ({ config }) => {
         {/* Full Page Content */}
         <div className="w-full p-6">
           <div className="max-w-7xl mx-auto space-y-4">
+            {/* Pagination Info */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+                <div className="text-sm text-gray-600">
+                  Showing {Math.min((userCurrentPage - 1) * userItemsPerPage + 1, filteredUsers.length)} to {Math.min(userCurrentPage * userItemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
+                </div>
+                
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setUserCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={userCurrentPage === 1}
+                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  {(() => {
+                    const totalPages = Math.ceil(filteredUsers.length / userItemsPerPage);
+                    const currentPage = userCurrentPage;
+                    const pages = [];
+                    
+                    // Show max 5 page numbers
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, startPage + 4);
+                    
+                    if (endPage - startPage < 4) {
+                      startPage = Math.max(1, endPage - 4);
+                    }
+                    
+                    // Add first page if not visible
+                    if (startPage > 1) {
+                      pages.push(
+                        <button
+                          key={1}
+                          onClick={() => setUserCurrentPage(1)}
+                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          1
+                        </button>
+                      );
+                      if (startPage > 2) {
+                        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+                      }
+                    }
+                    
+                    // Add page numbers
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setUserCurrentPage(i)}
+                          className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
+                            i === currentPage
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    
+                    // Add last page if not visible
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+                      }
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => setUserCurrentPage(totalPages)}
+                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+                    
+                    return pages;
+                  })()}
+                  
+                  <button
+                    onClick={() => setUserCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredUsers.length / userItemsPerPage)))}
+                    disabled={userCurrentPage === Math.ceil(filteredUsers.length / userItemsPerPage)}
+                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {filteredUsers.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
                 <div className="text-gray-400">No users found matching your filters.</div>
               </div>
-            ) : filteredUsers.map((user) => (
+            ) : (
+              // Get paginated users
+              (() => {
+                const startIndex = (userCurrentPage - 1) * userItemsPerPage;
+                const endIndex = startIndex + userItemsPerPage;
+                const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+                
+                return paginatedUsers.map((user) => (
               <div key={user._id || user.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
                 {/* User Header Row */}
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
@@ -1532,7 +1656,9 @@ const AdminDashboard = ({ config }) => {
                   </button>
                 </div>
               </div>
-            ))}
+            ));
+              })()
+            )}
           </div>
         </div>
       </div>
@@ -1628,11 +1754,111 @@ const AdminDashboard = ({ config }) => {
         {/* Full Page Content */}
         <div className="w-full p-6">
           <div className="max-w-7xl mx-auto space-y-4">
+            {/* Pagination Info */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+                <div className="text-sm text-gray-600">
+                  Showing {Math.min((inquiryCurrentPage - 1) * inquiryItemsPerPage + 1, filteredInquiries.length)} to {Math.min(inquiryCurrentPage * inquiryItemsPerPage, filteredInquiries.length)} of {filteredInquiries.length} inquiries
+                </div>
+                
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setInquiryCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={inquiryCurrentPage === 1}
+                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Previous
+                  </button>
+                  
+                  {(() => {
+                    const totalPages = Math.ceil(filteredInquiries.length / inquiryItemsPerPage);
+                    const currentPage = inquiryCurrentPage;
+                    const pages = [];
+                    
+                    // Show max 5 page numbers
+                    let startPage = Math.max(1, currentPage - 2);
+                    let endPage = Math.min(totalPages, startPage + 4);
+                    
+                    if (endPage - startPage < 4) {
+                      startPage = Math.max(1, endPage - 4);
+                    }
+                    
+                    // Add first page if not visible
+                    if (startPage > 1) {
+                      pages.push(
+                        <button
+                          key={1}
+                          onClick={() => setInquiryCurrentPage(1)}
+                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          1
+                        </button>
+                      );
+                      if (startPage > 2) {
+                        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+                      }
+                    }
+                    
+                    // Add page numbers
+                    for (let i = startPage; i <= endPage; i++) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setInquiryCurrentPage(i)}
+                          className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
+                            i === currentPage
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    }
+                    
+                    // Add last page if not visible
+                    if (endPage < totalPages) {
+                      if (endPage < totalPages - 1) {
+                        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+                      }
+                      pages.push(
+                        <button
+                          key={totalPages}
+                          onClick={() => setInquiryCurrentPage(totalPages)}
+                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        >
+                          {totalPages}
+                        </button>
+                      );
+                    }
+                    
+                    return pages;
+                  })()}
+                  
+                  <button
+                    onClick={() => setInquiryCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredInquiries.length / inquiryItemsPerPage)))}
+                    disabled={inquiryCurrentPage === Math.ceil(filteredInquiries.length / inquiryItemsPerPage)}
+                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {filteredInquiries.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
                 <div className="text-gray-400">No inquiries found matching your filters.</div>
               </div>
-            ) : filteredInquiries.map((inquiry) => {
+            ) : (
+              // Get paginated inquiries
+              (() => {
+                const startIndex = (inquiryCurrentPage - 1) * inquiryItemsPerPage;
+                const endIndex = startIndex + inquiryItemsPerPage;
+                const paginatedInquiries = filteredInquiries.slice(startIndex, endIndex);
+                
+                return paginatedInquiries.map((inquiry) => {
               const inquiryId = inquiry._id || inquiry.id;
               const status = inquiry.status || 'sent';
 
@@ -1827,81 +2053,184 @@ const AdminDashboard = ({ config }) => {
                   </div>
                 </div>
               );
-            })}
+                });
+              })()
+            )}
           </div>
         </div>
       </div>
     );
   };
-
-  const renderContacts = () => (
-    <div className="w-full">
-      {/* Header */}
-      <div className={`bg-gradient-to-r ${getCategoryColors(7)} p-6 shadow-lg`}>
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-bold text-white">Contact Submissions</h3>
-            <div className="text-white/90 text-sm font-semibold">
-              Total: {contacts.length}
-            </div>
+const renderContacts = () => (
+  <div className="w-full">
+    {/* Header */}
+    <div className={`bg-gradient-to-r ${getCategoryColors(7)} p-6 shadow-lg`}>
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-between items-center">
+          <h3 className="text-2xl font-bold text-white">Contact Submissions</h3>
+          <div className="text-white/90 text-sm font-semibold">
+            Total: {contacts.length}
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Content */}
-      <div className="w-full p-6">
-        <div className="max-w-7xl mx-auto space-y-4">
-          {!contacts || contacts.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <div className="text-gray-400">No contact submissions found.</div>
+    {/* Content */}
+    <div className="w-full p-6">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {/* Pagination Info */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
+            <div className="text-sm text-gray-600">
+              Showing {Math.min((contactCurrentPage - 1) * contactItemsPerPage + 1, contacts.length)} to {Math.min(contactCurrentPage * contactItemsPerPage, contacts.length)} of {contacts.length} contacts
             </div>
-          ) : contacts.map((contact) => (
-            <div key={contact._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                      Submitted
-                    </span>
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      contact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      contact.status === 'read' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {contact.status || 'pending'}
-                    </span>
-                  </div>
+            
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setContactCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={contactCurrentPage === 1}
+                className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Previous
+              </button>
+              
+              {(() => {
+                const totalPages = Math.ceil(contacts.length / contactItemsPerPage);
+                const currentPage = contactCurrentPage;
+                const pages = [];
+                
+                // Show max 5 page numbers
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                
+                if (endPage - startPage < 4) {
+                  startPage = Math.max(1, endPage - 4);
+                }
+                
+                // Add first page if not visible
+                if (startPage > 1) {
+                  pages.push(
+                    <button
+                      key={1}
+                      onClick={() => setContactCurrentPage(1)}
+                      className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      1
+                    </button>
+                  );
+                  if (startPage > 2) {
+                    pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+                  }
+                }
+                
+                // Add page numbers
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setContactCurrentPage(i)}
+                      className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
+                        i === currentPage
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                }
+                
+                // Add last page if not visible
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) {
+                    pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+                  }
+                  pages.push(
+                    <button
+                      key={totalPages}
+                      onClick={() => setContactCurrentPage(totalPages)}
+                      className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      {totalPages}
+                    </button>
+                  );
+                }
+                
+                return pages;
+              })()}
+              
+              <button
+                onClick={() => setContactCurrentPage(prev => Math.min(prev + 1, Math.ceil(contacts.length / contactItemsPerPage)))}
+                disabled={contactCurrentPage === Math.ceil(contacts.length / contactItemsPerPage)}
+                className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
-                      <div className="text-sm text-gray-600">
-                        <div className="font-medium">{contact.name}</div>
-                        <div className="text-xs text-gray-400">{contact.email}</div>
-                        <div className="text-xs text-gray-400">{contact.phone}</div>
-                      </div>
+        {!contacts || contacts.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
+            <div className="text-gray-400">No contact submissions found.</div>
+          </div>
+        ) : (
+          // Get paginated contacts
+          (() => {
+            const startIndex = (contactCurrentPage - 1) * contactItemsPerPage;
+            const endIndex = startIndex + contactItemsPerPage;
+            const paginatedContacts = contacts.slice(startIndex, endIndex);
+            
+            return paginatedContacts.map((contact) => (
+              <div key={contact._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                        Submitted
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        contact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        contact.status === 'read' ? 'bg-blue-100 text-blue-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {contact.status || 'pending'}
+                      </span>
                     </div>
 
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-sm mb-1">Subject</h4>
-                      <div className="text-sm text-gray-600">
-                        <div className="font-medium truncate">{contact.subject}</div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {new Date(contact.createdAt).toLocaleDateString('en-IN')}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium">{contact.name}</div>
+                          <div className="text-xs text-gray-400">{contact.email}</div>
+                          <div className="text-xs text-gray-400">{contact.phone}</div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <h4 className="font-semibold text-gray-900 text-sm mb-1">Message Preview</h4>
-                      <div className="text-sm text-gray-600">
-                        <p className="truncate">{contact.message}</p>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Subject</h4>
+                        <div className="text-sm text-gray-600">
+                          <div className="font-medium truncate">{contact.subject}</div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {new Date(contact.createdAt).toLocaleDateString('en-IN')}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Message Preview</h4>
+                        <div className="text-sm text-gray-600">
+                          <p className="truncate">{contact.message}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => {
                       setSelectedContact(contact);
@@ -1913,67 +2242,56 @@ const AdminDashboard = ({ config }) => {
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ));
+          })()
+        )}
       </div>
+    </div>
 
-      {/* Contact Detail Modal */}
-      {showContactModal && selectedContact && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-gray-900">Contact Details</h2>
-              <button
-                onClick={() => setShowContactModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+    {/* Contact Detail Modal */}
+    {showContactModal && selectedContact && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-900">Contact Details</h2>
+            <button
+              onClick={() => setShowContactModal(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
 
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Name</p>
-                  <p className="text-lg font-semibold text-gray-900">{selectedContact.name}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Email</p>
-                  <p className="text-lg font-semibold text-gray-900">{selectedContact.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Phone</p>
-                  <p className="text-lg font-semibold text-gray-900">{selectedContact.phone}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Status</p>
-                  <p className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                    selectedContact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    selectedContact.status === 'read' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}>
-                    {selectedContact.status || 'pending'}
-                  </p>
-                </div>
-              </div>
-
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Subject</p>
-                <p className="text-gray-900">{selectedContact.subject}</p>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Name</p>
+                <p className="text-lg font-semibold text-gray-900">{selectedContact.name}</p>
               </div>
-
               <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Message</p>
-                <p className="text-gray-900 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg">{selectedContact.message}</p>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Email</p>
+                <p className="text-lg font-semibold text-gray-900">{selectedContact.email}</p>
               </div>
-
+              <div>
+                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Phone</p>
+                <p className="text-lg font-semibold text-gray-900">{selectedContact.phone}</p>
+              </div>
               <div>
                 <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Submitted On</p>
                 <p className="text-gray-900">{new Date(selectedContact.createdAt).toLocaleString('en-IN')}</p>
               </div>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Subject</p>
+              <p className="text-xl font-semibold text-gray-900 mb-4">{selectedContact.subject}</p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Message</p>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedContact.message}</p>
             </div>
 
             <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex flex-wrap gap-3">
@@ -2002,9 +2320,12 @@ const AdminDashboard = ({ config }) => {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
+
+
 
   const renderAnalytics = () => (
 
@@ -3332,78 +3653,265 @@ const AdminDashboard = ({ config }) => {
 
       {showForwardModal && (
 
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 z-50 bg-white overflow-y-auto animate-fadeIn">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-
-            <div className={`p-6 border-b border-gray-100 flex justify-between items-center`}>
-
-              <h3 className="text-xl font-bold">Forward Inquiry</h3>
-
-              <button onClick={() => setShowForwardModal(false)} className="text-gray-500 hover:text-gray-700">Close</button>
-
+            <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-white/95 backdrop-blur animate-slideDown shadow-xl" style={{ 
+              borderBottom: `3px solid ${config.primary_action}`,
+              boxShadow: `0 4px 20px ${config.primary_action}30`
+            }}>
+              <div className="flex items-center justify-between gap-4">
+                <div className="animate-fadeIn">
+                  <h3 className="text-2xl font-bold" style={{ color: config.text_color || '#1e293b' }}>Forward Inquiry</h3>
+                  <p className="text-sm mt-1" style={{ color: config.secondary_action || '#64748b' }}>Select one or more influencers to forward this inquiry to.</p>
+                </div>
+                <div className="flex items-center gap-2 animate-fadeIn">
+                  <button 
+                    onClick={() => setShowForwardModal(false)} 
+                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105 shadow-md"
+                    style={{ 
+                      backgroundColor: config.surface_color || '#f0f9ff',
+                      color: config.primary_action || '#0ea5e9',
+                      border: `2px solid ${config.primary_action}`
+                    }}
+                  >
+                    Close
+                  </button>
+                  <button 
+                    onClick={handleConfirmForward} 
+                    disabled={isFilteringInfluencers || forwardRecipients.size === 0}
+                    className="px-4 py-2.5 rounded-xl text-white text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+                    style={{ 
+                      backgroundColor: config.primary_action || '#0ea5e9',
+                      opacity: (isFilteringInfluencers || forwardRecipients.size === 0) ? 0.5 : 1
+                    }}
+                  >
+                    {isFilteringInfluencers ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Forwarding...
+                      </>
+                    ) : (
+                      <>
+                        Forward Inquiry
+                        {forwardRecipients.size > 0 && (
+                          <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">
+                            {forwardRecipients.size}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="mt-6 space-y-6">
 
-              <p className="text-sm text-gray-600">Select one or more influencers to forward this inquiry to.</p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-                {influencers.length === 0 ? (
-
-                  <div className="text-gray-400">No influencers available</div>
-
-                ) : influencers.map(i => {
-
-                  const aid = i._id || i.id;
-
-                  const checked = forwardRecipients.has(aid);
-
-                  return (
-
-                    <label key={aid} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-
-                      <input type="checkbox" checked={checked} onChange={() => handleToggleRecipient(aid)} />
-
-                      <div className="flex-1">
-
-                        <div className="font-medium text-gray-800">
-
-                          {i.fullName || i.name || `Influencer ${aid?.slice(-6)}`}
-
-                        </div>
-
-                        <div className="text-xs text-gray-500">
-
-                          {i.categories?.join(', ') || i.category || 'General'} · {i.email}
-
-                        </div>
-
-                      </div>
-
+              {/* Filters: Category, Budget, Location */}
+              <div className="rounded-2xl shadow-xl p-4 sm:p-6" style={{ 
+                background: 'white',
+                border: `2px solid ${config.primary_action}30`,
+                boxShadow: `0 8px 25px ${config.primary_action}15`
+              }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: config.primary_action }}></div>
+                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Filter Influencers</h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                  <div className="relative">
+                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                      <span className="text-lg">??</span> Category
                     </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Lifestyle, Music"
+                      value={forwardSearchCategory}
+                      onChange={(e) => setForwardSearchCategory(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder-gray-400"
+                    />
+                  </div>
 
-                  );
+                  <div className="relative">
+                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                      <span className="text-lg">??</span> Budget Min
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Rs</span>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={forwardFilterBudgetMin}
+                        onChange={(e) => setForwardFilterBudgetMin(e.target.value)}
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-green-400 focus:ring-2 focus:ring-green-100 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
 
-                })}
+                  <div className="relative">
+                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                      <span className="text-lg">??</span> Budget Max
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Rs</span>
+                      <input
+                        type="number"
+                        placeholder="100000"
+                        value={forwardFilterBudgetMax}
+                        onChange={(e) => setForwardFilterBudgetMax(e.target.value)}
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-green-400 focus:ring-2 focus:ring-green-100 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
 
+                  <div className="relative">
+                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                      <span className="text-lg">??</span> Location
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="City or Country"
+                      value={forwardFilterLocation}
+                      onChange={(e) => setForwardFilterLocation(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-purple-400 focus:ring-2 focus:ring-purple-100 placeholder-gray-400"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2 lg:col-span-4 flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+                    <button
+                      onClick={() => {
+                        setForwardSearchCategory('');
+                        setForwardFilterBudgetMin('');
+                        setForwardFilterBudgetMax('');
+                        setForwardFilterLocation('');
+                      }}
+                      className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+                    >
+                      <span className="text-lg">??</span> Clear Filters
+                    </button>
+                    <div className="text-sm text-gray-600 sm:ml-auto flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      Showing influencers matching filters
+                    </div>
+                  </div>
+                </div>
               </div>
 
+              <div className="rounded-2xl shadow-xl p-4 sm:p-6" style={{ 
+                background: 'white',
+                border: `2px solid ${config.primary_action}30`,
+                boxShadow: `0 8px 25px ${config.primary_action}15`
+              }}>
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Available Influencers</h4>
+                  <div className="text-sm" style={{ color: config.secondary_action || '#64748b' }}>
+                    {filteredInfluencersForForward.length} of {influencers.length} matching
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
+                  {isFilteringInfluencers ? (
+                    // Loading skeleton
+                    Array.from({ length: 6 }).map((_, idx) => (
+                      <div key={idx} className="flex items-start gap-3 p-4 border rounded-xl animate-pulse">
+                        <div className="w-5 h-5 bg-gray-200 rounded mt-1"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-100 rounded w-3/4"></div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    // Check if any filters are applied
+                    (forwardSearchCategory || forwardFilterBudgetMin || forwardFilterBudgetMax || forwardFilterLocation) ? (
+                      // Filters are applied - show filtered results
+                      filteredInfluencersForForward.length === 0 ? (
+                        // No influencers match filters
+                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                            <span className="text-2xl">??</span>
+                          </div>
+                          <h4 className="text-lg font-semibold text-gray-900 mb-2">No Influencers Match Your Filters</h4>
+                          <p className="text-sm text-gray-600 max-w-md mb-4">
+                            Try adjusting your filters to see more influencers.
+                          </p>
+                          <button
+                            onClick={() => {
+                              setForwardSearchCategory('');
+                              setForwardFilterBudgetMin('');
+                              setForwardFilterBudgetMax('');
+                              setForwardFilterLocation('');
+                            }}
+                            className="px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors"
+                          >
+                            Clear All Filters
+                          </button>
+                        </div>
+                      ) : (
+                        // Show filtered influencers
+                        filteredInfluencersForForward.map(i => {
+                          const aid = i._id || i.id;
+                          const checked = forwardRecipients.has(aid);
 
-              <div className="flex justify-end gap-3">
-
-                <button onClick={() => setShowForwardModal(false)} className="px-4 py-2 rounded-xl border">Cancel</button>
-
-                <button onClick={handleConfirmForward} className="px-4 py-2 rounded-xl bg-indigo-600 text-white">Forward</button>
-
+                          return (
+                            <label key={aid} className="flex items-start gap-3 p-4 border-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-all hover:shadow-lg" style={{ 
+                              borderColor: checked ? config.primary_action : `${config.primary_action}30`,
+                              backgroundColor: checked ? `${config.primary_action}05` : 'white',
+                              boxShadow: checked ? `0 4px 15px ${config.primary_action}20` : 'none'
+                            }}>
+                              <input className="mt-1 w-5 h-5 rounded focus:ring-2 focus:ring-brand-100" type="checkbox" checked={checked} onChange={() => handleToggleRecipient(aid)} style={{ 
+                                color: checked ? 'white' : config.primary_action,
+                                backgroundColor: checked ? config.primary_action : 'white'
+                              }} />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold truncate" style={{ color: checked ? 'white' : config.text_color || '#1f2937' }}>
+                                  {i.fullName || i.name || `Influencer ${aid?.slice(-6)}`}
+                                </div>
+                                <div className="text-xs mt-1 break-words" style={{ color: checked ? 'white' : config.secondary_action || '#64748b' }}>
+                                  {i.categories?.join(', ') || i.category || 'General'} · {i.email}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })
+                      )
+                    ) : (
+                      // No filters applied - show empty state
+                      <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <span className="text-2xl">??</span>
+                        </div>
+                        <h4 className="text-lg font-semibold text-gray-900 mb-2">Apply Filters to See Influencers</h4>
+                        <p className="text-sm text-gray-600 max-w-md mb-4">
+                          Use the filters above to search for influencers by category, budget, or location.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="text-lg">??</span>
+                            <span>Category</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="text-lg">??</span>
+                            <span>Budget</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="text-lg">??</span>
+                            <span>Location</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
 
+              
             </div>
-
           </div>
-
         </div>
 
       )}
@@ -3548,7 +4056,20 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-gray-900 capitalize">
 
-                        {selectedInquiry.hiringFor || selectedInquiry.category || 'Not specified'}
+                        {selectedInquiry.category || 'Not specified'}
+
+                      </p>
+
+                    </div>
+
+
+                    <div>
+
+                      <p className="text-sm text-gray-500">Hiring Of</p>
+
+                      <p className="font-medium text-gray-900 capitalize">
+
+                        {selectedInquiry.hiringFor || 'Not specified'}
 
                       </p>
 

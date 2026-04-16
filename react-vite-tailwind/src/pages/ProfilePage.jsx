@@ -43,7 +43,7 @@ const ProfilePage = ({ config }) => {
 
   // Helper to normalize raw API/user data into formData shape
   const normalizeProfile = (src) => ({
-    fullName: src.fullName || src.name || `${src.firstName || ''} ${src.lastName || ''}`.trim() || '',
+    fullName: src.fullName || '',
     username: src.username || '',
     email: src.email || '',
     phone: src.phone || '',
@@ -180,6 +180,12 @@ const ProfilePage = ({ config }) => {
           updatedUser.niche = [updatedUser.niche];
         }
         updateUser(updatedUser);
+        // Keep local form state in sync so the Profile page shows the updated location/niche immediately
+        try {
+          setFormData(prev => ({ ...prev, ...normalizeProfile(updatedUser) }));
+        } catch (e) {
+          // fallback: no-op
+        }
         setSaveMessage('Profile updated successfully!');
       } else {
         const err = await response.json().catch(() => ({}));
@@ -247,6 +253,15 @@ const ProfilePage = ({ config }) => {
   const normalizeNiches = (niche) => {
     if (!niche) return [];
     return Array.isArray(niche) ? niche : (typeof niche === 'string' ? [niche] : []);
+  };
+
+  // Ensure external links include protocol so anchors open correctly
+  const makeHref = (url) => {
+    if (!url) return '';
+    const trimmed = String(url).trim();
+    if (trimmed === '') return '';
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    return `https://${trimmed}`;
   };
 
   const normalizedNiches = normalizeNiches(formData.niche);
@@ -510,21 +525,21 @@ const ProfilePage = ({ config }) => {
 
           <div className="flex flex-wrap items-center gap-4">
             {(formData.socialLinks?.instagram || userData.stats.instagram.url) ? (
-              <a href={formData.socialLinks?.instagram || userData.stats.instagram.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 hover:shadow-sm">
+              <a href={makeHref(formData.socialLinks?.instagram || userData.stats.instagram.url)} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 hover:shadow-sm">
                 <Instagram size={18} className="text-[#e1306c]" />
                 <span className="text-sm font-medium text-slate-700">Instagram</span>
               </a>
             ) : null}
 
             {(formData.socialLinks?.youtube || userData.stats.youtube.url) ? (
-              <a href={formData.socialLinks?.youtube || userData.stats.youtube.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-red-50 px-4 py-2 rounded-lg border border-red-100 hover:shadow-sm">
+              <a href={makeHref(formData.socialLinks?.youtube || userData.stats.youtube.url)} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-red-50 px-4 py-2 rounded-lg border border-red-100 hover:shadow-sm">
                 <Youtube size={18} className="text-red-500" />
                 <span className="text-sm font-medium text-slate-700">YouTube</span>
               </a>
             ) : null}
 
             {(formData.socialLinks?.facebook || userData.stats.facebook.url) ? (
-              <a href={formData.socialLinks?.facebook || userData.stats.facebook.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 hover:shadow-sm">
+              <a href={makeHref(formData.socialLinks?.facebook || userData.stats.facebook.url)} target="_blank" rel="noreferrer" className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 hover:shadow-sm">
                 <Facebook size={18} className="text-blue-600" />
                 <span className="text-sm font-medium text-slate-700">Facebook</span>
               </a>

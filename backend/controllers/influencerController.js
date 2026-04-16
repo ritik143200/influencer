@@ -199,8 +199,9 @@ const removeMyUnavailableDates = async (req, res) => {
 const registerInfluencer = async (req, res) => {
   try {
     const {
-      firstName,
-      lastName,
+      firstName: reqFirstName,
+      lastName: reqLastName,
+      fullName: reqFullName,
       email,
       phone,
       password,
@@ -246,11 +247,24 @@ const registerInfluencer = async (req, res) => {
       }
     }
 
+    // Derive name fields: prefer explicit firstName/lastName, else derive from fullName
+    let finalFirst = reqFirstName || '';
+    let finalLast = reqLastName || '';
+    let finalFull = reqFullName || '';
+    if (!finalFirst && !finalLast && finalFull) {
+      const parts = finalFull.trim().split(/\s+/);
+      finalFirst = parts[0] || '';
+      finalLast = parts.slice(1).join(' ') || '';
+    }
+    if (!finalFull) {
+      finalFull = [finalFirst, finalLast].filter(Boolean).join(' ') || undefined;
+    }
+
     // Create new influencer
     const newInfluencer = new Influencer({
-      firstName,
-      lastName,
-      fullName: `${firstName || ''} ${lastName || ''}`.trim() || undefined,
+      firstName: finalFirst || undefined,
+      lastName: finalLast || undefined,
+      fullName: finalFull,
       email,
       phone,
       password: hashedPassword,

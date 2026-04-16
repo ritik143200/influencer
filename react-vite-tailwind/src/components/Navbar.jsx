@@ -1,12 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
-import { categories } from '../data/mockData';
 
 const Navbar = ({ config }) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showCategories, setShowCategories] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showDashboardMenu, setShowDashboardMenu] = useState(false);
   const [showAboutDropdown, setShowAboutDropdown] = useState(false);
@@ -58,17 +55,16 @@ const Navbar = ({ config }) => {
 
           {/* Desktop Navigation - Center */}
           <div className="hidden lg:flex items-center justify-center flex-1 mx-8">
-            {/* Removed Search Bar - artist browsing functionality removed */}
           </div>
 
           {/* Right Side Navigation */}
           <div className="hidden lg:flex items-center gap-4 xl:gap-6">
             {/* Navigation Links */}
-            <div className="hidden xl:flex items-center gap-4 xl:gap-6">
+            <div className="hidden sm:flex items-center gap-2 sm:gap-4 xl:gap-6">
               {/* Home Link */}
               <button
                 onClick={() => navigate('home')}
-                className={`transition-all duration-200 whitespace-nowrap ${
+                className={`transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                   currentPath === 'home' 
                     ? 'text-brand-600 font-bold scale-105' 
                     : 'text-gray-700 font-medium hover:text-brand-600'
@@ -82,7 +78,7 @@ const Navbar = ({ config }) => {
               {/* Services Link - Direct Navigation */}
               <button
                 onClick={() => navigate('services-influencers')}
-                className={`transition-all duration-200 whitespace-nowrap ${
+                className={`transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                   currentPath === 'services-influencers' 
                     ? 'text-brand-600 font-bold scale-105' 
                     : 'text-gray-700 font-medium hover:text-brand-600'
@@ -166,13 +162,10 @@ const Navbar = ({ config }) => {
 
 
 
-
-
-
               {/* Contact Link */}
               <button
                 onClick={() => navigate('contact')}
-                className={`transition-all duration-200 whitespace-nowrap ${
+                className={`transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                   currentPath === 'contact' 
                     ? 'text-brand-600 font-bold scale-105' 
                     : 'text-gray-700 font-medium hover:text-brand-600'
@@ -330,9 +323,8 @@ const Navbar = ({ config }) => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-white border-t border-gray-100 py-4 animate-fadeIn absolute top-full left-0 right-0 shadow-lg z-50">
-            {/* Removed Search Bar from mobile menu */}
-            <div className="space-y-1 px-2">
+          <div className="lg:hidden fixed inset-0 bg-white border-t border-gray-100 py-4 animate-fadeIn z-50 overflow-y-auto">
+            <div className="space-y-2 px-4 py-2">
               <button
                 onClick={() => {
                   navigate('home');
@@ -411,7 +403,7 @@ const Navbar = ({ config }) => {
                   navigate('contact');
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl transition-all ${
                   currentPath === 'contact' 
                     ? 'bg-brand-50 text-brand-600 font-bold border border-brand-100' 
                     : 'hover:bg-gray-50 text-gray-700 font-medium'
