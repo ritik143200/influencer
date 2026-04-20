@@ -41,6 +41,18 @@ const InfluencerProfilePage = () => {
     return [city, country].filter(Boolean).join(', ') || 'Not specified';
   };
 
+  // Helper to filter portfolio items
+  const filterPortfolio = (influencer, isImage = true) => {
+    if (!influencer.portfolio) return [];
+    return influencer.portfolio.filter(item => 
+      typeof item === 'string' && 
+      (isImage ? 
+        (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)) :
+        !(item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))
+      )
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-10 px-4">
       <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-lg p-8">
@@ -81,36 +93,32 @@ const InfluencerProfilePage = () => {
           </div>
         </div>
         {/* Portfolio Section (Images Only) */}
-        {influencer.portfolio && influencer.portfolio.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 && (
+        {filterPortfolio(influencer, true).length > 0 && (
           <div className="mt-10">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Portfolio</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {influencer.portfolio
-                .filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))
-                .map((item, i) => (
-                  <img
-                    key={i}
-                    src={item}
-                    alt={`Portfolio ${i + 1}`}
-                    className="w-full h-40 object-cover rounded-lg shadow"
-                  />
-                ))}
+              {filterPortfolio(influencer, true).map((item, i) => (
+                <img
+                  key={i}
+                  src={item}
+                  alt={`Portfolio ${i + 1}`}
+                  className="w-full h-40 object-cover rounded-lg shadow"
+                />
+              ))}
             </div>
           </div>
         )}
 
         {/* Other Links Section (Non-image links) */}
-        {influencer.portfolio && influencer.portfolio.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
+        {filterPortfolio(influencer, false).length > 0 && (
           <div className="mt-10">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Other Links</h2>
             <ul className="list-disc pl-6 space-y-2">
-              {influencer.portfolio
-                .filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))))
-                .map((item, i) => (
-                  <li key={i}>
-                    <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
-                  </li>
-                ))}
+              {filterPortfolio(influencer, false).map((item, i) => (
+                <li key={i}>
+                  <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
+                </li>
+              ))}
             </ul>
           </div>
         )}

@@ -209,16 +209,7 @@ const UserDashboard = ({ config }) => {
                 readOnly
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <input
-                type="text"
-                value={userData?.location || 'Not provided'}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-                readOnly
-              />
-            </div>
-          </div>
+                      </div>
         </div>
       </div>
 
@@ -286,40 +277,6 @@ const UserDashboard = ({ config }) => {
               className="px-4 py-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
             >
               Update
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-800">Notifications</h4>
-                <p className="text-sm text-gray-500">Manage email and push notifications</p>
-              </div>
-            </div>
-            <button className="px-4 py-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
-              Configure
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-800">Privacy Settings</h4>
-                <p className="text-sm text-gray-500">Control your data and privacy preferences</p>
-              </div>
-            </div>
-            <button className="px-4 py-2 text-brand-600 hover:bg-brand-50 rounded-lg transition-colors">
-              Manage
             </button>
           </div>
         </div>

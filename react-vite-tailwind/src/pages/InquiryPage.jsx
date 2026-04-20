@@ -16,7 +16,7 @@ const InquiryPage = ({ config }) => {
     email: user?.email || '',
     phone: user?.phone || '',
     hiringFor: 'influencer',
-    category: '',
+    category: [], // Change to array for multiple selection
     location: '',
     budget: '',
     requirements: ''
@@ -27,7 +27,22 @@ const InquiryPage = ({ config }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const { navigate } = useRouter();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const categoryContainer = event.target.closest('[data-category-container="true"]');
+      
+      if (!categoryContainer) {
+        setShowCategoryDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Category suggestions for each hiring type
   // Keys must match dropdown values exactly (including spaces)
@@ -116,7 +131,7 @@ const InquiryPage = ({ config }) => {
     setForm((prev) => {
       const updates = { [key]: value };
       if (key === 'hiringFor') {
-        updates.category = '';
+        updates.category = []; // Clear categories array when hiring type changes
       }
       return { ...prev, ...updates };
     });
@@ -129,7 +144,7 @@ const InquiryPage = ({ config }) => {
   const validate = () => {
     if (!form.name || !form.email || !form.phone) return 'Please fill your contact details.';
     if (!form.hiringFor) return 'Please select who you want to hire.';
-    if (!form.category) return 'Please enter a category.';
+    if (!form.category || form.category.length === 0) return 'Please select at least one category.';
     if (!form.location) return 'Please enter a location.';
 
     if (form.budget === '' || form.budget === null || form.budget === undefined) return 'Please enter a budget.';
@@ -174,7 +189,7 @@ const InquiryPage = ({ config }) => {
           email: form.email,
           phone: form.phone,
           hiringFor: form.hiringFor,
-          category: form.category,
+          category: Array.isArray(form.category) ? form.category.join(', ') : form.category, // Convert array to string
           location: form.location,
 
           budget: Number(form.budget),
@@ -192,7 +207,7 @@ const InquiryPage = ({ config }) => {
       setForm((prev) => ({
         ...prev,
         hiringFor: 'influencer',
-        category: '',
+        category: [], // Clear categories array
         location: '',
 
         budget: '',
@@ -349,31 +364,63 @@ const InquiryPage = ({ config }) => {
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Category</label>
+                    <div className="relative z-[9998]" data-category-container="true">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Categories</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h12M3 17h18" />
                           </svg>
                         </div>
-                        <select
-                          value={form.category}
-                          onChange={onChange('category')}
+                        <div 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCategoryDropdown(!showCategoryDropdown);
+                          }}
                           className="mt-0 w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50/30 shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white appearance-none cursor-pointer transition-all duration-200 font-medium text-gray-800"
                         >
-                          <option value="">Select Category</option>
-                          {categoryOptions[form.hiringFor]?.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
+                          {form.category.length === 0 ? 'Select Categories' : `${form.category.length} selected`}
+                        </div>
                         <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 group-hover:text-gray-600 transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </div>
+                      </div>
+                      
+                      {/* Dropdown Content */}
+                      <div id="category-dropdown" className={`${showCategoryDropdown ? '' : 'hidden'} absolute z-[9999] w-full bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto`} onClick={(e) => e.stopPropagation()}>
+                        <div className="p-2">
+                          {categoryOptions[form.hiringFor]?.map((opt) => (
+                            <label key={opt} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input
+                                type="checkbox"
+                                value={opt}
+                                checked={form.category.includes(opt)}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  const value = e.target.value;
+                                  setForm((prev) => {
+                                    const newCategories = e.target.checked
+                                      ? [...prev.category, value]
+                                      : prev.category.filter(cat => cat !== value);
+                                    return { ...prev, category: newCategories };
+                                  });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500 focus:border-orange-500"
+                              />
+                              <span className="text-sm font-medium text-gray-700">{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                        {form.category.length > 0 && (
+                          <div className="border-t border-gray-200 p-2 bg-gray-50">
+                            <div className="text-xs text-gray-600">
+                              Selected: {form.category.join(', ')}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div>

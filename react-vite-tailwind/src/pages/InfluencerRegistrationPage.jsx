@@ -219,8 +219,19 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
       const data = await response.json();
 
+      console.log('Registration response:', data);
+
       if (data.success) {
         setSuccess('Registration successful! Your application is under review.');
+
+        // Check if token is provided
+        if (!data.token) {
+          console.error('No token received from server');
+          setError('Registration successful but login failed. Please login manually.');
+          return;
+        }
+
+        console.log('Token received:', data.token.substring(0, 20) + '...');
 
         // Map selected category ids to readable names so profile shows proper niches
         const mappedNiches = (formData.categories || [])
@@ -242,22 +253,21 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
               socialLinks: formData.socialLinks
             };
 
+        console.log('User data for login:', userData);
+
+        // Store token first
+        localStorage.setItem('userToken', data.token);
 
         // Update auth context and local cache so profile reads the chosen specialties
-        console.log('Registration: setting logged-in user', userData);
         login(userData);
         try { updateUser(userData); } catch (e) { /* ignore if not available */ }
         // Ensure persistent storage uses the same key as AuthContext expects
-        try { localStorage.setItem('loggedInUser', JSON.stringify(userData)); } catch (e) { console.warn('Could not write loggedInUser to localStorage', e); }
-        console.log('Registration: localStorage.loggedInUser set', localStorage.getItem('loggedInUser'));
-
-        // Store token if available
-        if (data.token) {
-          localStorage.setItem('userToken', data.token);
-        }
+        try { localStorage.setItem('loggedInUser', JSON.stringify(userData)); } catch (e) { /* ignore if not available */ }
 
         // Also keep a lightweight stored copy for other flows
         localStorage.setItem('userData', JSON.stringify(userData));
+
+        console.log('Token stored, redirecting to dashboard...');
 
         setTimeout(() => {
           navigate('influencer-dashboard');

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import InquiryProgressBar from '../components/InquiryProgressBar';
-// import { DayPicker } from 'react-day-picker';
-// import 'react-day-picker/dist/style.css';
 
 const InfluencerDashboard = ({ config }) => {
   const { navigate } = useRouter();
@@ -13,10 +11,6 @@ const InfluencerDashboard = ({ config }) => {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [inquiries, setInquiries] = useState([]);
   const [loadingInquiries, setLoadingInquiries] = useState(false);
-  // const [unavailableDates, setUnavailableDates] = useState([]);
-  // const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  // const [savingAvailability, setSavingAvailability] = useState(false);
-  // const [availabilityMessage, setAvailabilityMessage] = useState('');
   const [earnings, setEarnings] = useState({
     total: 0,
     thisMonth: 0,
@@ -29,12 +23,6 @@ const InfluencerDashboard = ({ config }) => {
   const [inquirySearchTerm, setInquirySearchTerm] = useState('');
   const [respondingInquiry, setRespondingInquiry] = useState(null);
 
-  // Fetch inquiries for this influencer (moved outside useEffect)
-  const toYmd = (dateLike) => {
-    const d = new Date(dateLike);
-    return Number.isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
-  };
-
   // Format location into a readable string
   const formatLocationString = (loc) => {
     if (!loc) return '—';
@@ -44,77 +32,46 @@ const InfluencerDashboard = ({ config }) => {
     return out || '—';
   };
 
-  const fromYmd = (ymd) => new Date(`${ymd}T00:00:00.000Z`);
-
-  // --- Availability Calendar (commented out) ---
-  // const fetchAvailability = async () => {
-  //   setAvailabilityLoading(true);
-  //   try {
-  //     const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-  //     const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
-  //       headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-  //     });
-  //     if (!res.ok) { setUnavailableDates([]); return; }
-  //     const result = await res.json();
-  //     const parsed = Array.isArray(result?.data?.unavailableDates)
-  //       ? result.data.unavailableDates.map(fromYmd).filter((d) => !Number.isNaN(d.getTime()))
-  //       : [];
-  //     setUnavailableDates(parsed);
-  //   } catch (error) {
-  //     console.error('Error fetching availability:', error);
-  //     setUnavailableDates([]);
-  //   } finally {
-  //     setAvailabilityLoading(false);
-  //   }
-  // };
-  // const saveAvailability = async () => {
-  //   setSavingAvailability(true);
-  //   setAvailabilityMessage('');
-  //   try {
-  //     const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-  //     const payload = { unavailableDates: (unavailableDates || []).map(toYmd).filter(Boolean) };
-  //     const res = await fetch(`${API_BASE_URL}/api/influencer/me/availability`, {
-  //       method: 'PUT',
-  //       headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}`, 'Content-Type': 'application/json' },
-  //       body: JSON.stringify(payload)
-  //     });
-  //     const result = await res.json().catch(() => ({}));
-  //     if (!res.ok) { setAvailabilityMessage(result.message || 'Failed to update availability'); return; }
-  //     setAvailabilityMessage('Availability updated successfully');
-  //     if (Array.isArray(result?.data?.unavailableDates)) {
-  //       setUnavailableDates(result.data.unavailableDates.map(fromYmd));
-  //     }
-  //   } catch (error) {
-  //     console.error('Error saving availability:', error);
-  //     setAvailabilityMessage('Network error while saving availability');
-  //   } finally {
-  //     setSavingAvailability(false);
-  //     setTimeout(() => setAvailabilityMessage(''), 3000);
-  //   }
-  // };
-  // --- End Availability Calendar ---
-
+  // Fetch inquiries for this influencer (moved outside useEffect)
   const fetchInquiries = async () => {
     setLoadingInquiries(true);
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const influencerData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null;
       const influencerId = influencerData?._id || influencerData?.id;
+      const userToken = localStorage.getItem('userToken');
+
+      console.log('Fetching inquiries for influencer:', { influencerId, API_BASE_URL });
 
       if (!influencerId) {
+        console.error('No influencer ID found!');
+        setLoadingInquiries(false);
+        return;
+      }
+
+      if (!userToken) {
+        console.error('No user token found!');
         setLoadingInquiries(false);
         return;
       }
 
       const res = await fetch(`${API_BASE_URL}/api/influencer/inquiries`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+        headers: { 'Authorization': `Bearer ${userToken}` }
       });
+
+      console.log('Inquiries response status:', res.status);
 
       if (res.ok) {
         const result = await res.json();
-        if (result.success && result.data) setInquiries(result.data);
-        else setInquiries([]);
+        console.log('Inquiries data received:', result);
+        if (result.success && result.data) {
+          setInquiries(result.data);
+        } else {
+          setInquiries([]);
+        }
       } else {
+        const errorText = await res.text();
+        console.error('Failed to fetch inquiries:', res.status, errorText);
         setInquiries([]);
       }
     } catch (error) {
@@ -166,11 +123,9 @@ const InfluencerDashboard = ({ config }) => {
 
     // Initialize data
     fetchInquiries();
-    // fetchAvailability(); // Availability Calendar commented out
 
   }, []);
 
-  // --- Availability Calendar disabled (returns null) ---
   const renderAvailabilityManager = () => null;
 
 
@@ -228,8 +183,6 @@ const InfluencerDashboard = ({ config }) => {
     if (!budgetDefault) missing.push('Default Budget');
     if (!instagramLink) missing.push('Instagram Link');
     
-    // Debug info intentionally removed for cleaner logs
-    
     return missing;
   };
 
@@ -270,8 +223,6 @@ const InfluencerDashboard = ({ config }) => {
                           data.platforms?.instagram?.url || 
                           data.instagram || '').trim();
     
-    // Debug logging with actual values
-    
     // All required fields must be filled and not empty/whitespace
     const isComplete = !!(
       fullName && 
@@ -288,14 +239,8 @@ const InfluencerDashboard = ({ config }) => {
       instagramLink
     );
     
-    // Profile completion computed
     return isComplete;
   };
-
-  // Debug useEffect to monitor inquiries state (real-time only)
-  useEffect(() => {
-    // Inquiries state updated (logging removed)
-  }, [inquiries, loadingInquiries]);
 
   // Auto-hide popup when profile becomes complete
   useEffect(() => {

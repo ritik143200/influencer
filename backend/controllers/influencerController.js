@@ -5,6 +5,7 @@ const { logInfluencerRegistration } = require('../middleware/activityLogger');
 const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const toDayStartUtc = (input) => {
   const d = new Date(input);
@@ -294,14 +295,28 @@ const registerInfluencer = async (req, res) => {
       console.error('Failed to log influencer registration activity:', err);
     }
 
+    // Generate JWT token for automatic login
+    const token = jwt.sign(
+      { id: newInfluencer._id },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRE || '30d' }
+    );
+
     res.status(201).json({
       success: true,
       message: 'Influencer registration successful! Your application is under review.',
+      token: token,
       data: {
         id: newInfluencer._id,
         email: newInfluencer.email,
-        role: newInfluencer.role,
-        verificationStatus: newInfluencer.verificationStatus
+        fullName: newInfluencer.fullName,
+        phone: newInfluencer.phone,
+        role: newInfluencer.role || 'influencer',
+        profileType: newInfluencer.profileType,
+        verificationStatus: newInfluencer.verificationStatus,
+        categories: newInfluencer.categories,
+        location: newInfluencer.location,
+        socialLinks: newInfluencer.socialLinks
       }
     });
 
@@ -640,7 +655,19 @@ const respondToInquiry = async (req, res) => {
         notes: responseMessage || 'Influencer accepted the inquiry'
       });
     } else if (status === 'rejected') {
-      // If rejected, just log it but don't change overall status
+      // Check if all forwarded influencers have rejected
+      const allRejected = inquiry.forwardedTo.every(f => 
+        f.acceptanceStatus === 'rejected' || 
+        (f.userId && f.userId.toString() === req.user._id.toString())
+      );
+      
+      if (allRejected) {
+        // If all have rejected, set overall status to artist_rejected
+        inquiry.status = 'artist_rejected';
+        inquiry.artistStatus = 'rejected';
+        inquiry.progressPercentage = 30;
+      }
+      
       inquiry.workflowHistory.push({
         stage: 'artist_review',
         status: 'artist_rejected',

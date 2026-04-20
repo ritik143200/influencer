@@ -8,6 +8,12 @@ import InquiryProgressBar from '../components/InquiryProgressBar';
 
 import AdminInfluencersManagement from '../components/AdminInfluencersManagement';
 
+import AdminUserManagement from '../components/AdminUserManagement';
+
+import AdminContactManagement from '../components/AdminContactManagement';
+
+import AdminInquiryManagement from '../components/AdminInquiryManagement';
+
 import RecentActivity from '../components/RecentActivity';
 
 
@@ -534,7 +540,7 @@ const AdminDashboard = ({ config }) => {
     }
   };
 
-  const handleAssignToArtist = async (inquiryId, artistId = null) => {
+  const handleAssignToInfluencer = async (inquiryId, influencerId = null) => {
 
     try {
 
@@ -544,16 +550,16 @@ const AdminDashboard = ({ config }) => {
         return;
       }
 
-      // Use provided artistId or use demo mode
-      const targetId = artistId ? String(artistId).trim() : 'demo';
+      // Use provided influencerId or use demo mode
+      const targetId = influencerId ? String(influencerId).trim() : 'demo';
 
       if (targetId !== 'demo' && targetId.length < 10) {
-        console.error('Invalid artist ID:', targetId);
-        alert('Error: Invalid artist ID format');
+        console.error('Invalid influencer ID:', targetId);
+        alert('Error: Invalid influencer ID format');
         return;
       }
 
-      console.log('handleAssignToArtist called with:', { inquiryId, targetId });
+      console.log('handleAssignToInfluencer called with:', { inquiryId, targetId });
 
       const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/assign/${targetId}`, {
 
@@ -569,7 +575,7 @@ const AdminDashboard = ({ config }) => {
 
         body: JSON.stringify({
 
-          notes: artistId ? `Inquiry assigned to selected influencer` : 'Inquiry completed by admin'
+          notes: influencerId ? `Inquiry assigned to selected influencer` : 'Inquiry completed by admin'
 
         })
 
@@ -614,22 +620,83 @@ const AdminDashboard = ({ config }) => {
       console.error('Error assigning inquiry:', err);
 
       alert('Network error while assigning inquiry: ' + err.message);
-
     }
-
   };
 
+  // User management functions
+  const handleViewUserDetails = (user) => {
+    setSelectedUser(user);
+    setShowUserModal(true);
+  };
 
+  const handleUpdateUserStatus = async (userId, action) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/${action}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
 
-  const handleToggleRecipient = (artistId) => {
+      if (res.ok) {
+        const updatedUser = await res.json();
+        setUsers(prev => prev.map(u => (u._id === userId || u.id === userId) ? updatedUser : u));
+        setSuccessMessage(`User status updated to ${updatedUser.status} successfully!`);
+        setTimeout(() => setSuccessMessage(null), 3000);
+
+        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
+          setSelectedUser(updatedUser);
+        }
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to update user status');
+      }
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      alert('Network error while updating user status');
+    }
+  };
+
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user permanently? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+      });
+
+      if (res.ok) {
+        setUsers(prev => prev.filter(u => u._id !== userId && u.id !== userId));
+        setSuccessMessage('User deleted successfully');
+        setTimeout(() => setSuccessMessage(null), 3000);
+
+        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
+          setShowUserModal(false);
+          setSelectedUser(null);
+        }
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to delete user');
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Network error while deleting user');
+    }
+  };
+
+  const handleToggleRecipient = (influencerId) => {
 
     setForwardRecipients(prev => {
 
       const next = new Set(prev);
 
-      if (next.has(artistId)) next.delete(artistId);
+      if (next.has(influencerId)) next.delete(influencerId);
 
-      else next.add(artistId);
+      else next.add(influencerId);
 
       return next;
 
@@ -647,11 +714,13 @@ const AdminDashboard = ({ config }) => {
 
     if (recipients.length === 0) {
 
-      alert('Select at least one artist to forward to');
+      alert('Select at least one influencer to forward to');
 
       return;
 
     }
+
+    console.log('Forwarding inquiry:', { forwardInquiryId, recipients });
 
     // Set loading state
     setIsFilteringInfluencers(true);
@@ -669,6 +738,8 @@ const AdminDashboard = ({ config }) => {
       });
 
       const data = await res.json();
+
+      console.log('Forward response:', { status: res.status, data });
 
       if (res.ok && data.success) {
 
@@ -768,132 +839,13 @@ const AdminDashboard = ({ config }) => {
 
 
 
-  // User management functions
+  
 
-  const handleViewUserDetails = (user) => {
 
-    setSelectedUser(user);
+  
 
-    setShowUserModal(true);
 
-  };
-
-
-
-  const handleUpdateUserStatus = async (userId, action) => {
-
-    try {
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/${action}`, {
-
-        method: 'POST',
-
-        headers: {
-
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
-
-          'Content-Type': 'application/json'
-
-        }
-
-      });
-
-
-
-      if (res.ok) {
-
-        const updatedUser = await res.json();
-
-        setUsers(prev => prev.map(u => (u._id === userId || u.id === userId) ? updatedUser : u));
-
-        setSuccessMessage(`User status updated to ${updatedUser.status} successfully!`);
-
-        setTimeout(() => setSuccessMessage(null), 3000);
-
-
-
-        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
-
-          setSelectedUser(updatedUser);
-
-        }
-
-      } else {
-
-        const errorData = await res.json();
-
-        alert(errorData.message || 'Failed to update user status');
-
-      }
-
-    } catch (err) {
-
-      console.error('Error updating user status:', err);
-
-      alert('Network error while updating user status');
-
-    }
-
-  };
-
-
-
-  const handleDeleteUser = async (userId) => {
-
-    if (!window.confirm('Are you sure you want to delete this user permanently? This action cannot be undone.')) {
-
-      return;
-
-    }
-
-
-
-    try {
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-
-        method: 'DELETE',
-
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-
-      });
-
-
-
-      if (res.ok) {
-
-        setUsers(prev => prev.filter(u => u._id !== userId && u.id !== userId));
-
-        setSuccessMessage('User deleted successfully');
-
-        setTimeout(() => setSuccessMessage(null), 3000);
-
-        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
-
-          setShowUserModal(false);
-
-          setSelectedUser(null);
-
-        }
-
-      } else {
-
-        const errorData = await res.json();
-
-        alert(errorData.message || 'Failed to delete user');
-
-      }
-
-    } catch (err) {
-
-      console.error('Error deleting user:', err);
-
-      alert('Network error while deleting user');
-
-    }
-
-  };
-
+  
 
 
   const handleToggleInfluencerStatus = async (influencerId, currentStatus) => {
@@ -942,26 +894,7 @@ const AdminDashboard = ({ config }) => {
 
 
 
-  // Artist detail view functions
-
-  const handleViewArtist = (artist) => {
-
-    setselectedInfluencer(artist);
-
-    setshowInfluencerModal(true);
-
-  };
-
-
-
-  const handleCloseArtistModal = () => {
-
-    setshowInfluencerModal(false);
-
-    setselectedInfluencer(null);
-
-  };
-
+  
 
 
   // Theme-consistent colors from landing page
@@ -1408,262 +1341,7 @@ const AdminDashboard = ({ config }) => {
 
   // Keep all other existing functions unchanged but with theme consistency
 
-  const renderUsers = () => {
-    // Filter users based on filters
-    const filteredUsers = users.filter(user => {
-      const matchesRole = filterRole === 'all' || user.role === filterRole;
-      const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-      const matchesSearch = searchTerm === '' ||
-        (user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          user.email?.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      return matchesRole && matchesStatus && matchesSearch;
-    });
-
-    return (
-      <div className="w-full">
-        {/* Full Page Header */}
-        <div className={`bg-gradient-to-r ${getCategoryColors(1)} p-6 shadow-lg`}>
-          <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-white">User Management</h3>
-              <button className="px-4 py-2 bg-white text-green-600 rounded-xl font-medium hover:bg-green-50 transition-colors">
-                Add New User
-              </button>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-              {/* Search */}
-              <div className="flex-1 min-w-[200px]">
-                <input
-                  type="text"
-                  placeholder="Search users..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
-                />
-              </div>
-
-              {/* Role Filter */}
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              >
-                <option value="all" className="text-gray-900">All Roles</option>
-                <option value="user" className="text-gray-900">User</option>
-                <option value="admin" className="text-gray-900">Admin</option>
-                <option value="artist" className="text-gray-900">Artist</option>
-                <option value="influencer" className="text-gray-900">Influencer</option>
-              </select>
-
-              {/* Status Filter */}
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              >
-                <option value="all" className="text-gray-900">All Status</option>
-                <option value="active" className="text-gray-900">Active</option>
-                <option value="inactive" className="text-gray-900">Inactive</option>
-                <option value="suspended" className="text-gray-900">Suspended</option>
-              </select>
-
-              {/* Clear Filters */}
-              <button
-                onClick={() => {
-                  setFilterRole('all');
-                  setFilterStatus('all');
-                  setSearchTerm('');
-                }}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
-              >
-                Clear Filters
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Full Page Content */}
-        <div className="w-full p-6">
-          <div className="max-w-7xl mx-auto space-y-4">
-            {/* Pagination Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-                <div className="text-sm text-gray-600">
-                  Showing {Math.min((userCurrentPage - 1) * userItemsPerPage + 1, filteredUsers.length)} to {Math.min(userCurrentPage * userItemsPerPage, filteredUsers.length)} of {filteredUsers.length} users
-                </div>
-                
-                {/* Page Numbers */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setUserCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={userCurrentPage === 1}
-                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  
-                  {(() => {
-                    const totalPages = Math.ceil(filteredUsers.length / userItemsPerPage);
-                    const currentPage = userCurrentPage;
-                    const pages = [];
-                    
-                    // Show max 5 page numbers
-                    let startPage = Math.max(1, currentPage - 2);
-                    let endPage = Math.min(totalPages, startPage + 4);
-                    
-                    if (endPage - startPage < 4) {
-                      startPage = Math.max(1, endPage - 4);
-                    }
-                    
-                    // Add first page if not visible
-                    if (startPage > 1) {
-                      pages.push(
-                        <button
-                          key={1}
-                          onClick={() => setUserCurrentPage(1)}
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          1
-                        </button>
-                      );
-                      if (startPage > 2) {
-                        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
-                      }
-                    }
-                    
-                    // Add page numbers
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setUserCurrentPage(i)}
-                          className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
-                            i === currentPage
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                    
-                    // Add last page if not visible
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
-                        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
-                      }
-                      pages.push(
-                        <button
-                          key={totalPages}
-                          onClick={() => setUserCurrentPage(totalPages)}
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          {totalPages}
-                        </button>
-                      );
-                    }
-                    
-                    return pages;
-                  })()}
-                  
-                  <button
-                    onClick={() => setUserCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredUsers.length / userItemsPerPage)))}
-                    disabled={userCurrentPage === Math.ceil(filteredUsers.length / userItemsPerPage)}
-                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {filteredUsers.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                <div className="text-gray-400">No users found matching your filters.</div>
-              </div>
-            ) : (
-              // Get paginated users
-              (() => {
-                const startIndex = (userCurrentPage - 1) * userItemsPerPage;
-                const endIndex = startIndex + userItemsPerPage;
-                const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-                
-                return paginatedUsers.map((user) => (
-              <div key={user._id || user.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-                {/* User Header Row */}
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-4 mb-4">
-                      {/* User Avatar */}
-                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                        {user.name?.charAt(0).toUpperCase()}
-                      </div>
-
-                      {/* User Info */}
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-3 mb-2">
-                          <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {user.role}
-                          </span>
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                            {user.status || 'Active'}
-                          </span>
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium">{user.email}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => handleViewUserDetails(user)}
-                    className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                  >
-                    Manage User
-                  </button>
-                  <button
-                    onClick={() => handleViewUserDetails(user)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => handleUpdateUserStatus(user._id || user.id, 'unblock')}
-                    className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                  >
-                    Activate
-                  </button>
-                  <button
-                    onClick={() => handleUpdateUserStatus(user._id || user.id, 'block')}
-                    className="px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition-colors"
-                  >
-                    Deactivate
-                  </button>
-                  <button
-                    onClick={() => handleDeleteUser(user._id || user.id)}
-                    className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            ));
-              })()
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  
 
 
 
@@ -1673,658 +1351,7 @@ const AdminDashboard = ({ config }) => {
 
 
 
-  const renderInquiries = () => {
-    // Filter inquiries based on filters
-    const filteredInquiries = (Array.isArray(inquiries) ? inquiries : []).filter(inquiry => {
-      const status = inquiry.status || 'sent';
-      const matchesStatus = filterStatusInquiry === 'all' || status === filterStatusInquiry;
-      const matchesSearch = searchTermInquiry === '' ||
-        (inquiry.hiringFor?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-          inquiry.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-          inquiry.email?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-          (inquiry.userId && typeof inquiry.userId === 'object' && inquiry.userId.name?.toLowerCase().includes(searchTermInquiry.toLowerCase())));
-
-      return matchesStatus && matchesSearch;
-    });
-
-    return (
-      <div className="w-full">
-        {/* Full Page Header */}
-        <div className={`bg-gradient-to-r ${getCategoryColors(6)} p-6 shadow-lg`}>
-          <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold text-white">Inquiry Management</h3>
-              <div className="text-white/90 text-sm font-semibold">
-                Total: {filteredInquiries.length} / {Array.isArray(inquiries) ? inquiries.length : 0}
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-              {/* Search */}
-              <div className="flex-1 min-w-[200px]">
-                <input
-                  type="text"
-                  placeholder="Search inquiries..."
-                  value={searchTermInquiry}
-                  onChange={(e) => setSearchTermInquiry(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
-                />
-              </div>
-
-              {/* Status Filter */}
-              <select
-                value={filterStatusInquiry}
-                onChange={(e) => setFilterStatusInquiry(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              >
-                <option value="all" className="text-gray-900">All Status</option>
-                <option value="sent" className="text-gray-900">Sent</option>
-                <option value="admin_accepted" className="text-gray-900">Accepted</option>
-                <option value="admin_rejected" className="text-gray-900">Rejected</option>
-                <option value="forwarded" className="text-gray-900">Forwarded</option>
-                <option value="artist_accepted" className="text-gray-900">Artist Accepted</option>
-                <option value="artist_rejected" className="text-gray-900">Artist Rejected</option>
-                <option value="completed" className="text-gray-900">Completed</option>
-              </select>
-
-              {/* Date Filter */}
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-              />
-
-              {/* Clear Filters */}
-              <button
-                onClick={() => {
-                  setFilterStatusInquiry('all');
-                  setFilterDate('');
-                  setSearchTermInquiry('');
-                }}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
-              >
-                Clear Filters
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Full Page Content */}
-        <div className="w-full p-6">
-          <div className="max-w-7xl mx-auto space-y-4">
-            {/* Pagination Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-              <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-                <div className="text-sm text-gray-600">
-                  Showing {Math.min((inquiryCurrentPage - 1) * inquiryItemsPerPage + 1, filteredInquiries.length)} to {Math.min(inquiryCurrentPage * inquiryItemsPerPage, filteredInquiries.length)} of {filteredInquiries.length} inquiries
-                </div>
-                
-                {/* Page Numbers */}
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setInquiryCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={inquiryCurrentPage === 1}
-                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Previous
-                  </button>
-                  
-                  {(() => {
-                    const totalPages = Math.ceil(filteredInquiries.length / inquiryItemsPerPage);
-                    const currentPage = inquiryCurrentPage;
-                    const pages = [];
-                    
-                    // Show max 5 page numbers
-                    let startPage = Math.max(1, currentPage - 2);
-                    let endPage = Math.min(totalPages, startPage + 4);
-                    
-                    if (endPage - startPage < 4) {
-                      startPage = Math.max(1, endPage - 4);
-                    }
-                    
-                    // Add first page if not visible
-                    if (startPage > 1) {
-                      pages.push(
-                        <button
-                          key={1}
-                          onClick={() => setInquiryCurrentPage(1)}
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          1
-                        </button>
-                      );
-                      if (startPage > 2) {
-                        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
-                      }
-                    }
-                    
-                    // Add page numbers
-                    for (let i = startPage; i <= endPage; i++) {
-                      pages.push(
-                        <button
-                          key={i}
-                          onClick={() => setInquiryCurrentPage(i)}
-                          className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
-                            i === currentPage
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {i}
-                        </button>
-                      );
-                    }
-                    
-                    // Add last page if not visible
-                    if (endPage < totalPages) {
-                      if (endPage < totalPages - 1) {
-                        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
-                      }
-                      pages.push(
-                        <button
-                          key={totalPages}
-                          onClick={() => setInquiryCurrentPage(totalPages)}
-                          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                        >
-                          {totalPages}
-                        </button>
-                      );
-                    }
-                    
-                    return pages;
-                  })()}
-                  
-                  <button
-                    onClick={() => setInquiryCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredInquiries.length / inquiryItemsPerPage)))}
-                    disabled={inquiryCurrentPage === Math.ceil(filteredInquiries.length / inquiryItemsPerPage)}
-                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {filteredInquiries.length === 0 ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-                <div className="text-gray-400">No inquiries found matching your filters.</div>
-              </div>
-            ) : (
-              // Get paginated inquiries
-              (() => {
-                const startIndex = (inquiryCurrentPage - 1) * inquiryItemsPerPage;
-                const endIndex = startIndex + inquiryItemsPerPage;
-                const paginatedInquiries = filteredInquiries.slice(startIndex, endIndex);
-                
-                return paginatedInquiries.map((inquiry) => {
-              const inquiryId = inquiry._id || inquiry.id;
-              const status = inquiry.status || 'sent';
-
-              return (
-                <div key={inquiryId} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-                  {/* Header Row */}
-                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                          #{String(inquiryId).slice(-6)}
-                        </span>
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${status === 'admin_accepted' ? 'bg-yellow-100 text-yellow-800' :
-                            status === 'admin_rejected' ? 'bg-red-100 text-red-800' :
-                              status === 'forwarded' ? 'bg-purple-100 text-purple-800' :
-                                status === 'artist_accepted' ? 'bg-green-100 text-green-800' :
-                                  status === 'artist_rejected' ? 'bg-red-100 text-red-800' :
-                                    status === 'completed' ? 'bg-green-100 text-green-800' :
-                                      'bg-blue-100 text-blue-800'
-                          }`}>
-                          {status.replace('_', ' ')}
-                        </span>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {/* User Info */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
-                          <div className="text-sm text-gray-600">
-                            <div className="font-medium">{inquiry.userId?.name || inquiry.name}</div>
-                            <div className="text-xs text-gray-400">{inquiry.userId?.email || inquiry.email}</div>
-                          </div>
-                        </div>
-
-                        {/* Requirement */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm mb-1">Requirement</h4>
-                          <div className="text-sm text-gray-600">
-                            <div className="font-medium text-gray-700 capitalize">{inquiry.hiringFor}</div>
-                            <div className="text-xs text-gray-500">{inquiry.category} · {renderLocation(inquiry.location)}</div>
-                            {inquiry.budget !== undefined && inquiry.budget !== null && (
-                              <div className="text-xs text-gray-500">Budget: ₹{Number(inquiry.budget).toLocaleString('en-IN')}</div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Event Details */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm mb-1">Event Details</h4>
-                          <div className="text-sm text-gray-600">
-                            {/* Event Type Removed */}
-                            <div className="text-xs text-gray-500 truncate">{inquiry.requirements || '-'}</div>
-                            <div className="text-xs text-gray-500">
-                              {inquiry.eventDate ? new Date(inquiry.eventDate).toLocaleDateString('en-IN') : '-'}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="lg:w-32">
-                      <h4 className="font-semibold text-gray-900 text-sm mb-2">Progress</h4>
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="flex-1 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${inquiry.progressPercentage || 10}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-xs text-gray-600">{inquiry.progressPercentage || 10}%</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Forwarded To Section */}
-                  <div className="mb-4">
-                    <h4 className="font-semibold text-gray-900 text-sm mb-2">Forwarded To</h4>
-                    {(() => {
-                      const isBeingForwarded = (inquiryId === forwardInquiryId);
-                      const currentForwarded = Array.isArray(inquiry.forwardedTo) ? inquiry.forwardedTo : [];
-                      const selectingIds = isBeingForwarded ? Array.from(forwardRecipients) : [];
-
-                      // Filter out selectingIds that are already in currentForwarded
-                      const extraSelectingIds = selectingIds.filter(id =>
-                        !currentForwarded.some(f => (typeof f === 'string' ? f : (f.userId?._id || f.userId || f._id || f.id)) === id)
-                      );
-
-                      const allItemsToDisplay = [...currentForwarded, ...extraSelectingIds];
-
-                      if (allItemsToDisplay.length === 0) {
-                        return <span className="text-gray-400 text-xs italic">Not forwarded</span>;
-                      }
-
-                      return (
-                        <div className="flex flex-wrap gap-2">
-                          {allItemsToDisplay.slice(0, 3).map((item, index) => {
-                            const isSelecting = isBeingForwarded && (typeof item === 'string' && selectingIds.includes(item));
-                            const influencerId = (typeof item === 'object' && item !== null)
-                              ? (item.userId?._id || item.userId || item._id || item.id)
-                              : item;
-
-                            // Try to get influencer details from populated field first, otherwise look in influencers array
-                            const influencer = (typeof item === 'object' && item !== null && item.userId && typeof item.userId === 'object' && (item.userId.fullName || item.userId.name))
-                              ? item.userId
-                              : (typeof item === 'object' && item !== null && (item.fullName || item.name))
-                                ? item
-                                : influencers.find(i => (i._id === influencerId || i.id === influencerId));
-
-                            const name = influencer?.fullName || influencer?.name || influencer?.artistName || (influencerId ? `Influencer ${String(influencerId).slice(-4)}` : 'Unknown');
-                            const category = (influencer?.categories && influencer?.categories.length > 0)
-                              ? influencer.categories[0]
-                              : (influencer?.category || influencer?.profileType || 'N/A');
-
-                            return (
-                              <div key={influencerId || index} className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${isSelecting
-                                  ? 'bg-blue-50 border-blue-200'
-                                  : 'bg-purple-50 border-purple-200'
-                                }`}>
-                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold border transition-colors ${isSelecting
-                                    ? 'bg-blue-100 text-blue-700 border-blue-200'
-                                    : 'bg-purple-100 text-purple-700 border-purple-200'
-                                  }`}>
-                                  {name.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`text-[11px] font-semibold truncate ${isSelecting ? 'text-blue-600' : 'text-gray-700'
-                                      }`}>
-                                      {name}
-                                      {isSelecting && <span className="ml-1 text-[9px] font-normal italic">(Selecting...)</span>}
-                                    </span>
-                                  </div>
-                                  <div className="text-[9px] text-gray-400 font-medium uppercase truncate tracking-wider">{category}</div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {allItemsToDisplay.length > 3 && (
-                            <div className="text-[10px] text-purple-600 font-bold px-3 py-2">
-                              +{allItemsToDisplay.length - 3} more influencers
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                    {status === 'sent' && (
-                      <>
-                        <button
-                          onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
-                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
-                          className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-
-                    {(status === 'admin_accepted' || status === 'forwarded') && (
-                      <button
-                        onClick={() => handleOpenForwardModal(inquiryId)}
-                        className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                      >
-                        Forward
-                      </button>
-                    )}
-
-                    {(status === 'artist_accepted' || status === 'artist_rejected') && (
-                      <button
-                        onClick={() => handleAssignToArtist(inquiryId)}
-                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        Complete
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => handleViewInquiryDetails(inquiry)}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      View Details
-                    </button>
-                  </div>
-                </div>
-              );
-                });
-              })()
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  };
-const renderContacts = () => (
-  <div className="w-full">
-    {/* Header */}
-    <div className={`bg-gradient-to-r ${getCategoryColors(7)} p-6 shadow-lg`}>
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-white">Contact Submissions</h3>
-          <div className="text-white/90 text-sm font-semibold">
-            Total: {contacts.length}
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Content */}
-    <div className="w-full p-6">
-      <div className="max-w-7xl mx-auto space-y-4">
-        {/* Pagination Info */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-            <div className="text-sm text-gray-600">
-              Showing {Math.min((contactCurrentPage - 1) * contactItemsPerPage + 1, contacts.length)} to {Math.min(contactCurrentPage * contactItemsPerPage, contacts.length)} of {contacts.length} contacts
-            </div>
-            
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setContactCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={contactCurrentPage === 1}
-                className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                Previous
-              </button>
-              
-              {(() => {
-                const totalPages = Math.ceil(contacts.length / contactItemsPerPage);
-                const currentPage = contactCurrentPage;
-                const pages = [];
-                
-                // Show max 5 page numbers
-                let startPage = Math.max(1, currentPage - 2);
-                let endPage = Math.min(totalPages, startPage + 4);
-                
-                if (endPage - startPage < 4) {
-                  startPage = Math.max(1, endPage - 4);
-                }
-                
-                // Add first page if not visible
-                if (startPage > 1) {
-                  pages.push(
-                    <button
-                      key={1}
-                      onClick={() => setContactCurrentPage(1)}
-                      className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      1
-                    </button>
-                  );
-                  if (startPage > 2) {
-                    pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
-                  }
-                }
-                
-                // Add page numbers
-                for (let i = startPage; i <= endPage; i++) {
-                  pages.push(
-                    <button
-                      key={i}
-                      onClick={() => setContactCurrentPage(i)}
-                      className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
-                        i === currentPage
-                          ? 'bg-blue-600 text-white border-blue-600'
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {i}
-                    </button>
-                  );
-                }
-                
-                // Add last page if not visible
-                if (endPage < totalPages) {
-                  if (endPage < totalPages - 1) {
-                    pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
-                  }
-                  pages.push(
-                    <button
-                      key={totalPages}
-                      onClick={() => setContactCurrentPage(totalPages)}
-                      className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
-                    >
-                      {totalPages}
-                    </button>
-                  );
-                }
-                
-                return pages;
-              })()}
-              
-              <button
-                onClick={() => setContactCurrentPage(prev => Math.min(prev + 1, Math.ceil(contacts.length / contactItemsPerPage)))}
-                disabled={contactCurrentPage === Math.ceil(contacts.length / contactItemsPerPage)}
-                className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {!contacts || contacts.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-            <div className="text-gray-400">No contact submissions found.</div>
-          </div>
-        ) : (
-          // Get paginated contacts
-          (() => {
-            const startIndex = (contactCurrentPage - 1) * contactItemsPerPage;
-            const endIndex = startIndex + contactItemsPerPage;
-            const paginatedContacts = contacts.slice(startIndex, endIndex);
-            
-            return paginatedContacts.map((contact) => (
-              <div key={contact._id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        Submitted
-                      </span>
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        contact.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        contact.status === 'read' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {contact.status || 'pending'}
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">User Information</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium">{contact.name}</div>
-                          <div className="text-xs text-gray-400">{contact.email}</div>
-                          <div className="text-xs text-gray-400">{contact.phone}</div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Subject</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium truncate">{contact.subject}</div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {new Date(contact.createdAt).toLocaleDateString('en-IN')}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Message Preview</h4>
-                        <div className="text-sm text-gray-600">
-                          <p className="truncate">{contact.message}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
-                  <button
-                    onClick={() => {
-                      setSelectedContact(contact);
-                      setShowContactModal(true);
-                    }}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-semibold transition-colors"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ));
-          })()
-        )}
-      </div>
-    </div>
-
-    {/* Contact Detail Modal */}
-    {showContactModal && selectedContact && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-900">Contact Details</h2>
-            <button
-              onClick={() => setShowContactModal(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="p-6 space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Name</p>
-                <p className="text-lg font-semibold text-gray-900">{selectedContact.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Email</p>
-                <p className="text-lg font-semibold text-gray-900">{selectedContact.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Phone</p>
-                <p className="text-lg font-semibold text-gray-900">{selectedContact.phone}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Submitted On</p>
-                <p className="text-gray-900">{new Date(selectedContact.createdAt).toLocaleString('en-IN')}</p>
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Subject</p>
-              <p className="text-xl font-semibold text-gray-900 mb-4">{selectedContact.subject}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500 font-semibold uppercase mb-2">Message</p>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedContact.message}</p>
-            </div>
-
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-6 flex flex-wrap gap-3">
-              {selectedContact.status !== 'read' && selectedContact.status !== 'resolved' && (
-                <button
-                  onClick={() => handleUpdateContactStatus(selectedContact._id, 'read')}
-                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Mark as Read
-                </button>
-              )}
-              {selectedContact.status !== 'resolved' && (
-                <button
-                  onClick={() => handleUpdateContactStatus(selectedContact._id, 'resolved')}
-                  className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Mark as Resolved
-                </button>
-              )}
-              <button
-                onClick={() => setShowContactModal(false)}
-                className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-semibold transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-);
-
+                            
 
 
   const renderAnalytics = () => (
@@ -2515,109 +1542,7 @@ const renderContacts = () => (
 
 
 
-  const renderUserModal = () => {
-    if (!showUserModal || !selectedUser) return null;
-
-    const userColorIndex = 1; // Indigo/Blue theme
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
-          {/* Modal Header */}
-          <div className={`bg-gradient-to-r ${getCategoryColors(userColorIndex)} p-6 text-white`}>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-bold">
-                  {selectedUser.name?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold">{selectedUser.name}</h3>
-                  <p className="text-white/80 capitalize">{selectedUser.role}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Modal Body */}
-          <div className="p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">Email Address</p>
-                <p className="text-gray-900 font-semibold">{selectedUser.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">User Status</p>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedUser.status === 'active' ? 'bg-green-100 text-green-700' :
-                    selectedUser.status === 'blocked' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                  }`}>
-                  {selectedUser.status || 'Active'}
-                </span>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">Account Created</p>
-                <p className="text-gray-900 font-semibold">
-                  {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString('en-IN', {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                  }) : 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium uppercase tracking-wider mb-1">User ID</p>
-                <p className="text-gray-500 font-mono text-xs">{selectedUser._id || selectedUser.id}</p>
-              </div>
-            </div>
-
-            <div className="pt-6 border-t border-gray-100">
-              <h4 className="text-lg font-bold text-gray-900 mb-4">Management Actions</h4>
-              <div className="flex flex-wrap gap-3">
-                {selectedUser.status !== 'active' && (
-                  <button
-                    onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'unblock')}
-                    className="px-6 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition-colors shadow-lg shadow-green-200"
-                  >
-                    Activate Account
-                  </button>
-                )}
-                {selectedUser.status !== 'blocked' && (
-                  <button
-                    onClick={() => handleUpdateUserStatus(selectedUser._id || selectedUser.id, 'block')}
-                    className="px-6 py-2 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-orange-200"
-                  >
-                    Deactivate Account
-                  </button>
-                )}
-                <button
-                  onClick={() => handleDeleteUser(selectedUser._id || selectedUser.id)}
-                  className="px-6 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-200"
-                >
-                  Delete Permanently
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 px-8 py-4 flex justify-end">
-            <button
-              onClick={() => setShowUserModal(false)}
-              className="px-6 py-2 text-gray-600 font-bold hover:text-gray-900 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
+  
 
 
   if (loading) {
@@ -2975,7 +1900,30 @@ const renderContacts = () => (
 
         {activeTab === 'overview' && renderOverview()}
 
-        {activeTab === 'users' && renderUsers()}
+        {activeTab === 'users' && (
+          <AdminUserManagement
+            users={users}
+            filterRole={filterRole}
+            setFilterRole={setFilterRole}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            userCurrentPage={userCurrentPage}
+            setUserCurrentPage={setUserCurrentPage}
+            userItemsPerPage={userItemsPerPage}
+            selectedUser={selectedUser}
+            setSelectedUser={setSelectedUser}
+            showUserModal={showUserModal}
+            setShowUserModal={setShowUserModal}
+            handleViewUserDetails={handleViewUserDetails}
+            handleUpdateUserStatus={handleUpdateUserStatus}
+            handleDeleteUser={handleDeleteUser}
+            getCategoryColors={getCategoryColors}
+            successMessage={successMessage}
+            setSuccessMessage={setSuccessMessage}
+          />
+        )}
 
         {activeTab === 'influencers' && (
 
@@ -2989,9 +1937,40 @@ const renderContacts = () => (
 
         )}
 
-        {activeTab === 'inquiries' && renderInquiries()}
+        {activeTab === 'inquiries' && (
+          <AdminInquiryManagement
+            inquiries={inquiries}
+            inquiryCurrentPage={inquiryCurrentPage}
+            setInquiryCurrentPage={setInquiryCurrentPage}
+            inquiryItemsPerPage={inquiryItemsPerPage}
+            filterStatusInquiry={filterStatusInquiry}
+            setFilterStatusInquiry={setFilterStatusInquiry}
+            filterDate={filterDate}
+            setFilterDate={setFilterDate}
+            searchTermInquiry={searchTermInquiry}
+            setSearchTermInquiry={setSearchTermInquiry}
+            handleAdminInquiryAction={handleAdminInquiryAction}
+            handleOpenForwardModal={handleOpenForwardModal}
+            handleViewInquiryDetails={handleViewInquiryDetails}
+            handleAssignToInfluencer={handleAssignToInfluencer}
+            getCategoryColors={getCategoryColors}
+          />
+        )}
 
-        {activeTab === 'contacts' && renderContacts()}
+        {activeTab === 'contacts' && (
+          <AdminContactManagement
+            contacts={contacts}
+            contactCurrentPage={contactCurrentPage}
+            setContactCurrentPage={setContactCurrentPage}
+            contactItemsPerPage={contactItemsPerPage}
+            selectedContact={selectedContact}
+            setSelectedContact={setSelectedContact}
+            showContactModal={showContactModal}
+            setShowContactModal={setShowContactModal}
+            handleUpdateContactStatus={handleUpdateContactStatus}
+            getCategoryColors={getCategoryColors}
+          />
+        )}
 
         {activeTab === 'analytics' && renderAnalytics()}
 
@@ -3045,7 +2024,7 @@ const renderContacts = () => (
 
                     <p className="text-white/80 mt-1">
 
-                      {selectedInfluencer.InfluencerType || 'Professional Artist'}
+                      {selectedInfluencer.InfluencerType || 'Professional Influencer'}
 
                     </p>
 
@@ -3209,7 +2188,7 @@ const renderContacts = () => (
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Artist Type</p>
+                      <p className="text-sm text-gray-500">Influencer Type</p>
 
                       <p className="font-medium text-gray-900 capitalize">
 
@@ -3621,7 +2600,7 @@ const renderContacts = () => (
 
                 >
 
-                  {selectedInfluencer.isActive !== false ? 'Deactivate Artist' : 'Activate Artist'}
+                  {selectedInfluencer.isActive !== false ? 'Deactivate Influencer' : 'Activate Influencer'}
 
                 </button>
 
@@ -3633,7 +2612,7 @@ const renderContacts = () => (
 
                 >
 
-                  Edit Artist
+                  Edit Influencer
 
                 </button>
 
@@ -4485,12 +3464,12 @@ const renderContacts = () => (
                               <button
 
                                 onClick={() => {
-                                  const artistIdToUse = influencerData._id || influencerData.id || forward.userId?._id || forward.userId;
-                                  if (!artistIdToUse) {
-                                    alert('Error: Cannot get artist ID. Please refresh and try again.');
+                                  const influencerIdToUse = influencerData._id || influencerData.id || forward.userId?._id || forward.userId;
+                                  if (!influencerIdToUse) {
+                                    alert('Error: Cannot get influencer ID. Please refresh and try again.');
                                     return;
                                   }
-                                  handleAssignToArtist(selectedInquiry._id, String(artistIdToUse));
+                                  handleAssignToInfluencer(selectedInquiry._id, String(influencerIdToUse));
                                 }}
 
                                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
@@ -4679,13 +3658,13 @@ const renderContacts = () => (
 
                       <h2 className="text-2xl font-bold text-white">
 
-                        {selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Unknown Artist'}
+                        {selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Unknown Influencer'}
 
                       </h2>
 
                       <p className="text-white/80 mt-1">
 
-                        {selectedForwardedInfluencer.profileType || selectedForwardedInfluencer.InfluencerType || 'Professional Artist'}
+                        {selectedForwardedInfluencer.profileType || selectedForwardedInfluencer.InfluencerType || 'Professional Influencer'}
 
                       </p>
 
@@ -4693,7 +3672,7 @@ const renderContacts = () => (
 
                         <span className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium bg-white/20 text-white">
 
-                          Artist ID: #{(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id || 'N/A')?.slice(-6)}
+                          Influencer ID: #{(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id || 'N/A')?.slice(-6)}
 
                         </span>
 
@@ -5021,7 +4000,7 @@ const renderContacts = () => (
                         : 'bg-green-600 hover:bg-green-700'
                       }`}
                   >
-                    {selectedForwardedInfluencer.isActive !== false ? 'Deactivate Artist' : 'Activate Artist'}
+                    {selectedForwardedInfluencer.isActive !== false ? 'Deactivate Influencer' : 'Activate Influencer'}
                   </button>
                   <button
                     onClick={() => setShowInfluencerDetailsModal(false)}
@@ -5048,9 +4027,7 @@ const renderContacts = () => (
         </div>
       )}
 
-      {/* Render User Details Modal */}
-      {renderUserModal()}
-
+      
       {/* Success Message Notification */}
       {successMessage && (
         <div className="fixed bottom-8 right-8 z-[100] animate-bounce-in">

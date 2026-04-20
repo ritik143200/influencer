@@ -98,9 +98,37 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
   // Filter and sort influencers
   const filteredInfluencers = influencers
     .filter(influencer => {
-      const searchTarget = (influencer.displayName || influencer.email || '').toLowerCase();
-      const matchesSearch = searchTarget.includes(searchTerm.toLowerCase());
+      // Enhanced search including categories
+      const searchLower = searchTerm.toLowerCase();
+      const nameMatch = (influencer.displayName || influencer.name || '').toLowerCase().includes(searchLower);
+      const emailMatch = (influencer.email || '').toLowerCase().includes(searchLower);
+      const categoryMatch = influencer.categories && influencer.categories.some(cat => 
+        typeof cat === 'string' ? cat.toLowerCase().includes(searchLower) : 
+        (cat.name && cat.name.toLowerCase().includes(searchLower))
+      );
+      const subcategoryMatch = influencer.subcategories && influencer.subcategories.some(sub => 
+        typeof sub === 'string' ? sub.toLowerCase().includes(searchLower) : 
+        (sub.name && sub.name.toLowerCase().includes(searchLower))
+      );
+      const skillsMatch = influencer.skills && influencer.skills.some(skill => 
+        skill.toLowerCase().includes(searchLower)
+      );
+      
+      const matchesSearch = nameMatch || emailMatch || categoryMatch || subcategoryMatch || skillsMatch;
       const matchesStatus = filterStatus === 'all' || influencer.profileCompletionStatus === filterStatus;
+      
+      // Debug log for search (only when searching)
+      if (searchTerm && matchesSearch) {
+        console.log('Influencer Search Match:', {
+          searchTerm,
+          influencerName: influencer.displayName || influencer.name,
+          influencerEmail: influencer.email,
+          categories: influencer.categories,
+          subcategories: influencer.subcategories,
+          skills: influencer.skills,
+          matches: { nameMatch, emailMatch, categoryMatch, subcategoryMatch, skillsMatch }
+        });
+      }
       
       // Check if influencer has basic required information
       const hasBasicInfo = influencer && influencer.email;
@@ -406,7 +434,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             </div>
             <input
               type="text"
-              placeholder="Search by name, email, or category..."
+              placeholder="Search by name, email, category, subcategory, or skills..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 hover:border-orange-300"

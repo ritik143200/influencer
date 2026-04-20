@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import ProfileEditForm from '../components/profile/ProfileEditForm';
@@ -17,6 +17,38 @@ const ProfilePage = ({ config }) => {
   const { user, isAuthenticated, updateUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+  const lastUpdatedRef = useRef(null);
+
+  // Token validation utility
+  const validateToken = () => {
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      return false;
+    }
+    
+    try {
+      // Basic JWT structure validation
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return false;
+      }
+      
+      // Check if token is expired (basic check)
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Date.now() / 1000;
+      
+      if (payload.exp && payload.exp < now) {
+        console.log('Token expired');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      return false;
+    }
+  };
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', username: '', email: '', password: '', phone: '',
     profilePicture: '', profileImage: '', bio: '',
@@ -82,13 +114,30 @@ const ProfilePage = ({ config }) => {
 
   // Seed from localStorage user immediately, then fetch fresh data from API
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || isUpdating) return;
+
+    // Check if token is valid before making API calls
+    if (!validateToken()) {
+      console.log('Invalid token detected, clearing and redirecting to login');
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('loggedInUser');
+      navigate('auth');
+      return;
+    }
 
     // Step 1: seed from cached user
     if (user) setFormData(prev => ({ ...prev, ...normalizeProfile(user) }));
 
-    // Step 2: fetch fresh from DB
+    // Step 2: fetch fresh from DB (only if not recently updated)
     const fetchProfile = async () => {
+      // Skip API call if we just updated the profile (within last 2 seconds)
+      const now = Date.now();
+      if (lastUpdatedRef.current && (now - lastUpdatedRef.current) < 2000) {
+        console.log('Skipping API fetch - profile recently updated');
+        return;
+      }
+
       setProfileLoading(true);
       try {
         const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
@@ -110,7 +159,7 @@ const ProfilePage = ({ config }) => {
     };
 
     fetchProfile();
-  }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isUpdating]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -133,9 +182,28 @@ const ProfilePage = ({ config }) => {
 
 
   const handleSave = async () => {
+    setIsUpdating(true);
     try {
       const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const token = localStorage.getItem('userToken');
+
+      console.log('Profile update - Token check:', { token: !!token, tokenLength: token?.length });
+
+      if (!token || !validateToken()) {
+        setSaveMessage('Authentication error: Please login again');
+        
+        // Clear invalid token and redirect
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        localStorage.removeItem('loggedInUser');
+        
+        setTimeout(() => {
+          navigate('auth');
+        }, 2000);
+        
+        setIsUpdating(false);
+        return;
+      }
 
       // Build the payload with all editable fields
       const payload = {
@@ -163,6 +231,8 @@ const ProfilePage = ({ config }) => {
         payload.password = formData.password;
       }
 
+      console.log('Making profile update request to:', `${API_BASE_URL}/api/influencer/me`);
+
       const response = await fetch(`${API_BASE_URL}/api/influencer/me`, {
         method: 'PUT',
         headers: {
@@ -172,28 +242,60 @@ const ProfilePage = ({ config }) => {
         body: JSON.stringify(payload)
       });
 
+      console.log('Profile update response status:', response.status);
+
       if (response.ok) {
         const result = await response.json();
+        console.log('Profile update success:', result);
         const updatedUser = result.data || { ...user, ...payload };
         // Ensure niche is always array after save
         if (updatedUser.niche && !Array.isArray(updatedUser.niche)) {
           updatedUser.niche = [updatedUser.niche];
         }
+        
+        // Update form data directly without triggering API refresh
+        setFormData(prev => ({ ...prev, ...normalizeProfile(updatedUser) }));
+        
+        // Track last update to prevent unnecessary API calls
+        lastUpdatedRef.current = Date.now();
+        
+        // Update user context
         updateUser(updatedUser);
-        // Keep local form state in sync so the Profile page shows the updated location/niche immediately
-        try {
-          setFormData(prev => ({ ...prev, ...normalizeProfile(updatedUser) }));
-        } catch (e) {
-          // fallback: no-op
-        }
+        
         setSaveMessage('Profile updated successfully!');
       } else {
-        const err = await response.json().catch(() => ({}));
-        setSaveMessage(err.message || 'Update failed. Please try again.');
+        const errorText = await response.text();
+        console.error('Profile update failed:', { status: response.status, errorText });
+        
+        let errorMessage = 'Update failed. Please try again.';
+        try {
+          const err = await response.json();
+          errorMessage = err.message || errorMessage;
+        } catch (e) {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        if (response.status === 401) {
+          errorMessage = 'Authentication error: Please login again';
+          
+          // Clear invalid token and redirect to login
+          localStorage.removeItem('userToken');
+          localStorage.removeItem('userData');
+          localStorage.removeItem('loggedInUser');
+          
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            navigate('auth');
+          }, 2000);
+        }
+        
+        setSaveMessage(errorMessage);
       }
     } catch {
       setSaveMessage('Network error. Changes saved locally only.');
       updateUser(formData);
+    } finally {
+      setIsUpdating(false);
     }
     // Removed setIsEditing(false) to allow individual updates without closing the interface
     setTimeout(() => setSaveMessage(''), 3000);
