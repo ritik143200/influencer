@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
-import { heroSlides, categories } from '../data/mockData';
+import { heroSlides } from '../data/mockData';
 
 const HeroSlider = ({ config }) => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -42,13 +42,16 @@ const HeroSlider = ({ config }) => {
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <button 
-                      onClick={() => navigate('category', { category: categories[0] })}
+                      onClick={() => navigate('explore-influencers')}
                       className="px-6 py-3 sm:px-8 sm:py-4 rounded-full font-semibold text-white shadow-xl hover:shadow-2xl transition-all hover:scale-105 text-sm sm:text-base"
                       style={{ backgroundColor: config.primary_action }}
                     >
                       {config.cta_button_text}
                     </button>
-                    <button className="px-6 py-3 sm:px-8 sm:py-4 rounded-full font-semibold border-2 border-gray-300 hover:border-brand-500 hover:text-brand-600 transition-all text-sm sm:text-base">
+                    <button 
+                      onClick={() => navigate('how-it-works')}
+                      className="px-6 py-3 sm:px-8 sm:py-4 rounded-full font-semibold border-2 border-gray-300 hover:border-brand-500 hover:text-brand-600 transition-all text-sm sm:text-base"
+                    >
                       Watch Demo
                     </button>
                   </div>

@@ -13,7 +13,7 @@ const AboutInfluencersPage = ({ config }) => {
             About ArtistHub - Influencers
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Connecting talented influencers with brands and opportunities worldwide
+            Connect brands  with influencers
           </p>
         </div>
 

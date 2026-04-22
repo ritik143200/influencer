@@ -324,11 +324,11 @@ const AuthPage = ({ initialTab, embedded = false }) => {
               <div className="mb-6">
                 <h1 className="text-4xl font-medium text-brand-500 mb-4 tracking-tight drop-shadow-sm">Indori Influencer</h1>
                 <h2 className="text-2xl text-gray-800 font-medium leading-tight">
-                  Hire the <span className="bg-gradient-to-r from-brand-500 to-orange-500 bg-clip-text text-transparent">Crème de la Crème</span> of Indore's Talent
+                  Hire Top influencers/creaters in india
                 </h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed mb-4">
-                Direct access to the city's most influential creators and storytellers
+               connect with trusted creator who deliver real result
               </p>
               
               {/* Trust Badge */}
@@ -342,9 +342,9 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
             <div className="w-full max-w-md bg-white/40 backdrop-blur-md rounded-[32px] p-8 border border-white/60 shadow-xl space-y-8">
               {[
-                { title: 'Find Amazing Influencers', subtitle: 'Discover talented creators for your brand', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /> },
-                { title: 'Verified Professionals', subtitle: 'All influencers are verified and reviewed', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
-                { title: 'Easy Booking', subtitle: 'Simple and secure booking process', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> }
+                { title: 'Find the right influencers', subtitle: 'Discover creators that perfectly match your brand and audience', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /> },
+                { title: 'Verified & Trusted Creators', subtitle: 'Every influencer is carefully vetted for quality and authenticity', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+                { title: 'Fast & Hassle-Free Campaigns', subtitle: 'Launch campaigns quickly with a smooth, managed process', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center space-x-4 group cursor-default">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-brand-500 group-hover:text-white transition-all duration-300">

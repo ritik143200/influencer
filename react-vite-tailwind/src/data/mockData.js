@@ -54,7 +54,7 @@ export const heroSlides = [
 
 export const defaultConfig = {
   platform_name: 'InfluencerHub',
-  hero_title: 'Discover & Connect with The right Influencers',
+  hero_title: 'Connect brands with The right Influencers',
   hero_subtitle: 'we connect brands with influencers for successful campaigns and help creators get real brand deals.',
   cta_button_text: 'Explore Influencers',
   background_color: '#f9fafb',

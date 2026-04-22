@@ -17,6 +17,7 @@ import FAQPage from './pages/FAQPage';
 import ContactPage from './pages/ContactPage';
 import InfluencerRegistrationPage from './pages/InfluencerRegistrationPage';
 import RegistrationPage from './pages/RegistrationPage';
+import ExploreInfluencersPage from './pages/ExploreInfluencersPage';
 import InquiryPage from './pages/InquiryPage';
 import UserDashboard from './pages/UserDashboard';
 import InfluencerDashboard from './pages/InfluencerDashboard';
@@ -95,6 +96,7 @@ const AppContent = ({ config }) => {
       {currentPath === 'contact' && <ContactPage config={config} />}
       {currentPath === 'reset-password' && <AuthPage />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
+      {currentPath === 'explore-influencers' && <ExploreInfluencersPage config={config} />}
       {currentPath === 'auth/callback' && <AuthCallback />}
       {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && (

@@ -34,6 +34,20 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [fetchingLocation, setFetchingLocation] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      const specialtiesContainer = event.target.closest('[data-specialties-container="true"]');
+      
+      if (!specialtiesContainer) {
+        setShowCategoryPopup(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   // Helper: Reverse geocode lat/lon to city, country using OpenStreetMap Nominatim
   const reverseGeocode = async (lat, lon) => {
     try {
@@ -76,25 +90,40 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   };
 
   const influencerCategories = [
-    { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
-    { id: 'ugc_creator', name: 'UGC Creator', icon: '📱' },
-    { id: 'fashion', name: 'Fashion', icon: '👗' },
-    { id: 'fitness', name: 'Fitness', icon: '💪' },
-    { id: 'travel', name: 'Travel', icon: '✈️' },
-    { id: 'food', name: 'Food', icon: '🍔' },
-    { id: 'tech', name: 'Tech', icon: '💻' },
-    { id: 'finance', name: 'Finance', icon: '💰' },
-    { id: 'gaming', name: 'Gaming', icon: '🎮' },
-    { id: 'education', name: 'Education', icon: '📚' },
-    { id: 'motivation', name: 'Motivation', icon: '🔥' },
-    { id: 'spiritual', name: 'Spiritual', icon: '🧘' },
-    { id: 'actor', name: 'Actor', icon: '🎬' },
-    { id: 'comedian', name: 'Comedian', icon: '😄' },
-    { id: 'model', name: 'Model', icon: '👤' },
-    { id: 'filmmaker', name: 'Filmmaker', icon: '🎥' },
-    { id: 'influencer', name: 'Influencer', icon: '🌟' },
-    { id: 'historical', name: 'Historical', icon: '📜' },
-    { id: 'other', name: 'Other', icon: '📌' }
+    { id: 'lifestyle', name: 'Lifestyle', icon: '??' },
+    { id: 'travel', name: 'Travel', icon: '??' },
+    { id: 'fitness_health', name: 'Fitness & Health', icon: '??' },
+    { id: 'food', name: 'Food (Cooking + Street Food)', icon: '?' },
+    { id: 'technology', name: 'Technology (Unboxing / App Review / Gadgets)', icon: '??' },
+    { id: 'finance_investment', name: 'Finance & Investment (Stock Market)', icon: '?' },
+    { id: 'gaming', name: 'Gaming', icon: '?' },
+    { id: 'education', name: 'Education (Study / Career / Kids Learning)', icon: '?' },
+    { id: 'motivation_growth', name: 'Motivation & Self Growth (Personal Branding)', icon: '?' },
+    { id: 'spiritual_astrology', name: 'Spiritual & Astrology', icon: '?' },
+    { id: 'fashion', name: 'Fashion', icon: '?' },
+    { id: 'comedy_entertainment', name: 'Comedy & Entertainment (Roasting)', icon: '?' },
+    { id: 'historical', name: 'Historical', icon: '?' },
+    { id: 'art_craft', name: 'Art & Craft', icon: '?' },
+    { id: 'ai', name: 'AI', icon: '??' },
+    { id: 'vlogs', name: 'Vlogs', icon: '?' },
+    { id: 'street_interviews', name: 'Street Interviews', icon: '?' },
+    { id: 'ugc_creator', name: 'UGC Creator', icon: '??' },
+    { id: 'influencer', name: 'Influencer', icon: '??' },
+    { id: 'actor', name: 'Actor', icon: '?' },
+    { id: 'model', name: 'Model', icon: '?' },
+    { id: 'filmmaker', name: 'Filmmaker', icon: '?' },
+    { id: 'celebrity', name: 'Celebrity', icon: '?' },
+    { id: 'food_pages', name: 'Food Pages', icon: '?' },
+    { id: 'local_city_pages', name: 'Local City Pages', icon: '?' },
+    { id: 'state_pages', name: 'State Pages', icon: '?' },
+    { id: 'meme_pages', name: 'Meme Pages', icon: '?' },
+    { id: 'music_pages', name: 'Music Pages', icon: '?' },
+    { id: 'celebrity_pages', name: 'Celebrity Pages', icon: '?' },
+    { id: 'motivation_pages', name: 'Motivation Pages', icon: '?' },
+    { id: 'devotional_pages', name: 'Devotional Pages', icon: '?' },
+    { id: 'media_pages', name: 'Media Pages', icon: '?' },
+    { id: 'political_pages', name: 'Political Pages', icon: '?' },
+    { id: 'other', name: 'Other', icon: '?' }
   ];
 
   const handleInputChange = (field, value) => {
@@ -114,11 +143,14 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   };
 
   const toggleCategory = (categoryId) => {
+    console.log('Toggling category:', categoryId);
     setFormData(prev => {
       const currentCategories = prev.categories || [];
       const newCategories = currentCategories.includes(categoryId)
         ? currentCategories.filter(id => id !== categoryId)
         : [...currentCategories, categoryId];
+      console.log('Categories before:', currentCategories);
+      console.log('Categories after:', newCategories);
       return { ...prev, categories: newCategories };
     });
     setError('');
@@ -308,11 +340,11 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
               <div className="mb-6">
                 <h1 className="text-4xl font-medium text-orange-500 mb-4 tracking-tight drop-shadow-sm">Indori Influencer</h1>
                 <h2 className="text-2xl text-gray-800 font-medium leading-tight">
-                  Turn Your <span className="bg-gradient-to-r from-orange-500 to-brand-500 bg-clip-text text-transparent opacity-90">Influence</span> into a Professional Career
+                  Turn Your <span className="bg-gradient-to-r from-orange-500 to-brand-500 bg-clip-text text-transparent opacity-90">Influence</span> into real income
                 </h2>
               </div>
               <p className="text-lg text-gray-600 leading-relaxed mb-4">
-                Direct access to top brands and local business partnerships
+                get paid collaboration with top brands
               </p>
               
               {/* Trust Badge */}
@@ -326,9 +358,9 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
             <div className="w-full max-w-md bg-white/40 backdrop-blur-md rounded-[32px] p-8 border border-white/60 shadow-xl space-y-8">
               {[
-                { title: 'Collaborate with Top Brands', subtitle: 'Work with the best businesses in Indore', icon: '🤝' },
-                { title: 'Monetize Your Content', subtitle: 'Get paid for your creativity and reach', icon: '💰' },
-                { title: 'Grow Your Audience', subtitle: 'Tools to expand your social presence', icon: '📈' }
+                { title: 'work with Top Brands', subtitle: 'Collaborate with leading brands and high-growth businesses in India', icon: '🤝' },
+                { title: 'Monetize Your Content', subtitle: 'Get paid for your creativity, reach, and influence', icon: '💰' },
+                { title: 'Grow Your Audience', subtitle: 'Access tools and support to scale your audience and engagement', icon: '📈' }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center space-x-4 group cursor-default">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
@@ -497,26 +529,135 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
                 </div>
 
                 {/* Categories */}
-                <div className="space-y-2">
+                <div className="space-y-2 relative" data-specialties-container="true">
                   <label className="block text-sm font-medium text-gray-700 ml-1">Specialties (Select up to 3)</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowCategoryPopup(true)}
-                    className="w-full min-h-[56px] px-4 py-3 bg-gray-50 border-none rounded-2xl flex flex-wrap items-center gap-2 hover:bg-gray-100 transition-all text-left shadow-sm"
-                  >
-                    {!formData.categories || formData.categories.length === 0 ? (
-                      <span className="text-gray-400">What's your niche?</span>
-                    ) : (
-                      formData.categories.map(catId => {
-                        const category = influencerCategories.find(c => c.id === catId);
-                        return (
-                          <span key={catId} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-xl text-sm font-bold flex items-center gap-1 border border-orange-200">
-                            {category?.icon} {category?.name}
-                          </span>
-                        );
-                      })
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h12M3 17h18" />
+                      </svg>
+                    </div>
+                    <div 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowCategoryPopup(!showCategoryPopup);
+                      }}
+                      className="w-full min-h-[56px] pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50/30 shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white appearance-none cursor-pointer transition-all duration-200 font-medium text-gray-800"
+                    >
+                      {!formData.categories || formData.categories.length === 0 ? (
+                        <span className="text-gray-400">Select Specialties</span>
+                      ) : (
+                        <div className="flex flex-wrap items-center gap-2">
+                          {formData.categories.map(catId => {
+                            const category = influencerCategories.find(c => c.id === catId);
+                            return (
+                              <span key={catId} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-xl text-sm font-bold flex items-center gap-1 border border-orange-200">
+                                {category?.icon} {category?.name}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 group-hover:text-gray-600 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    
+                    {/* Dropdown positioned exactly below input */}
+                    {showCategoryPopup && (
+                      <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-4">
+                          <div className="text-sm font-medium text-gray-700 mb-3">Select up to 3 specialties</div>
+                          
+                          {/* Search Bar */}
+                          <div className="relative mb-3">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                              </svg>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Search specialties..."
+                              value={categorySearchQuery}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                setCategorySearchQuery(e.target.value);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm text-gray-700 placeholder-gray-400"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {influencerCategories
+                              .filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase()))
+                              .map(category => {
+                                const isSelected = formData.categories?.includes(category.id);
+                                const canSelect = !formData.categories || formData.categories.length < 3;
+                                return (
+                                  <label
+                                    key={category.id}
+                                    className={`
+                                      flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200
+                                      ${isSelected 
+                                        ? 'bg-orange-50 border border-orange-200' 
+                                        : canSelect 
+                                          ? 'hover:bg-gray-50 border border-transparent' 
+                                          : 'opacity-50 cursor-not-allowed'
+                                      }
+                                    `}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      disabled={!canSelect && !isSelected}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        toggleCategory(category.id);
+                                      }}
+                                      className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                                    />
+                                    <div className="flex items-center gap-2 flex-1">
+                                      <span className="text-lg">{category.icon}</span>
+                                      <span className="text-sm font-medium text-gray-700">{category.name}</span>
+                                    </div>
+                                    {isSelected && (
+                                      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                    )}
+                                  </label>
+                                );
+                              })}
+                            {influencerCategories.filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 && (
+                              <div className="text-center py-4 text-gray-500 text-sm">
+                                <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <p>No specialties found matching "{categorySearchQuery}"</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs text-gray-500">
+                                {formData.categories?.length || 0} / 3 selected
+                              </div>
+                              <button
+                                onClick={() => setShowCategoryPopup(false)}
+                                className="text-sm font-medium text-orange-600 hover:text-orange-700"
+                              >
+                                Done
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </div>
 
                 {/* Social Links */}
@@ -618,101 +759,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         </div>
       </div>
 
-      {/* Category Selection Modal */}
-      {showCategoryPopup && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-          <div className="bg-white rounded-[40px] shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="p-8 border-b border-gray-200 flex flex-col gap-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-medium text-textPrimary">Choose Influencer Categories</h2>
-                  <p className="text-textSecondary text-sm">Select up to 3 categories that best describe you</p>
-                </div>
-                <button
-                  onClick={() => setShowCategoryPopup(false)}
-                  className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 hover:text-orange-500 hover:bg-orange-50 transition-all"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Search Filter */}
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-textSecondary">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  placeholder="Search categories (e.g. Fashion, Fitness, Tech...)"
-                  value={categorySearchQuery}
-                  onChange={(e) => setCategorySearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all placeholder-gray-400 text-gray-700"
-                />
-              </div>
-            </div>
-
-            {/* Modal Body: Scrollable Grid */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {influencerCategories
-                  .filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase()))
-                  .map(category => (
-                    <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.id)}
-                      className={`relative p-5 rounded-[24px] border-2 flex flex-col items-center justify-center gap-3 transition-all duration-300 ${formData.categories && formData.categories.includes(category.id)
-                        ? 'border-orange-500 bg-orange-50 shadow-md scale-[1.02]'
-                        : 'border-gray-100 bg-white hover:border-orange-200 hover:bg-orange-50 hover:shadow-lg hover:scale-[1.02]'
-                        }`}
-                    >
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl mb-1 transition-all ${formData.categories && formData.categories.includes(category.id) ? 'bg-orange-200 scale-110' : 'bg-gray-100'
-                        }`}>
-                        {category.icon}
-                      </div>
-                      <span className={`text-xs font-medium text-center leading-tight ${formData.categories && formData.categories.includes(category.id) ? 'text-orange-600' : 'text-gray-600'}`}>
-                        {category.name}
-                      </span>
-                      {formData.categories && formData.categories.includes(category.id) && (
-                        <div className="absolute top-3 right-3 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-200 scale-110 animate-in zoom-in duration-300">
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                {influencerCategories.filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 && (
-                  <div className="col-span-full py-12 text-center text-gray-500">
-                    <p>No categories found matching "{categorySearchQuery}"</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-8 border-t border-gray-200 flex items-center justify-between bg-gray-50">
-              <div className="text-sm font-medium text-gray-600">
-                <span className={formData.categories && formData.categories.length === 3 ? 'text-orange-500' : 'text-gray-600'}>
-                  {formData.categories ? formData.categories.length : 0}
-                </span>
-                /3 Selected
-              </div>
-              <button
-                onClick={() => setShowCategoryPopup(false)}
-                className="px-10 py-4 bg-orange-500 text-white rounded-2xl font-medium shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all active:scale-95"
-              >
-                Done Selection
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      
+            
     </div>
     
   );

@@ -87,11 +87,38 @@ const Footer = ({ config }) => {
             © 2024 {config.platform_name}. All rights reserved.
           </p>
           <div className="flex gap-4">
-            {['Twitter', 'Instagram', 'LinkedIn', 'YouTube'].map((social, i) => (
-              <a key={i} href="#" className="text-gray-400 hover:text-white transition-colors text-sm">
-                {social}
-              </a>
-            ))}
+            <a 
+              href="https://www.instagram.com/viralmantrix?igsh=MTBkMzBjM28zMWd5bg%3D%3D" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              Instagram
+            </a>
+            <a 
+              href="https://x.com/ViralMantrix" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              Twitter
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/viral-mantrix-3563a3405/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              LinkedIn
+            </a>
+            <a 
+              href="https://youtube.com/@viralmantrix?si=pj9mwyESigyGLh9_" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-gray-400 hover:text-white transition-colors text-sm"
+            >
+              YouTube
+            </a>
           </div>
         </div>
       </div>

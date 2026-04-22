@@ -37,7 +37,7 @@ const CategoryCircles = ({ config }) => {
     {
       id: 'fast',
       icon: '⚡',
-      title: 'Faster Discovery',
+      title: 'Launch Compaingns Faster',
       description: 'lanuch campaigns quickly and connect with the real creators.'
     },
     {

@@ -17,6 +17,47 @@ const HowItWorksPage = ({ config }) => {
           </p>
         </div>
 
+        <div className="mb-20">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: config.text_color }}>
+              Watch How It Works
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Quick walkthrough of the platform experience for brands and creators.
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
+              <div className="relative w-full aspect-video bg-black">
+                <video
+                  className="w-full h-full"
+                  controls
+                  preload="metadata"
+                  src="https://www.w3schools.com/html/mov_bbb.mp4"
+                />
+              </div>
+              <div className="p-6 sm:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-semibold text-gray-500">Sample Video</div>
+                    <div className="text-lg font-bold" style={{ color: config.text_color }}>
+                      Platform Overview
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('registration', { type: 'user' })}
+                    className="px-6 py-3 rounded-2xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    style={{ backgroundColor: config.primary_action }}
+                  >
+                    Get Started
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Interactive Timeline Design */}
         <div className="relative mb-20">
           {/* Main Timeline Line - Hidden on mobile */}
@@ -159,7 +200,7 @@ const HowItWorksPage = ({ config }) => {
                 <h3 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
                   For Influencers & Creators
                 </h3>
-                <p className="text-gray-600">Showcase your content and grow your brand</p>
+                <p className="text-gray-600">Showcase your content and get brand deals</p>
               </div>
               
               {/* Hexagon Flow */}
