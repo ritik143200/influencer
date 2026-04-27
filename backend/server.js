@@ -7,6 +7,9 @@ dotenv.config();
 
 const session = require('express-session');
 const passport = require('./config/passport');
+const rateLimit = require('express-rate-limit');
+const Redis = require('ioredis');
+const RedisStore = require('connect-redis')(session);
 
 const path = require('path');
 const fs = require('fs');
@@ -24,6 +27,13 @@ const connectDB = require('./config/db');
 
 const app = express();
 
+// Rate limiter (basic)
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100
+});
+app.use(limiter);
+
 // Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || "http://localhost:5173",
@@ -33,7 +43,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Session for Passport
-app.use(session({
+// Optional Redis-backed session store when REDIS_URL is provided
+let redisClient;
+if (process.env.REDIS_URL) {
+  redisClient = new Redis(process.env.REDIS_URL);
+  redisClient.on('connect', () => console.log('Connected to Redis'));
+  redisClient.on('error', err => console.error('Redis error', err));
+}
+
+const sessionOptions = {
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
@@ -42,7 +60,13 @@ app.use(session({
     sameSite: 'lax',
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
-}));
+};
+
+if (redisClient) {
+  sessionOptions.store = new RedisStore({ client: redisClient });
+}
+
+app.use(session(sessionOptions));
 
 // Initialize Passport
 app.use(passport.initialize());

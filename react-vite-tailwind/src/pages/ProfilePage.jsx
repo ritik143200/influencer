@@ -75,8 +75,9 @@ const ProfilePage = ({ config }) => {
 
   // Helper to normalize raw API/user data into formData shape
   const normalizeProfile = (src) => ({
-    fullName: src.fullName || '',
-    username: src.username || '',
+    fullName: src.fullName || `${src.firstName || ''} ${src.lastName || ''}`.trim() || '',
+    firstName: src.firstName || '',
+    lastName: src.lastName || '',
     email: src.email || '',
     phone: src.phone || '',
     password: '',
@@ -86,7 +87,7 @@ const ProfilePage = ({ config }) => {
     location: typeof src.location === 'string'
       ? { city: src.location, country: '' }
       : { city: src?.location?.city || '', country: src?.location?.country || '' },
-    niche: Array.isArray(src.niche) ? src.niche : (src.niche ? [src.niche] : []),
+    niche: Array.isArray(src.niche) ? src.niche : (src.niche ? [src.niche] : (src.categories ? src.categories : [])),
     category: src.category || '',
     experience: src.experience || '',
     subcategories: src.subcategories || [],

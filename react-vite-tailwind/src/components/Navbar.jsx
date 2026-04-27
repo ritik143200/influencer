@@ -44,9 +44,9 @@ const Navbar = ({ config }) => {
             onClick={() => navigate('home')}
           >
             <img
-              src="/IndoriArtist_Logo.avif"
+              src="/IndoriArtist_Logo.png"
               alt="Indori Influencer"
-              className="h-8 w-auto sm:h-10 lg:h-12"
+              className="max-h-full w-36 sm:w-44 lg:w-56 object-contain self-center h-auto"
               onError={(e) => {
                 e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='%233b82f6'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
               }}

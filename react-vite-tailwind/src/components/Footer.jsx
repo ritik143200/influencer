@@ -48,15 +48,15 @@ const Footer = ({ config }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center mb-4">
-              <img 
-                src="/footer.png" 
-                alt={config.platform_name} 
-                className="h-16 w-auto object-contain cursor-pointer" 
-                onClick={() => navigate('home')}
-                onError={(e) => {
-                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='white'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
-                }}
-              />
+                <img 
+                  src="/footer.png" 
+                  alt={config.platform_name} 
+                  className="max-h-full w-36 sm:w-44 lg:w-56 object-contain self-center h-auto cursor-pointer"
+                  onClick={() => navigate('home')}
+                  onError={(e) => {
+                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='white'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
+                  }}
+                />
             </div>
             <p className="text-gray-400 text-sm">
               Connecting creators and brands with trusted collaboration tools worldwide.

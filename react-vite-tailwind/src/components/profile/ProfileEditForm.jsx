@@ -4,8 +4,46 @@ import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 // Small helper to safely read env base
 const getApiBase = () => (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
+// Same categories as used in InfluencerRegistrationPage for consistency
+const influencerCategories = [
+    { id: 'lifestyle', name: 'Lifestyle', icon: '✨' },
+    { id: 'travel', name: 'Travel', icon: '✈️' },
+    { id: 'fitness_health', name: 'Fitness & Health', icon: '💪' },
+    { id: 'food', name: 'Food (Cooking + Street Food)', icon: '🍔' },
+    { id: 'technology', name: 'Technology (Unboxing / App Review / Gadgets)', icon: '💻' },
+    { id: 'finance_investment', name: 'Finance & Investment (Stock Market)', icon: '💰' },
+    { id: 'gaming', name: 'Gaming', icon: '🎮' },
+    { id: 'education', name: 'Education (Study / Career / Kids Learning)', icon: '📚' },
+    { id: 'motivation_growth', name: 'Motivation & Self Growth (Personal Branding)', icon: '🔥' },
+    { id: 'spiritual_astrology', name: 'Spiritual & Astrology', icon: '🧘' },
+    { id: 'fashion', name: 'Fashion', icon: '👗' },
+    { id: 'comedy_entertainment', name: 'Comedy & Entertainment (Roasting)', icon: '😂' },
+    { id: 'historical', name: 'Historical', icon: '📜' },
+    { id: 'art_craft', name: 'Art & Craft', icon: '🎨' },
+    { id: 'ai', name: 'AI', icon: '🤖' },
+    { id: 'vlogs', name: 'Vlogs', icon: '📹' },
+    { id: 'street_interviews', name: 'Street Interviews', icon: '🎤' },
+    { id: 'ugc_creator', name: 'UGC Creator', icon: '📱' },
+    { id: 'influencer', name: 'Influencer', icon: '⭐' },
+    { id: 'actor', name: 'Actor', icon: '🎬' },
+    { id: 'model', name: 'Model', icon: '💃' },
+    { id: 'filmmaker', name: 'Filmmaker', icon: '🎥' },
+    { id: 'celebrity', name: 'Celebrity', icon: '🌟' },
+    { id: 'food_pages', name: 'Food Pages', icon: '🍕' },
+    { id: 'local_city_pages', name: 'Local City Pages', icon: '🏙️' },
+    { id: 'state_pages', name: 'State Pages', icon: '🗺️' },
+    { id: 'meme_pages', name: 'Meme Pages', icon: '😂' },
+    { id: 'music_pages', name: 'Music Pages', icon: '🎵' },
+    { id: 'celebrity_pages', name: 'Celebrity Pages', icon: '👑' },
+    { id: 'motivation_pages', name: 'Motivation Pages', icon: '💪' },
+    { id: 'devotional_pages', name: 'Devotional Pages', icon: '🙏' },
+    { id: 'media_pages', name: 'Media Pages', icon: '📺' },
+    { id: 'political_pages', name: 'Political Pages', icon: '🏛️' },
+    { id: 'other', name: 'Other', icon: '📌' }
+  ];
+
 const ARTIST_NICHES = ['Singer', 'Dancer', 'Musician', 'Painter', 'Photographer', 'Actor', 'Comedian', 'Magician', 'DJ', 'Makeup Artist', 'Fashion Designer', 'Writer'];
-const INFLUENCER_NICHES = ['Lifestyle', 'UGC Creator', 'Fashion', 'Fitness', 'Travel', 'Food', 'Tech', 'Finance', 'Gaming', 'Education', 'Motivation', 'Spiritual', 'Actor', 'Comedian', 'Model', 'Filmmaker', 'Influencer', 'Historical'];
+const INFLUENCER_NICHES = influencerCategories.map(c => c.name);
 const PLATFORM_LIST = ['instagram', 'youtube', 'facebook'];
 
 const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
