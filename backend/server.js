@@ -9,7 +9,7 @@ const session = require('express-session');
 const passport = require('./config/passport');
 const rateLimit = require('express-rate-limit');
 const Redis = require('ioredis');
-const RedisStore = require('connect-redis')(session);
+const RedisStore = require('connect-redis').default;
 
 const path = require('path');
 const fs = require('fs');
