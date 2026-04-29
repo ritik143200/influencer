@@ -265,7 +265,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               onClick={() => setShowDetailsModal(false)} 
               className="text-gray-500 hover:text-gray-700 text-2xl"
             >
-              ×
+              
             </button>
           </div>
           
@@ -308,8 +308,8 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   <div className="space-y-2 text-sm">
                     <div><strong>Profile Type:</strong> {selectedInfluencer.profileType}</div>
                     <div><strong>Categories:</strong> {selectedInfluencer.categories?.length > 0 ? selectedInfluencer.categories.join(', ') : (selectedInfluencer.category || 'None')}</div>
-                    <div><strong>Subcategories:</strong> {selectedInfluencer.subcategories?.join(', ') || 'None'}</div>
-                    <div><strong>Skills:</strong> {selectedInfluencer.skills?.join(', ') || 'None'}</div>
+                    {/* <div><strong>Subcategories:</strong> {selectedInfluencer.subcategories?.join(', ') || 'None'}</div> */}
+                    {/* <div><strong>Skills:</strong> {selectedInfluencer.skills?.join(', ') || 'None'}</div> */}
                   </div>
                 </div>
 
@@ -344,7 +344,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             </div>
 
             {/* Portfolio */}
-            <div>
+            {/* <div>
               <h5 className="font-semibold text-gray-700 mb-2">Portfolio ({selectedInfluencer.portfolio?.length || 0} items)</h5>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {selectedInfluencer.portfolio?.length > 0 ? (
@@ -365,7 +365,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
 
             {/* System Information */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -378,8 +378,8 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 <div>{new Date(selectedInfluencer.lastUpdated).toLocaleDateString()}</div>
               </div>
               <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Profile Views</div>
-                <div>{selectedInfluencer.profileViews?.toLocaleString() || 0}</div>
+                {/* <div className="font-semibold text-gray-700">Profile Views</div> */}
+                {/* <div>{selectedInfluencer.profileViews?.toLocaleString() || 0}</div> */}
               </div>
             </div>
 

@@ -132,7 +132,8 @@ function App() {
       <div className="h-full flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">
-            Indori Influencer
+            {/* Indori Influencer */}
+            Viralमंत्रX
           </div>
           <p className="text-gray-500">Loading...</p>
         </div>

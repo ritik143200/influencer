@@ -14,8 +14,8 @@ const HeroSlider = ({ config }) => {
   }, []);
 
   return (
-    <section className="relative pt-20 lg:pt-24 overflow-hidden">
-      <div className="relative min-h-[500px] lg:min-h-[600px]">
+    <section className="relative pt-0 overflow-hidden">
+      <div className="relative min-h-[500px] lg:min-h-[600px] mt-16 lg:mt-20">
         {heroSlides.map((slide, index) => (
           <div
             key={slide.id}
@@ -24,7 +24,7 @@ const HeroSlider = ({ config }) => {
             }`}
           >
             <div className={`absolute inset-0 bg-gradient-to-br ${slide.gradient} opacity-10`} />
-            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
                 <div className="space-y-6 animate-fadeIn">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-100 text-brand-700 font-medium">
