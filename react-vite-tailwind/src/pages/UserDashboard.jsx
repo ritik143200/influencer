@@ -314,170 +314,134 @@ const UserDashboard = ({ config }) => {
       inq.adminStatus === 'completed' || inq.status === 'completed'
     ).length;
 
+    const activeInquiries = Math.max(0, totalInquiries - completedByAdmin - rejectedByInfluencer - rejectedByAdmin);
+    const totalRejected = rejectedByInfluencer + rejectedByAdmin;
+    const successRate = totalInquiries > 0 ? Math.round((completedByAdmin / totalInquiries) * 100) : 0;
+
+    const journeySteps = [
+      { label: 'Sent', desc: 'You submitted', count: totalInquiries, color: 'bg-blue-500', light: 'bg-blue-50 text-blue-700' },
+      { label: 'Forwarded', desc: 'To influencer', count: pendingInquiries, color: 'bg-purple-500', light: 'bg-purple-50 text-purple-700' },
+      { label: 'Influencer OK', desc: 'Accepted', count: acceptedByInfluencer, color: 'bg-amber-500', light: 'bg-amber-50 text-amber-700' },
+      { label: 'Admin Confirmed', desc: 'Approved', count: acceptedByAdmin, color: 'bg-indigo-500', light: 'bg-indigo-50 text-indigo-700' },
+      { label: 'Completed', desc: 'Event done', count: completedByAdmin, color: 'bg-green-500', light: 'bg-green-50 text-green-700' },
+    ];
+
     return (
-    <>
-      {/* Comprehensive Inquiry Tracking Header */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">📊 Complete Inquiry Tracking</h3>
-          <div className="text-sm text-gray-500">
-            Welcome, <span className="font-bold text-gray-800">{userData?.name || userData?.fullName || 'User'}</span>
-          </div>
-        </div>
-        
-        {/* Quick Overview Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600 mb-1">{totalInquiries}</div>
-            <div className="text-sm text-gray-600">Total Inquiries</div>
-            <div className="text-xs text-gray-500">All requests sent</div>
-          </div>
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-600 mb-1">{acceptedByInfluencer + acceptedByAdmin}</div>
-            <div className="text-sm text-gray-600">Total Accepted</div>
-            <div className="text-xs text-gray-500">By influencer + admin</div>
-          </div>
-          <div className="text-center p-4 bg-red-50 rounded-lg">
-            <div className="text-2xl font-bold text-red-600 mb-1">{rejectedByInfluencer + rejectedByAdmin}</div>
-            <div className="text-sm text-gray-600">Total Rejected</div>
-            <div className="text-xs text-gray-500">By influencer + admin</div>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-6">
 
-      {/* Detailed Status Breakdown - 6 Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* 1. Total Inquiries */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{totalInquiries}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">📨 Total Inquiries</h3>
-          <p className="text-xs text-gray-500 mt-1">All inquiries submitted by you</p>
-        </div>
-
-        {/* 2. Accepted by Influencer */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{acceptedByInfluencer}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">✅ Accepted by Influencer</h3>
-          <p className="text-xs text-gray-500 mt-1">Influencer approved your requests</p>
-        </div>
-
-        {/* 3. Rejected by Influencer */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{rejectedByInfluencer}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">❌ Rejected by Influencer</h3>
-          <p className="text-xs text-gray-500 mt-1">Influencer declined your requests</p>
-        </div>
-
-        {/* 4. Confirmed by Admin */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{acceptedByAdmin}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">🎯 Confirmed by Admin</h3>
-          <p className="text-xs text-gray-500 mt-1">Admin approved your requests</p>
-        </div>
-
-        {/* 5. Rejected by Admin */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h-6m-6 0h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2m0 4h6m-6 0h6v2" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{rejectedByAdmin}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">🚫 Rejected by Admin</h3>
-          <p className="text-xs text-gray-500 mt-1">Admin declined your requests</p>
-        </div>
-
-        {/* 6. Completed by Admin */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <span className="text-2xl font-bold text-gray-800">{completedByAdmin}</span>
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium">🎉 Completed by Admin</h3>
-          <p className="text-xs text-gray-500 mt-1">Admin completed your inquiries</p>
-        </div>
-      </div>
-
-      {/* Performance Metrics */}
-      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-6">📈 Performance Analytics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Left Column */}
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-brand-500 to-orange-400 rounded-2xl p-6 text-white shadow-lg">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Influencer Acceptance Rate</span>
-                <span className="text-lg font-bold text-green-600">
-                  {totalInquiries > 0 ? Math.round((acceptedByInfluencer / totalInquiries) * 100) : 0}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Admin Confirmation Rate</span>
-                <span className="text-lg font-bold text-indigo-600">
-                  {totalInquiries > 0 ? Math.round((acceptedByAdmin / totalInquiries) * 100) : 0}%
-                </span>
-              </div>
-            </div>
+            <p className="text-white/75 text-sm font-medium mb-1">Welcome back 👋</p>
+            <h2 className="text-2xl font-bold">{userData?.name || 'User'}</h2>
+            <p className="text-white/70 text-sm mt-1">Here's your inquiry activity at a glance</p>
           </div>
-          
-          {/* Right Column */}
-          <div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Overall Success Rate</span>
-                <span className="text-lg font-bold text-blue-600">
-                  {totalInquiries > 0 ? Math.round(((acceptedByInfluencer + acceptedByAdmin) / totalInquiries) * 100) : 0}%
-                </span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="text-sm text-gray-600">Total Completed</span>
-                <span className="text-lg font-bold text-purple-600">
-                  {completedByAdmin}
-                </span>
-              </div>
-            </div>
+          <div className="bg-white/15 rounded-xl px-5 py-3 text-center">
+            <div className="text-4xl font-black">{successRate}%</div>
+            <div className="text-white/75 text-xs mt-1">Success Rate</div>
           </div>
         </div>
       </div>
-    </>
-  );
-};
+
+      {/* 4 Primary Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Inquiries', value: totalInquiries, sub: 'All requests sent', iconBg: 'bg-blue-100', iconColor: 'text-blue-600', valColor: 'text-blue-700', border: 'border-blue-100',
+            icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /> },
+          { label: 'Active', value: activeInquiries, sub: 'In progress', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', valColor: 'text-amber-700', border: 'border-amber-100',
+            icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> },
+          { label: 'Completed', value: completedByAdmin, sub: 'Successfully done', iconBg: 'bg-green-100', iconColor: 'text-green-600', valColor: 'text-green-700', border: 'border-green-100',
+            icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+          { label: 'Rejected', value: totalRejected, sub: 'Declined requests', iconBg: 'bg-red-100', iconColor: 'text-red-500', valColor: 'text-red-600', border: 'border-red-100',
+            icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /> },
+        ].map((card) => (
+          <div key={card.label} className={`bg-white rounded-2xl p-5 border shadow-sm hover:shadow-md transition-shadow ${card.border}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className={`w-11 h-11 ${card.iconBg} rounded-xl flex items-center justify-center ${card.iconColor}`}>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">{card.icon}</svg>
+              </div>
+              <span className={`text-3xl font-black ${card.valColor}`}>{card.value}</span>
+            </div>
+            <p className="text-sm font-semibold text-gray-800">{card.label}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Journey Tracker */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-6">
+          <div className="w-1 h-6 rounded-full bg-brand-500" />
+          <h3 className="text-base font-bold text-gray-800">Inquiry Journey</h3>
+          <span className="ml-auto text-xs text-gray-400">Step-by-step flow</span>
+        </div>
+        {/* Desktop */}
+        <div className="hidden sm:flex items-start">
+          {journeySteps.map((step, i) => (
+            <div key={step.label} className="flex-1 flex flex-col items-center relative">
+              {i < journeySteps.length - 1 && (
+                <div className={`absolute top-5 left-1/2 w-full h-0.5 ${step.count > 0 ? step.color : 'bg-gray-200'}`} />
+              )}
+              <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm ${step.count > 0 ? step.color : 'bg-gray-200'}`}>
+                {step.count > 0 ? step.count : <span className="text-gray-400 text-xs">—</span>}
+              </div>
+              <p className="text-xs font-semibold text-gray-700 mt-2 text-center px-1">{step.label}</p>
+              <p className="text-[10px] text-gray-400 text-center mt-0.5">{step.desc}</p>
+            </div>
+          ))}
+        </div>
+        {/* Mobile */}
+        <div className="flex sm:hidden flex-col gap-3">
+          {journeySteps.map((step) => (
+            <div key={step.label} className="flex items-center gap-4">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${step.count > 0 ? step.color : 'bg-gray-200'}`}>
+                {step.count > 0 ? step.count : '—'}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-800">{step.label}</p>
+                <p className="text-xs text-gray-500">{step.desc}</p>
+              </div>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${step.count > 0 ? step.light : 'bg-gray-100 text-gray-400'}`}>{step.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Detailed Status Breakdown */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-1 h-6 rounded-full bg-brand-500" />
+          <h3 className="text-base font-bold text-gray-800">Status Breakdown</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {[
+            { label: 'Pending / Sent', count: pendingInquiries, badge: 'bg-blue-50 text-blue-700', dot: 'bg-blue-400', desc: 'Awaiting influencer response' },
+            { label: 'Accepted by Influencer', count: acceptedByInfluencer, badge: 'bg-green-50 text-green-700', dot: 'bg-green-500', desc: 'Influencer approved your request' },
+            { label: 'Rejected by Influencer', count: rejectedByInfluencer, badge: 'bg-red-50 text-red-600', dot: 'bg-red-400', desc: 'Influencer declined your request' },
+            { label: 'Confirmed by Admin', count: acceptedByAdmin, badge: 'bg-indigo-50 text-indigo-700', dot: 'bg-indigo-500', desc: 'Admin approved your request' },
+            { label: 'Rejected by Admin', count: rejectedByAdmin, badge: 'bg-orange-50 text-orange-700', dot: 'bg-orange-400', desc: 'Admin declined your request' },
+            { label: 'Completed', count: completedByAdmin, badge: 'bg-purple-50 text-purple-700', dot: 'bg-purple-500', desc: 'Event successfully completed' },
+          ].map((item) => (
+            <div key={item.label} className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+              <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.dot}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800 truncate">{item.label}</p>
+                <p className="text-[11px] text-gray-400 truncate">{item.desc}</p>
+              </div>
+              <span className={`px-2.5 py-1 rounded-full text-sm font-black flex-shrink-0 ${item.badge}`}>{item.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    </div>
+    );
+  };
 
   // Booking-related UI removed
+
+
 
 
   const renderInquiries = () => {

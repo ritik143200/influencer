@@ -21,6 +21,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const inquiryRoutes = require('./routes/inquiryRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const cityRoutes = require('./routes/cityRoutes');
 
 // Connect to database
 const connectDB = require('./config/db');
@@ -96,6 +97,7 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/contacts', contactRoutes);
+app.use('/api/cities', cityRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

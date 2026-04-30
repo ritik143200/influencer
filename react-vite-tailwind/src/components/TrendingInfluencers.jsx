@@ -5,8 +5,28 @@ const TrendingInfluencers = ({ config }) => {
   const scrollRef = useRef(null);
   const { navigate } = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dbFeaturedProfiles, setDbFeaturedProfiles] = useState([]);
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
-  const featuredProfiles = useMemo(
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/influencer`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const trending = data.data.filter(i => i.trending).sort((a, b) => (a.featuredOrder || 0) - (b.featuredOrder || 0));
+          if (trending.length > 0) {
+            setDbFeaturedProfiles(trending);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch featured profiles:', err);
+      }
+    };
+    fetchFeatured();
+  }, [API_BASE_URL]);
+
+  const defaultFeaturedProfiles = useMemo(
     () => [
       {
         id: 'justayushi__',
@@ -71,6 +91,24 @@ const TrendingInfluencers = ({ config }) => {
     ],
     []
   );
+
+  const featuredProfiles = useMemo(() => {
+    if (dbFeaturedProfiles.length > 0) {
+      return dbFeaturedProfiles.map(inf => ({
+        id: inf._id,
+        name: inf.fullName || `${inf.firstName} ${inf.lastName}`,
+        handle: inf.username || inf.firstName.toLowerCase(),
+        followers: inf.socialLinks?.instagram ? 'Instagram' : 'Platform',
+        posts: inf.completedEvents ? `${inf.completedEvents} events` : 'New',
+        category: inf.category || inf.InfluencerType || 'Influencer',
+        verified: inf.verificationStatus === 'verified',
+        href: inf.socialLinks?.instagram || '#',
+        image: inf.profileImage && inf.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg' ? inf.profileImage : null,
+        bio: inf.bio || ''
+      }));
+    }
+    return defaultFeaturedProfiles;
+  }, [dbFeaturedProfiles, defaultFeaturedProfiles]);
 
   const scrollToIndex = (index) => {
     const el = scrollRef.current;
@@ -237,17 +275,15 @@ const TrendingInfluencers = ({ config }) => {
                   </div>
 
                   <div className="mt-6 grid grid-cols-2 gap-3">
-                    <a
-                      href={p.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => navigate('influencer-detail', { id: p.id })}
                       className="px-4 py-2.5 rounded-2xl font-semibold text-sm text-white text-center shadow-sm hover:shadow-lg hover:scale-105 transition-all"
                       style={{ backgroundColor: config.primary_action }}
                     >
-                      View
-                    </a>
+                      View Profile
+                    </button>
                     <button
-                      onClick={() => navigate('contact')}
+                      onClick={() => navigate('inquiry')}
                       className="px-4 py-2.5 rounded-2xl font-semibold text-sm border transition-all hover:shadow-md hover:scale-105"
                       style={{ borderColor: config.primary_action, color: config.primary_action }}
                     >

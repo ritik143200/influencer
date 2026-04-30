@@ -26,7 +26,7 @@ const RegistrationPage = ({ config }) => {
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
+        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button
             onClick={() => navigate('home')}
             className="mb-6 flex items-center text-gray-600 hover:text-brand-500 transition-colors"

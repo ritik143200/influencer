@@ -322,7 +322,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
           <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-center p-12">
             <div className="mb-6 max-w-lg">
               <div className="mb-6">
-                <h1 className="text-4xl font-medium text-brand-500 mb-4 tracking-tight drop-shadow-sm">Indori Influencer</h1>
+                <h1 className="text-4xl font-medium text-brand-500 mb-4 tracking-tight drop-shadow-sm">Viralमंत्रX</h1>
                 <h2 className="text-2xl text-gray-800 font-medium leading-tight">
                   Hire Top influencers/creaters in india
                 </h2>

@@ -8,6 +8,8 @@ import InquiryProgressBar from '../components/InquiryProgressBar';
 
 import AdminInfluencersManagement from '../components/AdminInfluencersManagement';
 
+import AdminFeaturedInfluencers from '../components/AdminFeaturedInfluencers';
+
 import AdminUserManagement from '../components/AdminUserManagement';
 
 import AdminContactManagement from '../components/AdminContactManagement';
@@ -388,33 +390,7 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      // Fetch notifications
-
-      try {
-
-        const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
-
-          headers: authHeader
-
-        });
-
-        if (notifRes.ok) {
-
-          const notifData = await notifRes.json();
-
-          // The backend returns an array directly, not wrapped in { data: [...] }
-
-          setNotifications(Array.isArray(notifData) ? notifData : []);
-
-        }
-
-      } catch (notifErr) {
-
-        console.error('Error fetching notifications:', notifErr);
-
-        setNotifications([]);
-
-      }
+      // Static notifications fetch removed as per request to only allow real-time notifications
 
       // Fetch contacts
       try {
@@ -475,6 +451,33 @@ const AdminDashboard = ({ config }) => {
     if (!adminData) return;
     fetchDashboardData();
     fetchOverviewAnalytics();
+  }, [adminData, API_BASE_URL]);
+
+  // Real-time notifications polling
+  useEffect(() => {
+    if (!adminData) return;
+
+    const fetchRealTimeNotifications = async () => {
+      try {
+        const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+        });
+        if (notifRes.ok) {
+          const notifData = await notifRes.json();
+          setNotifications(Array.isArray(notifData) ? notifData : []);
+        }
+      } catch (err) {
+        console.error('Error fetching real-time notifications:', err);
+      }
+    };
+
+    // Fetch immediately
+    fetchRealTimeNotifications();
+
+    // Poll every 10 seconds for real-time updates
+    const intervalId = setInterval(fetchRealTimeNotifications, 10000);
+
+    return () => clearInterval(intervalId);
   }, [adminData, API_BASE_URL]);
 
   // Helper to safely render location (handles both string and object formats)
@@ -1831,7 +1834,7 @@ const AdminDashboard = ({ config }) => {
 
           <div className="flex overflow-x-auto space-x-2 sm:space-x-4 scrollbar-hide">
 
-            {['overview', 'users', 'influencers', 'inquiries', 'contacts', 'analytics', 'settings'].map((tab, index) => (
+            {['overview', 'users', 'influencers', 'featured', 'inquiries', 'contacts', 'analytics', 'settings'].map((tab, index) => (
 
               <button
 
@@ -1870,6 +1873,7 @@ const AdminDashboard = ({ config }) => {
                     {tab === 'users' && '👥'}
 
                     {tab === 'influencers' && '🎨'}
+                    {tab === 'featured' && '⭐'}
 
                     {tab === 'inquiries' && '💬'}
                     {tab === 'contacts' && '📧'}
@@ -1935,6 +1939,14 @@ const AdminDashboard = ({ config }) => {
 
           />
 
+        )}
+
+        {activeTab === 'featured' && (
+          <AdminFeaturedInfluencers
+            influencers={influencers}
+            API_BASE_URL={API_BASE_URL}
+            getThemeColor={getThemeColor}
+          />
         )}
 
         {activeTab === 'inquiries' && (

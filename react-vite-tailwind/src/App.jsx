@@ -25,6 +25,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import TermsAndCondition from './pages/TermsAndCondition';
 import PrivacyPolicy from './pages/privetPolice';
 import AuthCallback from './pages/AuthCallback';
+import InfluencerDetailPage from './pages/InfluencerDetailPage';
 import { defaultConfig } from './data/mockData';
 
 
@@ -97,6 +98,7 @@ const AppContent = ({ config }) => {
       {currentPath === 'reset-password' && <AuthPage />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
       {currentPath === 'explore-influencers' && <ExploreInfluencersPage config={config} />}
+      {currentPath === 'influencer-detail' && <InfluencerDetailPage config={config} />}
       {currentPath === 'auth/callback' && <AuthCallback />}
       {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && (

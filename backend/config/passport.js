@@ -1,6 +1,7 @@
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
+const Influencer = require("../models/influencer");
 
 // Debug: Log environment variables
 console.log('🔍 Google OAuth Environment Check:');
@@ -17,31 +18,34 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         callbackURL: `http://localhost:${process.env.PORT || 5002}/api/auth/google/callback`,
       },
       async (accessToken, refreshToken, profile, done) => {
-        // Check if credentials are configured
-        if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-          return done(new Error('Google OAuth credentials not configured'), null);
-        }
-
         try {
-          // Check if user already exists
-          let user = await User.findOne({ email: profile.emails[0].value });
-          
-          if (user) {
-            // User exists, return user
-            return done(null, user);
-          } else {
-            // Create new user with Google data
-            const newUser = await User.create({
-              name: profile.displayName,
-              email: profile.emails[0].value,
-              googleId: profile.id,
-              // Generate a random password for Google users
-              password: 'google-auth-' + Math.random().toString(36).slice(-8),
-              role: 'user'
-            });
-            
-            return done(null, newUser);
+          const email = profile.emails[0].value;
+
+          // Step 1: Check if email already exists in User collection
+          const existingUser = await User.findOne({ email });
+          if (existingUser) {
+            // Login with existing user role — do NOT change role
+            return done(null, existingUser);
           }
+
+          // Step 2: Check if email already exists in Influencer collection
+          const existingInfluencer = await Influencer.findOne({ email });
+          if (existingInfluencer) {
+            // Login with existing influencer role — do NOT change role, do NOT create a new user
+            return done(null, existingInfluencer);
+          }
+
+          // Step 3: Email not found anywhere — create a new User with default role = "user"
+          const newUser = await User.create({
+            name: profile.displayName,
+            email,
+            googleId: profile.id,
+            // Random password for Google users (they won't use it directly)
+            password: 'google-auth-' + Math.random().toString(36).slice(-8),
+            role: 'user'
+          });
+
+          return done(null, newUser);
         } catch (err) {
           return done(err, null);
         }

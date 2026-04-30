@@ -1,4 +1,5 @@
 const Influencer = require('../models/influencer');
+const User = require('../models/User');
 const Inquiry = require('../models/Inquiry');
 const Notification = require('../models/Notification');
 const { logInfluencerRegistration } = require('../middleware/activityLogger');
@@ -208,6 +209,7 @@ const registerInfluencer = async (req, res) => {
       password,
       location,
       categories,
+      niche,
       socialLinks,
       termsAccepted
     } = req.body;
@@ -220,18 +222,21 @@ const registerInfluencer = async (req, res) => {
       });
     }
 
-    // Check if influencer already exists
-    const existingInfluencer = await Influencer.findOne({
-      $or: [
-        { email },
-        { phone }
-      ]
-    });
+    // Check if this email is already registered as a user
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'This email is already registered as a user'
+      });
+    }
 
+    // Check if this email is already registered as an influencer
+    const existingInfluencer = await Influencer.findOne({ email });
     if (existingInfluencer) {
       return res.status(400).json({
         success: false,
-        message: 'Influencer with this email or phone already exists'
+        message: 'This email is already registered as an influencer'
       });
     }
 
@@ -272,8 +277,9 @@ const registerInfluencer = async (req, res) => {
       profileType: 'influencer',
       location: location || '',
       categories: Array.isArray(categories) ? categories : [categories],
+      niche: Array.isArray(niche) ? niche : (niche ? [niche] : []),
       socialLinks: parsedSocialLinks,
-      termsAccepted: termsAccepted === 'true'
+      termsAccepted: termsAccepted === true || termsAccepted === 'true'
     });
 
     await newInfluencer.save();
@@ -315,6 +321,7 @@ const registerInfluencer = async (req, res) => {
         profileType: newInfluencer.profileType,
         verificationStatus: newInfluencer.verificationStatus,
         categories: newInfluencer.categories,
+        niche: newInfluencer.niche,
         location: newInfluencer.location,
         socialLinks: newInfluencer.socialLinks
       }

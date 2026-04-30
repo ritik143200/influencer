@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -34,29 +34,44 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const [showCategoryPopup, setShowCategoryPopup] = useState(false);
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [cityLoading, setCityLoading] = useState(false);
+  
+  const cityInputRef = useRef(null);
+  const cityDropdownRef = useRef(null);
+  const cityFetchTimer = useRef(null);
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       const specialtiesContainer = event.target.closest('[data-specialties-container="true"]');
-      
       if (!specialtiesContainer) {
         setShowCategoryPopup(false);
+      }
+
+      if (
+        cityInputRef.current &&
+        !cityInputRef.current.contains(event.target) &&
+        cityDropdownRef.current &&
+        !cityDropdownRef.current.contains(event.target)
+      ) {
+        setShowCityDropdown(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  // Helper: Reverse geocode lat/lon to city, country using OpenStreetMap Nominatim
+  // Helper: Reverse geocode lat/lon to city using OpenStreetMap Nominatim
   const reverseGeocode = async (lat, lon) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
       const data = await response.json();
-      // Try to get city and country
+      // Try to get city only
       const city = data.address.city || data.address.town || data.address.village || data.address.hamlet || '';
-      const country = data.address.country || '';
-      return [city, country].filter(Boolean).join(', ');
+      return city;
     } catch (e) {
       return '';
     }
@@ -88,6 +103,48 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
+
+  // ── Dynamic city autocomplete ─────────────────────────────────────────────
+  const handleLocationChange = useCallback((e) => {
+    const value = e.target.value;
+    handleInputChange('location', value);
+
+    // Clear any pending fetch
+    if (cityFetchTimer.current) clearTimeout(cityFetchTimer.current);
+
+    if (value.trim().length === 0) {
+      setCitySuggestions([]);
+      setShowCityDropdown(false);
+      setCityLoading(false);
+      return;
+    }
+
+    setCityLoading(true);
+    cityFetchTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/cities?q=${encodeURIComponent(value.trim())}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          const names = data.data.map((c) => c.name);
+          setCitySuggestions(names);
+          setShowCityDropdown(names.length > 0);
+        }
+      } catch {
+        setCitySuggestions([]);
+        setShowCityDropdown(false);
+      } finally {
+        setCityLoading(false);
+      }
+    }, 250);
+  }, [API_BASE_URL]);
+
+  const handleCitySelect = useCallback((city) => {
+    handleInputChange('location', city);
+    setCitySuggestions([]);
+    setShowCityDropdown(false);
+  }, []);
 
   const influencerCategories = [
     { id: 'lifestyle', name: 'Lifestyle', icon: '✨' },
@@ -224,6 +281,10 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
     setError('');
 
     try {
+      const mappedNiches = (formData.categories || [])
+        .map(id => (influencerCategories.find(c => c.id === id) || {}).name)
+        .filter(Boolean);
+
       const payload = {
         fullName: formData.fullName,
         email: formData.email,
@@ -231,6 +292,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         password: formData.password,
         location: formData.location,
         categories: formData.categories,
+        niche: mappedNiches,
         socialLinks: formData.socialLinks,
         platforms: {
           instagram: { hasAccount: !!formData.socialLinks.instagram, url: formData.socialLinks.instagram || '' },
@@ -240,7 +302,6 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         termsAccepted: formData.termsAccepted
       };
 
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/influencer/register`, {
         method: 'POST',
         headers: {
@@ -264,11 +325,6 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         }
 
         console.log('Token received:', data.token.substring(0, 20) + '...');
-
-        // Map selected category ids to readable names so profile shows proper niches
-        const mappedNiches = (formData.categories || [])
-          .map(id => (influencerCategories.find(c => c.id === id) || {}).name)
-          .filter(Boolean);
 
         // Build local user object (prefer server-returned user when available)
         const serverUser = data.data || null;
@@ -322,7 +378,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
 
 
   return (
-    <div className={embedded ? 'py-10 sm:py-14' : 'pt-8 pb-16 min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 relative overflow-hidden'}>
+    <div className={embedded ? 'py-6' : 'min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 relative overflow-hidden'}>
       {!embedded && (
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-20 w-32 h-32 bg-brand-200 rounded-full opacity-10 animate-pulse" />
@@ -331,14 +387,14 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         </div>
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[calc(100vh-16rem)]">
-          
+      <div className={embedded ? "relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" : "relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
+        <div className={embedded ? "flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12" : "flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[calc(100vh-8rem)]"}>
+
           {/* Left Side: Brand Content (Visible only on Desktop) */}
-          <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-center p-12">
-            <div className="mb-6 max-w-lg">
+          <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-center -mt-8">
+            <div className="max-w-lg mb-6">
               <div className="mb-6">
-                <h1 className="text-4xl font-medium text-orange-500 mb-4 tracking-tight drop-shadow-sm">Indori Influencer</h1>
+                <h1 className="text-4xl font-medium text-orange-500 mb-4 tracking-tight drop-shadow-sm">Viralमंत्रX</h1>
                 <h2 className="text-2xl text-gray-800 font-medium leading-tight">
                   Turn Your <span className="bg-gradient-to-r from-orange-500 to-brand-500 bg-clip-text text-transparent opacity-90">Influence</span> into real income
                 </h2>
@@ -492,21 +548,26 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
                     </div>
                   </div>
 
-                  {/* Location */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative" data-city-container="true">
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700 ml-1">Location</label>
                     <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors z-10">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </span>
                       <input
                         id="location"
+                        ref={cityInputRef}
                         type="text"
-                        placeholder="Indore, India"
+                        placeholder="Enter City"
                         value={formData.location}
-                        onChange={(e) => handleInputChange('location', e.target.value)}
+                        onChange={handleLocationChange}
+                        onFocus={() => {
+                          if (formData.location.trim().length > 0 && citySuggestions.length > 0) {
+                            setShowCityDropdown(true);
+                          }
+                        }}
                         className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
                         autoComplete="off"
                       />
@@ -515,7 +576,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
                         title="Detect my location"
                         onClick={handleFetchLocation}
                         disabled={fetchingLocation}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50"
+                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50 z-10"
                         style={{ outline: 'none', border: 'none', background: 'none', cursor: fetchingLocation ? 'not-allowed' : 'pointer' }}
                       >
                         {fetchingLocation ? (
@@ -525,6 +586,43 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
                         )}
                       </button>
                     </div>
+
+                    {/* City Suggestions Dropdown */}
+                    {(cityLoading || (showCityDropdown && citySuggestions.length > 0)) && (
+                      <div
+                        ref={cityDropdownRef}
+                        className="absolute z-[9999] w-full mt-1 bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto"
+                      >
+                        {cityLoading ? (
+                          <div className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-gray-400">
+                            <svg className="w-4 h-4 animate-spin text-orange-400" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                            </svg>
+                            Searching cities…
+                          </div>
+                        ) : (
+                          citySuggestions.map((city) => (
+                            <button
+                              key={city}
+                              type="button"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => handleCitySelect(city)}
+                              className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-orange-50 transition-colors first:rounded-t-xl last:rounded-b-xl group"
+                            >
+                              <svg className="w-4 h-4 text-orange-400 flex-shrink-0 group-hover:text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span className="text-sm font-medium text-gray-700 group-hover:text-orange-600">
+                                {city.slice(0, formData.location.length)}
+                                <span className="font-normal text-gray-400">{city.slice(formData.location.length)}</span>
+                              </span>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

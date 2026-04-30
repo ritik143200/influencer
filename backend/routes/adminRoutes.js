@@ -8,7 +8,8 @@ const {
     getAllUsers, updateUserAction, deleteUser,
     getAvailableInfluencersByDate,
     updateArtistStatus,
-    getAdminOverview
+    getAdminOverview,
+    updateFeaturedInfluencers
 } = require('../controllers/adminController');
 const {
     getAdminNotifications, markAsRead, markAllAsRead
@@ -49,6 +50,7 @@ router.delete('/users/:id', deleteUser);
 router.get('/influencers/available', getAvailableInfluencersByDate);
 router.patch('/artists/:id/status', updateArtistStatus);
 router.patch('/influencer/:id/status', updateArtistStatus);
+router.put('/featured-influencers', updateFeaturedInfluencers);
 
 // Overview analytics
 router.get('/overview', getAdminOverview);

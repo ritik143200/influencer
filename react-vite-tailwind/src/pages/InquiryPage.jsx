@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 
@@ -28,20 +28,79 @@ const InquiryPage = ({ config }) => {
   const [success, setSuccess] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [citySuggestions, setCitySuggestions] = useState([]);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [cityLoading, setCityLoading] = useState(false);
+  const cityInputRef = useRef(null);
+  const cityDropdownRef = useRef(null);
+  const cityFetchTimer = useRef(null);
   const { navigate } = useRouter();
 
-  // Close dropdown when clicking outside
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       const categoryContainer = event.target.closest('[data-category-container="true"]');
-      
       if (!categoryContainer) {
         setShowCategoryDropdown(false);
+      }
+
+      if (
+        cityInputRef.current &&
+        !cityInputRef.current.contains(event.target) &&
+        cityDropdownRef.current &&
+        !cityDropdownRef.current.contains(event.target)
+      ) {
+        setShowCityDropdown(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // ── Dynamic city autocomplete ─────────────────────────────────────────────
+  // Fetches matching cities from the DB with a 250 ms debounce.
+  const handleLocationChange = useCallback((e) => {
+    const value = e.target.value;
+    setForm((prev) => ({ ...prev, location: value }));
+
+    // Clear any pending fetch
+    if (cityFetchTimer.current) clearTimeout(cityFetchTimer.current);
+
+    if (value.trim().length === 0) {
+      setCitySuggestions([]);
+      setShowCityDropdown(false);
+      setCityLoading(false);
+      return;
+    }
+
+    setCityLoading(true);
+    cityFetchTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/cities?q=${encodeURIComponent(value.trim())}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          const names = data.data.map((c) => c.name);
+          setCitySuggestions(names);
+          setShowCityDropdown(names.length > 0);
+        }
+      } catch {
+        // Silently fail – user can still type manually
+        setCitySuggestions([]);
+        setShowCityDropdown(false);
+      } finally {
+        setCityLoading(false);
+      }
+    }, 250);
+  }, [API_BASE_URL]);
+
+  const handleCitySelect = useCallback((city) => {
+    setForm((prev) => ({ ...prev, location: city }));
+    setCitySuggestions([]);
+    setShowCityDropdown(false);
   }, []);
 
   // Category suggestions for each hiring type
@@ -395,22 +454,82 @@ const InquiryPage = ({ config }) => {
                         )}
                       </div>
                     </div>
-                    <div>
+                    <div className="relative" data-city-container="true">
                       <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Location</label>
                       <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                           <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
                         </div>
                         <input
+                          ref={cityInputRef}
                           value={form.location}
-                          onChange={onChange('location')}
+                          onChange={handleLocationChange}
+                          onFocus={() => {
+                            if (form.location.trim().length > 0 && citySuggestions.length > 0) {
+                              setShowCityDropdown(true);
+                            }
+                          }}
                           className="mt-0 w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 bg-white shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all"
-                          placeholder="City / Venue"
+                          placeholder="Enter City"
+                          autoComplete="off"
                         />
+                        {form.location && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setForm((prev) => ({ ...prev, location: '' }));
+                              setCitySuggestions([]);
+                              setShowCityDropdown(false);
+                              cityInputRef.current?.focus();
+                            }}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-300 hover:text-gray-500 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
                       </div>
+
+                      {/* City Suggestions Dropdown — loading spinner or results */}
+                      {(cityLoading || (showCityDropdown && citySuggestions.length > 0)) && (
+                        <div
+                          ref={cityDropdownRef}
+                          className="absolute z-[9999] w-full mt-1 bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto"
+                        >
+                          {cityLoading ? (
+                            <div className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-gray-400">
+                              <svg className="w-4 h-4 animate-spin text-orange-400" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                              </svg>
+                              Searching cities…
+                            </div>
+                          ) : (
+                            citySuggestions.map((city) => (
+                              <button
+                                key={city}
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => handleCitySelect(city)}
+                                className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-orange-50 transition-colors first:rounded-t-xl last:rounded-b-xl group"
+                              >
+                                <svg className="w-4 h-4 text-orange-400 flex-shrink-0 group-hover:text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <span className="text-sm font-medium text-gray-700 group-hover:text-orange-600">
+                                  {city.slice(0, form.location.length)}
+                                  <span className="font-normal text-gray-400">{city.slice(form.location.length)}</span>
+                                </span>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Budget (INR)</label>

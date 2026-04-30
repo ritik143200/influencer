@@ -537,6 +537,39 @@ const getAvailableInfluencersByDate = async (req, res) => {
     }
 };
 
+// @desc    Update featured influencers for home page
+// @route   PUT /api/admin/featured-influencers
+// @access  Private/Admin
+const updateFeaturedInfluencers = async (req, res) => {
+    try {
+        const { featuredIds } = req.body;
+        
+        if (!Array.isArray(featuredIds)) {
+            return res.status(400).json({ success: false, message: 'featuredIds must be an array' });
+        }
+
+        // First, set all to trending: false, featuredOrder: 0
+        await Influencer.updateMany({}, { $set: { trending: false, featuredOrder: 0 } });
+
+        // Then update the selected ones with their new order
+        const bulkOps = featuredIds.map((id, index) => ({
+            updateOne: {
+                filter: { _id: id },
+                update: { $set: { trending: true, featuredOrder: index } }
+            }
+        }));
+
+        if (bulkOps.length > 0) {
+            await Influencer.bulkWrite(bulkOps);
+        }
+
+        res.status(200).json({ success: true, message: 'Featured influencers updated successfully' });
+    } catch (error) {
+        console.error('Error updating featured influencers:', error);
+        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    }
+};
+
 module.exports = {
     getAllInquiries,
     updateInquiryStatus,
@@ -548,5 +581,6 @@ module.exports = {
     getInquiryStats,
     getAvailableInfluencersByDate,
     updateArtistStatus,
-    getAdminOverview
+    getAdminOverview,
+    updateFeaturedInfluencers
 };

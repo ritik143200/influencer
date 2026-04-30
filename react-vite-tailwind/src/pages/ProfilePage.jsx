@@ -20,6 +20,43 @@ const ProfilePage = ({ config }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const lastUpdatedRef = useRef(null);
 
+  const categoryIdToName = {
+    lifestyle: 'Lifestyle',
+    travel: 'Travel',
+    fitness_health: 'Fitness & Health',
+    food: 'Food (Cooking + Street Food)',
+    technology: 'Technology (Unboxing / App Review / Gadgets)',
+    finance_investment: 'Finance & Investment (Stock Market)',
+    gaming: 'Gaming',
+    education: 'Education (Study / Career / Kids Learning)',
+    motivation_growth: 'Motivation & Self Growth (Personal Branding)',
+    spiritual_astrology: 'Spiritual & Astrology',
+    fashion: 'Fashion',
+    comedy_entertainment: 'Comedy & Entertainment (Roasting)',
+    historical: 'Historical',
+    art_craft: 'Art & Craft',
+    ai: 'AI',
+    vlogs: 'Vlogs',
+    street_interviews: 'Street Interviews',
+    ugc_creator: 'UGC Creator',
+    influencer: 'Influencer',
+    actor: 'Actor',
+    model: 'Model',
+    filmmaker: 'Filmmaker',
+    celebrity: 'Celebrity',
+    food_pages: 'Food Pages',
+    local_city_pages: 'Local City Pages',
+    state_pages: 'State Pages',
+    meme_pages: 'Meme Pages',
+    music_pages: 'Music Pages',
+    celebrity_pages: 'Celebrity Pages',
+    motivation_pages: 'Motivation Pages',
+    devotional_pages: 'Devotional Pages',
+    media_pages: 'Media Pages',
+    political_pages: 'Political Pages',
+    other: 'Other'
+  };
+
   // Token validation utility
   const validateToken = () => {
     const token = localStorage.getItem('userToken');
@@ -368,8 +405,11 @@ const ProfilePage = ({ config }) => {
   };
 
   const normalizedNiches = normalizeNiches(formData.niche);
-  const displayNiches = normalizedNiches.length > 0 ? normalizedNiches : (formData.category ? [formData.category] : []);
-  const nicheOrCategory = displayNiches.length > 0 ? displayNiches.join(', ') : formData.category;
+  const displayNiches = normalizedNiches.length > 0
+    ? normalizedNiches
+    : (formData.category ? [formData.category] : []);
+  const readableDisplayNiches = displayNiches.map((n) => categoryIdToName[n] || n);
+  const nicheOrCategory = readableDisplayNiches.length > 0 ? readableDisplayNiches.join(', ') : formData.category;
   const displayRole = (formData.role === 'artist' || formData.role === 'influencer') ? 'Influencer' : 'User';
 
   const userData = {
@@ -405,7 +445,7 @@ const ProfilePage = ({ config }) => {
     // pricing UI removed; keep raw pricing in formData for backend compatibility
     professional: {
       experience: formData.experience ? `${formData.experience} Years` : '0 Years',
-      primaryNiche: displayNiches.length > 0 ? (displayNiches.length === 1 ? displayNiches[0] : displayNiches.join(', ')) : (formData.category || 'General'),
+      primaryNiche: readableDisplayNiches.length > 0 ? (readableDisplayNiches.length === 1 ? readableDisplayNiches[0] : readableDisplayNiches.join(', ')) : (formData.category || 'General'),
       location: formattedLocation || 'Global'
     },
     // Budget fields
@@ -655,64 +695,70 @@ const ProfilePage = ({ config }) => {
         </div>
       </div>
 
-      {/* Modern Portfolio Section */}
+      {/* Portfolio Section — Link Stickers */}
       <div className="max-w-6xl mx-auto px-4 mt-8">
         <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border mb-8" style={{ borderColor: accent }}>
-          <div className="flex items-center mb-8">
+          <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-8 rounded-full" style={{ background: 'rgb(238 119 17)' }}></div>
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Portfolio Canvas</h3>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">Portfolio</h3>
             </div>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-semibold border border-indigo-100"
+            >
+              Edit
+            </button>
           </div>
 
-          {/* Portfolio Images Only */}
-          {formData.portfolio && formData.portfolio.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {formData.portfolio
-                .map((item, idx) => {
-                  const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
-                  if (!isImage) return null;
-                  return (
-                    <div key={idx} className="group relative aspect-square rounded-2xl overflow-hidden border bg-slate-50 transition-all hover:shadow-xl hover:-translate-y-1" style={{ borderColor: accent }}>
-                      <img src={item} alt={`Portfolio ${idx + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                        <p className="text-white text-[11px] font-bold tracking-wide uppercase">Project {idx + 1}</p>
-                      </div>
-                    </div>
-                  );
-                })}
+          {formData.portfolio && formData.portfolio.filter(item => typeof item === 'string' && item.trim()).length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {formData.portfolio.map((item, idx) => {
+                if (typeof item !== 'string' || !item.trim()) return null;
+                const href = item.startsWith('http') ? item : `https://${item}`;
+                let hostname = '';
+                let label = '';
+                try {
+                  const u = new URL(href);
+                  hostname = u.hostname.replace('www.', '');
+                  // Friendly label based on hostname
+                  if (hostname.includes('youtube')) label = '▶ YouTube';
+                  else if (hostname.includes('instagram')) label = '📷 Instagram';
+                  else if (hostname.includes('facebook')) label = '👤 Facebook';
+                  else if (hostname.includes('twitter') || hostname.includes('x.com')) label = '𝕏 Twitter';
+                  else if (hostname.includes('linkedin')) label = '💼 LinkedIn';
+                  else if (hostname.includes('tiktok')) label = '🎵 TikTok';
+                  else label = hostname;
+                } catch { label = item.slice(0, 30); }
+                return (
+                  <a
+                    key={idx}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group inline-flex items-center gap-2.5 bg-white border border-gray-200 hover:border-orange-400 rounded-2xl px-5 py-3 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
+                    title={item}
+                  >
+                    <span className="text-sm font-semibold text-slate-700 group-hover:text-orange-600 transition-colors">{label}</span>
+                    <svg className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                  </a>
+                );
+              })}
             </div>
           ) : (
             <div className="py-20 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
               <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
               </div>
-              <p className="text-slate-600 font-medium mb-6">No project showcase added yet.</p>
-              <button 
-                onClick={() => setIsEditing(true)} 
+              <p className="text-slate-600 font-medium mb-6">No portfolio links added yet.</p>
+              <button
+                onClick={() => setIsEditing(true)}
                 className="px-8 py-3 text-white rounded-xl text-sm font-bold transition-all shadow-lg active:scale-95" style={{ background: 'rgb(238 119 17)' }}
               >
-                Upload First Work
+                Add Portfolio Link
               </button>
-            </div>
-          )}
-
-          {/* Other Links Section (Non-image links) */}
-          {formData.portfolio && formData.portfolio.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
-            <div className="mt-10">
-              <h3 className="text-xl font-bold text-slate-900 tracking-tight mb-4">Other Links</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                {formData.portfolio
-                  .map((item, idx) => {
-                    const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
-                    if (isImage) return null;
-                    return (
-                      <li key={idx}>
-                        <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
-                      </li>
-                    );
-                  })}
-              </ul>
             </div>
           )}
         </div>

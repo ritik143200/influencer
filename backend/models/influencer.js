@@ -109,6 +109,7 @@ const influencerSchema = new mongoose.Schema({
     default: 0
   },
   trending: { type: Boolean, default: false },
+  featuredOrder: { type: Number, default: 0 },
   completedEvents: { type: Number, default: 0 },
   responseTime: { type: String },
   genre: { type: String },

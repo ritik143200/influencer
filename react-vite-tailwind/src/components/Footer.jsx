@@ -33,17 +33,11 @@ const Footer = ({ config }) => {
         { label: 'Terms & Conditions', path: 'terms-and-condition' },
         { label: 'Privacy Policy', path: 'privet-policy' }
       ]
-    },
-    {
-      title: 'Legal',
-      links: [
-        { label: 'Privacy Policy', path: 'privet-policy' }
-      ]
     }
   ];
 
   return (
-    <footer className="bg-gray-900 text-white py-12 lg:py-16">
+    <footer className="bg-gray-900 text-white py-10 lg:py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
@@ -82,7 +76,7 @@ const Footer = ({ config }) => {
           ))}
         </div>
 
-        <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-8 pt-6 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 text-sm">
             © 2024 {config.platform_name}. All rights reserved.
           </p>

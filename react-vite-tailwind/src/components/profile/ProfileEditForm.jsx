@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { X, Image as ImageIcon, Link as LinkIcon, ExternalLink } from 'lucide-react';
 
 // Small helper to safely read env base
 const getApiBase = () => (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
@@ -47,9 +47,7 @@ const INFLUENCER_NICHES = influencerCategories.map(c => c.name);
 const PLATFORM_LIST = ['instagram', 'youtube', 'facebook'];
 
 const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
-  const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
 
   const role = formData.role || 'user';
@@ -107,43 +105,6 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
   const requiredBadge = <span className="text-red-500 font-bold ml-1">*</span>;
   const optionalBadge = <span className="text-gray-400 text-xs ml-1">(optional)</span>;
   
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    setIsUploading(true);
-    const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
-    const token = localStorage.getItem('userToken');
-
-    try {
-      const uploadPromises = files.map(async (file) => {
-        const formDataUpload = new FormData();
-        formDataUpload.append('image', file);
-
-        const response = await fetch(`${API_BASE_URL}/api/influencer/portfolio/upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formDataUpload
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-        const data = await response.json();
-        return data.url;
-      });
-
-      const uploadedUrls = await Promise.all(uploadPromises);
-      handleField('portfolio', [...(formData.portfolio || []), ...uploadedUrls]);
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Failed to upload one or more images. Please try again.');
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
   const handleAvatarUpload = async (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -565,121 +526,80 @@ const ProfileEditForm = ({ formData, onChange, onSave, onCancel }) => {
         {/* Portfolio Section */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
           <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-brand-600" />
+            <LinkIcon className="w-5 h-5 text-brand-600" />
             Portfolio {optionalBadge}
           </h2>
 
           <div className="mb-6">
-            <p className="text-sm text-gray-600 mb-4">Showcase your best work. You can upload images directly or add links to your project (YouTube, Instagram, etc.)</p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              {/* Upload Box */}
-              <div 
-                onClick={() => !isUploading && fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-                  isUploading ? 'bg-gray-50 border-gray-200 cursor-not-allowed' : 'bg-brand-50/30 border-brand-200 hover:border-brand-400 hover:bg-brand-50'
-                }`}
-              >
-                <input 
-                  type="file" 
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  multiple
-                  accept="image/*"
-                  className="hidden"
-                />
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-10 h-10 text-brand-500 animate-spin mb-2" />
-                    <p className="text-sm font-semibold text-brand-600">Uploading...</p>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center mb-3">
-                      <Upload className="w-6 h-6 text-brand-600" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-900">Upload Images</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG or WebP</p>
-                  </>
-                )}
-              </div>
+            <p className="text-sm text-gray-600 mb-4">Add links to your best work — YouTube videos, Instagram posts, websites, and more.</p>
 
-              {/* Link Input Box */}
-              <div className="flex flex-col justify-center p-6 bg-slate-50 border border-slate-200 rounded-2xl">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center">
-                    <ImageIcon className="w-4 h-4 text-slate-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-900">Add via Link</p>
+            {/* Add via Link — full width */}
+            <div className="flex flex-col justify-center p-5 bg-slate-50 border border-slate-200 rounded-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center">
+                  <LinkIcon className="w-4 h-4 text-slate-600" />
                 </div>
-                <div className="flex gap-2">
-                  <input 
-                    id="portfolio-input" 
-                    className={`${inputClass} !py-2 !text-xs`} 
-                    placeholder="Paste URL..."
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      const input = document.getElementById('portfolio-input');
-                      if (input?.value?.trim()) { 
-                        handleField('portfolio', [...(formData.portfolio || []), input.value]); 
-                        input.value = ''; 
-                      }
-                    }}
-                    className="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors"
-                  >
-                    Add
-                  </button>
-                </div>
+                <p className="text-sm font-bold text-gray-900">Add via Link</p>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  id="portfolio-input"
+                  className={`${inputClass} !py-2 !text-xs`}
+                  placeholder="Paste URL (e.g. https://youtube.com/...)"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const input = document.getElementById('portfolio-input');
+                    if (input?.value?.trim()) {
+                      handleField('portfolio', [...(formData.portfolio || []), input.value.trim()]);
+                      input.value = '';
+                    }
+                  }}
+                  className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold hover:bg-slate-900 transition-colors whitespace-nowrap"
+                >
+                  Add
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Portfolio Images Only */}
-          {formData.portfolio?.filter(item => typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i))).length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {formData.portfolio
-                .map((item, idx) => {
-                  const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
-                  if (!isImage) return null;
+          {/* Portfolio Links — Sticker Cards */}
+          {(formData.portfolio || []).filter(item => typeof item === 'string' && item.trim()).length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Added Links</p>
+              <div className="flex flex-wrap gap-3">
+                {(formData.portfolio || []).map((item, idx) => {
+                  if (typeof item !== 'string' || !item.trim()) return null;
+                  let hostname = '';
+                  try { hostname = new URL(item.startsWith('http') ? item : `https://${item}`).hostname.replace('www.', ''); } catch { hostname = item; }
                   return (
-                    <div key={idx} className="group relative aspect-square rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-                      <img src={item} alt="" className="w-full h-full object-cover" />
-                      <button 
-                        type="button" 
-                        onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    <div
+                      key={idx}
+                      className="group flex items-center gap-2 bg-white border border-gray-200 hover:border-brand-400 rounded-xl px-4 py-2.5 shadow-sm hover:shadow-md transition-all"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5 text-brand-500 flex-shrink-0" />
+                      <a
+                        href={item.startsWith('http') ? item : `https://${item}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-semibold text-gray-700 hover:text-brand-600 max-w-[160px] truncate transition-colors"
+                        title={item}
                       >
-                        <X size={14} />
+                        {hostname}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
+                        className="ml-1 w-5 h-5 rounded-full bg-gray-100 hover:bg-red-100 flex items-center justify-center text-gray-400 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
+                        title="Remove"
+                      >
+                        <X size={10} />
                       </button>
                     </div>
                   );
                 })}
-            </div>
-          )}
-
-          {/* Other Links Section (Non-image links) */}
-          {formData.portfolio?.filter(item => typeof item === 'string' && !((item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i)))).length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-md font-bold text-gray-800 mb-2">Other Links</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                {formData.portfolio
-                  .map((item, idx) => {
-                    const isImage = typeof item === 'string' && (item.includes('cloudinary.com') || item.match(/\.(jpeg|jpg|gif|png|webp)$/i));
-                    if (isImage) return null;
-                    return (
-                      <li key={idx}>
-                        <a href={item} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline break-all">{item}</a>
-                        <button 
-                          type="button" 
-                          onClick={() => handleField('portfolio', formData.portfolio.filter((_, i) => i !== idx))}
-                          className="ml-2 text-xs text-red-500 hover:underline"
-                        >Remove</button>
-                      </li>
-                    );
-                  })}
-              </ul>
+              </div>
             </div>
           )}
         </div>

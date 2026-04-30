@@ -20,10 +20,16 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    // Check if user exists
+    // Check if this email is already registered as a user
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ message: 'This email is already registered as a user' });
+    }
+
+    // Check if this email is already registered as an influencer
+    const influencerExists = await Influencer.findOne({ email });
+    if (influencerExists) {
+      return res.status(400).json({ message: 'This email is already registered as an influencer' });
     }
 
     // Create user
