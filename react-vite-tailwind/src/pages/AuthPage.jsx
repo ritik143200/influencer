@@ -282,7 +282,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   };
 
   const handleGoogleLogin = () => {
-    const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+    const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '');
     window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 

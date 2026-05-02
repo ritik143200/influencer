@@ -42,15 +42,15 @@ const Footer = ({ config }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center mb-4">
-                <img 
-                  src="/footer.png" 
-                  alt={config.platform_name} 
-                  className="max-h-full w-36 sm:w-44 lg:w-56 object-contain self-center h-auto cursor-pointer"
-                  onClick={() => navigate('home')}
-                  onError={(e) => {
-                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='white'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
-                  }}
-                />
+              <img
+                src="/footer.png"
+                alt={config.platform_name}
+                className="max-h-full w-36 sm:w-44 lg:w-56 object-contain self-center h-auto cursor-pointer"
+                onClick={() => navigate('home')}
+                onError={(e) => {
+                  e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 60'%3E%3Ctext x='10' y='40' font-family='Arial' font-size='20' font-weight='bold' fill='white'%3EIndori Influencer%3C/text%3E%3C/svg%3E";
+                }}
+              />
             </div>
             <p className="text-gray-400 text-sm">
               Connecting creators and brands with trusted collaboration tools worldwide.
@@ -78,37 +78,37 @@ const Footer = ({ config }) => {
 
         <div className="mt-8 pt-6 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 text-sm">
-            © 2024 {config.platform_name}. All rights reserved.
+            viralmantrix by indori artist
           </p>
           <div className="flex gap-4">
-            <a 
-              href="https://www.instagram.com/viralmantrix?igsh=MTBkMzBjM28zMWd5bg%3D%3D" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://www.instagram.com/viralmantrix?igsh=MTBkMzBjM28zMWd5bg%3D%3D"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors text-sm"
             >
               Instagram
             </a>
-            <a 
-              href="https://x.com/ViralMantrix" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://x.com/ViralMantrix"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors text-sm"
             >
               Twitter
             </a>
-            <a 
-              href="https://www.linkedin.com/in/viral-mantrix-3563a3405/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://www.linkedin.com/in/viral-mantrix-3563a3405/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors text-sm"
             >
               LinkedIn
             </a>
-            <a 
-              href="https://youtube.com/@viralmantrix?si=pj9mwyESigyGLh9_" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://youtube.com/@viralmantrix?si=pj9mwyESigyGLh9_"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-white transition-colors text-sm"
             >
               YouTube

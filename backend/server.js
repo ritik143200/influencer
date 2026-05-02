@@ -22,6 +22,7 @@ const inquiryRoutes = require('./routes/inquiryRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const cityRoutes = require('./routes/cityRoutes');
+const featuredProfileRoutes = require('./routes/featuredProfileRoutes');
 
 // Connect to database
 const connectDB = require('./config/db');
@@ -38,7 +39,9 @@ app.use(limiter);
 // Middleware
 const allowedOrigins = [
   "https://viralmantrix.com",
-  "https://www.viralmantrix.com"
+  "https://www.viralmantrix.com",
+    "http://localhost:5174",
+     "http://localhost:5173"
 ];
 
 app.use(cors({
@@ -109,6 +112,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/activity', activityRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/cities', cityRoutes);
+app.use('/api/featured-profiles', featuredProfileRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -133,7 +137,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT;
 
 const startServer = async () => {
   try {

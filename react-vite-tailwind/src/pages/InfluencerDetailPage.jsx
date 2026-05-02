@@ -12,39 +12,58 @@ const InfluencerDetailPage = ({ config }) => {
   const [lightboxImage, setLightboxImage] = useState(null);
   const [fadeIn, setFadeIn] = useState(false);
 
-  // Static featured profiles fallback (same data as TrendingInfluencers)
-  const featuredProfiles = {
-    'justayushi__': { fullName: 'Ayushi Sikarwar', bio: 'Foodie | adventurer | explorer🚀 Follow me for mouth watering eats, hidden gems, local insights and travel inspiration 📍INDORE 📩 justayushi22@gmail.com', category: 'Food & Travel', profileImage: '/profiles/584350929_18019297550792574_1321395050260371907_n.jpg', socialLinks: { instagram: 'https://www.instagram.com/justayushi__/' }, location: 'Indore', verificationStatus: 'pending' },
-    'unscripted.pooja': { fullName: 'Pooja Patel', bio: 'Digital content creator sharing lifestyle, fashion, and daily vlogs', category: 'Digital Creator', profileImage: '/profiles/469720261_881068083858099_1445535093418220669_n.jpg', socialLinks: { instagram: 'https://www.instagram.com/unscripted.pooja/' }, location: 'India', verificationStatus: 'verified' },
-    'drx_akshat_mishra': { fullName: 'Drx Akshat Mishra', bio: 'Sports enthusiast & voice artist creating engaging content', category: 'Sports & Voice', profileImage: '/profiles/587307255_18335776141235669_2254666820855514781_n.jpg', socialLinks: { instagram: 'https://www.instagram.com/drx_akshat_mishra/' }, location: 'India', verificationStatus: 'verified' },
-    'yourviikas': { fullName: 'Vikas Choudhary', bio: 'Relationship expert & emotional intelligence coach sharing valuable insights', category: 'Relationship & EI', profileImage: '/profiles/605220975_18521599786067256_6899526771075247176_n.jpg', socialLinks: { instagram: 'https://www.instagram.com/yourviikas/' }, location: 'India', verificationStatus: 'verified' },
-    'indoreshorts': { fullName: 'Indore Shorts', bio: 'Showcasing the best of Indore city through short videos and local updates', category: 'Local City Page', profileImage: '/profiles/467582962_510159548650448_339588672127858553_n.jpg', socialLinks: { instagram: 'https://www.instagram.com/indoreshorts/' }, location: 'Indore', verificationStatus: 'verified' },
-  };
-
   useEffect(() => {
     if (!influencerId) { setError('No influencer ID provided'); setLoading(false); return; }
-
-    // Check if it's a featured profile (static handle) or a MongoDB ObjectId
-    const isObjectId = /^[a-f\d]{24}$/i.test(influencerId);
-
-    if (!isObjectId && featuredProfiles[influencerId]) {
-      // Use static data for featured profiles
-      setInfluencer(featuredProfiles[influencerId]);
-      setLoading(false);
-      return;
-    }
 
     const fetchInfluencer = async () => {
       try {
         setLoading(true); setError(null);
+        let foundInfluencer = null;
+
         const res = await fetch(`${API_BASE_URL}/api/influencer/${influencerId}`);
         const data = await res.json();
-        if (res.ok && data.success) { setInfluencer(data.data); }
-        else throw new Error(data.message || 'Influencer not found');
-      } catch (err) { setError(err.message); }
+        
+        if (res.ok && data.success) { 
+          foundInfluencer = data.data; 
+        } else {
+          // Fallback: try searching in featured profiles
+          const fpRes = await fetch(`${API_BASE_URL}/api/featured-profiles`);
+          const fpData = await fpRes.json();
+          if (fpRes.ok && fpData.success) {
+            const fp = fpData.data.find(p => p._id === influencerId);
+            if (fp) {
+              // Map FeaturedProfile to generic Influencer structure
+              foundInfluencer = {
+                _id: fp._id,
+                fullName: fp.name,
+                username: fp.socialLinks?.instagram ? fp.socialLinks.instagram.split('?')[0].split('/').filter(Boolean).pop() : fp.name.replace(/\s+/g, '').toLowerCase(),
+                bio: fp.bio,
+                category: fp.category,
+                profileImage: fp.image,
+                socialLinks: fp.socialLinks,
+                budget: fp.budget,
+                posts: fp.posts,
+                followers: fp.followers,
+                completedEvents: fp.posts, // compatibility for stats row
+                portfolio: fp.portfolio || [],
+                verificationStatus: 'verified',
+              };
+            }
+          }
+        }
+
+        if (foundInfluencer) {
+          setInfluencer(foundInfluencer);
+        } else {
+          throw new Error('Influencer not found');
+        }
+      } catch (err) { 
+        setError(err.message); 
+      }
       finally { setLoading(false); }
     };
     fetchInfluencer();
+
   }, [influencerId, API_BASE_URL]);
 
   useEffect(() => { if (!loading) { const t = setTimeout(() => setFadeIn(true), 50); return () => clearTimeout(t); } }, [loading]);
@@ -105,7 +124,7 @@ const InfluencerDetailPage = ({ config }) => {
 
       {/* Top Navbar Spacer & Back Button */}
       <div className="max-w-[935px] mx-auto px-4 sm:px-6 pt-24 pb-6">
-        <button onClick={() => navigate('home')} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 font-medium transition-colors group">
+        <button onClick={() => window.history.back()} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 font-medium transition-colors group">
           <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back
         </button>
@@ -132,8 +151,8 @@ const InfluencerDetailPage = ({ config }) => {
           <div className="flex-1 flex flex-col justify-center">
             {/* Top Row: Username & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-4">
-              <h2 className="text-xl sm:text-2xl font-normal text-gray-900 truncate flex items-center gap-2">
-                {influencer.username ? influencer.username : displayName.replace(/\s+/g, '').toLowerCase()}
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate flex items-center gap-2">
+                {displayName}
                 {influencer.verificationStatus === 'verified' && (
                   <span className="text-blue-500" title="Verified">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
@@ -152,11 +171,14 @@ const InfluencerDetailPage = ({ config }) => {
 
             {/* Middle Row: Stats */}
             <div className="hidden sm:flex gap-8 mb-4">
-              {influencer.completedEvents > 0 && (
-                <div><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-gray-600">events</span></div>
+              {(influencer.followers) && (
+                <div><span className="font-semibold text-gray-900">{influencer.followers}</span> <span className="text-gray-600">followers</span></div>
               )}
-              {influencer.budget > 0 && !influencer.budgetMin && (
-                <div><span className="font-semibold text-gray-900">₹{Number(influencer.budget).toLocaleString()}</span> <span className="text-gray-600">budget</span></div>
+              {(influencer.completedEvents > 0 || typeof influencer.completedEvents === 'string') && (
+                <div><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-gray-600">posts</span></div>
+              )}
+              {influencer.budget && !influencer.budgetMin && (
+                <div><span className="font-semibold text-gray-900">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-gray-600">budget</span></div>
               )}
               {(influencer.budgetMin != null || influencer.budgetMax != null) && (
                 <div><span className="font-semibold text-gray-900">₹{influencer.budgetMin ? Number(influencer.budgetMin).toLocaleString() : 0} - ₹{influencer.budgetMax ? Number(influencer.budgetMax).toLocaleString() : 'Any'}</span> <span className="text-gray-600">budget</span></div>
@@ -168,7 +190,7 @@ const InfluencerDetailPage = ({ config }) => {
 
             {/* Bottom Row: Name, Category, Bio, Links */}
             <div>
-              <h1 className="font-semibold text-gray-900">{displayName}</h1>
+              {/* Name already shown in top row */}
               {categories.length > 0 && (
                 <p className="text-sm text-gray-500 mb-1">{categories.join(' • ')}</p>
               )}
@@ -179,11 +201,14 @@ const InfluencerDetailPage = ({ config }) => {
 
               {/* Mobile Stats (visible only on sm) */}
               <div className="flex sm:hidden gap-6 mt-4 mb-4 border-t border-b border-gray-200 py-3">
-                 {influencer.completedEvents > 0 && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-xs text-gray-500">events</span></div>
+                 {(influencer.followers) && (
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{influencer.followers}</span> <span className="text-xs text-gray-500">followers</span></div>
                 )}
-                {influencer.budget > 0 && !influencer.budgetMin && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">₹{Number(influencer.budget).toLocaleString()}</span> <span className="text-xs text-gray-500">budget</span></div>
+                 {(influencer.completedEvents > 0 || typeof influencer.completedEvents === 'string') && (
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-xs text-gray-500">posts</span></div>
+                )}
+                {influencer.budget && !influencer.budgetMin && (
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-xs text-gray-500">budget</span></div>
                 )}
                 {influencer.rating?.average > 0 && (
                   <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">⭐ {influencer.rating.average.toFixed(1)}</span> <span className="text-xs text-gray-500">rating</span></div>
