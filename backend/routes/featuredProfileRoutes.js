@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { uploadPortfolio } = require('../config/cloudinary');
+const multer = require('multer');
 const { protect } = require('../middleware/authMiddleware');
 const {
   getFeaturedProfiles,
@@ -27,7 +27,8 @@ router.get('/', getFeaturedProfiles);
 router.use(protect);
 router.use(adminOnly);
 
-const uploadFields = uploadPortfolio.fields([
+const uploadMemory = multer({ storage: multer.memoryStorage() });
+const uploadFields = uploadMemory.fields([
   { name: 'image', maxCount: 1 },
   { name: 'portfolio', maxCount: 10 }
 ]);

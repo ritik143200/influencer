@@ -15,10 +15,11 @@ const {
   removeMyUnavailableDates,
   upload,
   getMyInquiries,
-  respondToInquiry
+  respondToInquiry,
+  uploadProfileImage
 } = require('../controllers/influencerController');
 const { protect } = require('../middleware/authMiddleware');
-const { uploadPortfolio } = require('../config/cloudinary');
+const multer = require('multer');
 
 const influencerOnly = (req, res, next) => {
   if (!req.user || req.user.role !== 'influencer') {
@@ -45,16 +46,11 @@ router.get('/me/availability', protect, influencerOnly, getMyAvailability);
 router.put('/me/availability', protect, influencerOnly, updateMyAvailability);
 router.post('/me/availability/add', protect, influencerOnly, addMyUnavailableDates);
 router.post('/me/availability/remove', protect, influencerOnly, removeMyUnavailableDates);
-router.post('/portfolio/upload', protect, uploadPortfolio.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded' });
-  }
-  res.status(200).json({
-    success: true,
-    url: req.file.path,
-    public_id: req.file.filename
-  });
-});
+
+// Memory upload for image processing
+const uploadMemory = multer({ storage: multer.memoryStorage() });
+
+router.post('/portfolio/upload', protect, uploadMemory.single('image'), uploadProfileImage);
 
 
 // Protected: inquiry management for influencers

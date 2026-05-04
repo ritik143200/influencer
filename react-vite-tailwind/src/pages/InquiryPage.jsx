@@ -299,7 +299,7 @@ const InquiryPage = ({ config }) => {
 
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 sm:gap-6">
-                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+                <div className="relative z-10 bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
                   <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
                     <h2 className="text-lg font-semibold text-gray-900">Your Details</h2>
@@ -362,7 +362,7 @@ const InquiryPage = ({ config }) => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+                <div className="relative z-20 bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
                   <div className="flex items-center gap-3">
                     <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
                     <h2 className="text-lg font-semibold text-gray-900">Requirement</h2>
@@ -454,7 +454,7 @@ const InquiryPage = ({ config }) => {
                         )}
                       </div>
                     </div>
-                    <div className="relative" data-city-container="true">
+                    <div className="relative z-[9997]" data-city-container="true">
                       <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-2">Location</label>
                       <div className="relative group">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
@@ -550,7 +550,7 @@ const InquiryPage = ({ config }) => {
                 </div>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
+              <div className="relative z-10 bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition transform-gpu hover:-translate-y-0.5 border-l-4 border-brand-500">
                 <div className="flex items-center gap-3">
                   <span className="w-2.5 h-2.5 rounded-full bg-brand-500" />
                   <h2 className="text-lg font-semibold text-gray-900">campaigns  Details</h2>

@@ -8,7 +8,13 @@ const featuredProfileSchema = new mongoose.Schema({
   budget: { type: String, trim: true },
   bio: { type: String, trim: true },
   image: { type: String },
+  imageThumb: { type: String },
+  imagePublicId: { type: String },
+  imageThumbPublicId: { type: String },
   portfolio: [{ type: String }],
+  portfolioThumbs: [{ type: String }],
+  portfolioPublicIds: [{ type: String }],
+  portfolioThumbPublicIds: [{ type: String }],
   socialLinks: {
     instagram: { type: String, trim: true },
     youtube: { type: String, trim: true }

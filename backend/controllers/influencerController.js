@@ -7,11 +7,68 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const {
+  uploadOptimizedAndThumbToCloudinary,
+  deleteCloudinaryAsset,
+  extractCloudinaryPublicIdFromUrl
+} = require('../utils/imageVariants');
 
 const toDayStartUtc = (input) => {
   const d = new Date(input);
   if (Number.isNaN(d.getTime())) return null;
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+};
+
+// Upload and set influencer profile image (optimized + thumbnail)
+// Route: POST /api/influencer/portfolio/upload
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ success: false, message: 'Not authorized' });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    const influencer = await Influencer.findById(req.user._id);
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer not found' });
+    }
+
+    const uploaded = await uploadOptimizedAndThumbToCloudinary(req.file.buffer, {
+      folder: 'influencer_avatars',
+      basePublicId: `avatar_${influencer._id}_${Date.now()}`,
+      optimizedMaxWidth: 1000,
+      thumbMaxWidth: 300,
+      webpQuality: 75
+    });
+
+    // Best effort cleanup of old avatar assets
+    const oldUrl = influencer.profileImage || influencer.profilePicture;
+    const oldPublicId = extractCloudinaryPublicIdFromUrl(oldUrl);
+    await deleteCloudinaryAsset(oldPublicId);
+    await deleteCloudinaryAsset(oldPublicId ? `${oldPublicId}_thumb` : null);
+    await deleteCloudinaryAsset(oldPublicId ? `${oldPublicId}_opt` : null);
+
+    influencer.profileImage = uploaded.optimized.url;
+    influencer.profilePicture = uploaded.optimized.url;
+    influencer.profileImageThumb = uploaded.thumb.url;
+    influencer.profileImagePublicId = uploaded.optimized.publicId;
+    influencer.profileImageThumbPublicId = uploaded.thumb.publicId;
+    await influencer.save();
+
+    return res.status(200).json({
+      success: true,
+      url: uploaded.optimized.url,
+      thumbUrl: uploaded.thumb.url,
+      public_id: uploaded.optimized.publicId,
+      thumb_public_id: uploaded.thumb.publicId
+    });
+  } catch (error) {
+    console.error('Profile image upload error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to upload image' });
+  }
 };
 
 const normalizeDateArray = (dates) => {
@@ -733,5 +790,6 @@ module.exports = {
   removeMyUnavailableDates,
   upload,
   getMyInquiries,
-  respondToInquiry
+  respondToInquiry,
+  uploadProfileImage
 };

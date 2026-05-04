@@ -182,7 +182,7 @@ const ExploreInfluencersPage = ({ config }) => {
 
   return (
     <div className="min-h-screen pt-20" style={{ backgroundColor: config.background_color }}>
-      <section className="relative overflow-hidden">
+      <section className="relative z-30">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-500/10 via-orange-500/5 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
           <div className="flex items-start justify-between gap-6">

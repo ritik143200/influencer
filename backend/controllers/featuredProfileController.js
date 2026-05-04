@@ -1,4 +1,9 @@
 const FeaturedProfile = require('../models/FeaturedProfile');
+const {
+  uploadOptimizedAndThumbToCloudinary,
+  deleteCloudinaryAsset,
+  extractCloudinaryPublicIdFromUrl
+} = require('../utils/imageVariants');
 
 exports.getFeaturedProfiles = async (req, res) => {
   try {
@@ -43,10 +48,34 @@ exports.createFeaturedProfile = async (req, res) => {
 
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
-        newProfile.image = req.files.image[0].path;
+        const uploaded = await uploadOptimizedAndThumbToCloudinary(req.files.image[0].buffer, {
+          folder: 'featured_profiles',
+          basePublicId: `featured_${Date.now()}_${Math.round(Math.random() * 1e9)}`,
+          optimizedMaxWidth: 1000,
+          thumbMaxWidth: 300,
+          webpQuality: 75
+        });
+        newProfile.image = uploaded.optimized.url;
+        newProfile.imageThumb = uploaded.thumb.url;
+        newProfile.imagePublicId = uploaded.optimized.publicId;
+        newProfile.imageThumbPublicId = uploaded.thumb.publicId;
       }
       if (req.files.portfolio) {
-        newProfile.portfolio = req.files.portfolio.map(file => file.path);
+        const uploads = await Promise.all(
+          req.files.portfolio.map((f) =>
+            uploadOptimizedAndThumbToCloudinary(f.buffer, {
+              folder: 'featured_profiles/portfolio',
+              basePublicId: `featured_port_${Date.now()}_${Math.round(Math.random() * 1e9)}`,
+              optimizedMaxWidth: 1000,
+              thumbMaxWidth: 300,
+              webpQuality: 75
+            })
+          )
+        );
+        newProfile.portfolio = uploads.map(u => u.optimized.url);
+        newProfile.portfolioThumbs = uploads.map(u => u.thumb.url);
+        newProfile.portfolioPublicIds = uploads.map(u => u.optimized.publicId);
+        newProfile.portfolioThumbPublicIds = uploads.map(u => u.thumb.publicId);
       }
     }
 
@@ -80,18 +109,69 @@ exports.updateFeaturedProfile = async (req, res) => {
     if (order !== undefined) updateFields.order = order;
     if (socialLinks) updateFields.socialLinks = parsedSocialLinks;
 
+    const existing = await FeaturedProfile.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
+    }
+
     let currentPortfolio = [];
     if (existingPortfolio) {
       currentPortfolio = Array.isArray(existingPortfolio) ? existingPortfolio : [existingPortfolio];
     }
 
+    // If admin removed some existing portfolio items, delete orphaned cloudinary assets (best effort)
+    const prevPortfolio = Array.isArray(existing.portfolio) ? existing.portfolio : [];
+    const removedPortfolio = prevPortfolio.filter((u) => !currentPortfolio.includes(u));
+    for (const url of removedPortfolio) {
+      const pid = extractCloudinaryPublicIdFromUrl(url);
+      await deleteCloudinaryAsset(pid);
+      await deleteCloudinaryAsset(pid ? `${pid}_thumb` : null);
+      await deleteCloudinaryAsset(pid ? `${pid}_opt` : null);
+    }
+
     if (req.files) {
       if (req.files.image && req.files.image[0]) {
-        updateFields.image = req.files.image[0].path;
+        const uploaded = await uploadOptimizedAndThumbToCloudinary(req.files.image[0].buffer, {
+          folder: 'featured_profiles',
+          basePublicId: `featured_${Date.now()}_${Math.round(Math.random() * 1e9)}`,
+          optimizedMaxWidth: 1000,
+          thumbMaxWidth: 300,
+          webpQuality: 75
+        });
+
+        // delete old image assets
+        const oldPid = existing.imagePublicId || extractCloudinaryPublicIdFromUrl(existing.image);
+        await deleteCloudinaryAsset(oldPid);
+        await deleteCloudinaryAsset(existing.imageThumbPublicId);
+        await deleteCloudinaryAsset(oldPid ? `${oldPid}_thumb` : null);
+        await deleteCloudinaryAsset(oldPid ? `${oldPid}_opt` : null);
+
+        updateFields.image = uploaded.optimized.url;
+        updateFields.imageThumb = uploaded.thumb.url;
+        updateFields.imagePublicId = uploaded.optimized.publicId;
+        updateFields.imageThumbPublicId = uploaded.thumb.publicId;
       }
       if (req.files.portfolio) {
-        const newPortfolioUrls = req.files.portfolio.map(file => file.path);
+        const uploads = await Promise.all(
+          req.files.portfolio.map((f) =>
+            uploadOptimizedAndThumbToCloudinary(f.buffer, {
+              folder: 'featured_profiles/portfolio',
+              basePublicId: `featured_port_${Date.now()}_${Math.round(Math.random() * 1e9)}`,
+              optimizedMaxWidth: 1000,
+              thumbMaxWidth: 300,
+              webpQuality: 75
+            })
+          )
+        );
+        const newPortfolioUrls = uploads.map(u => u.optimized.url);
+        const newThumbUrls = uploads.map(u => u.thumb.url);
+        const newPids = uploads.map(u => u.optimized.publicId);
+        const newThumbPids = uploads.map(u => u.thumb.publicId);
+
         currentPortfolio = [...currentPortfolio, ...newPortfolioUrls];
+        updateFields.portfolioThumbs = [...(existing.portfolioThumbs || []), ...newThumbUrls];
+        updateFields.portfolioPublicIds = [...(existing.portfolioPublicIds || []), ...newPids];
+        updateFields.portfolioThumbPublicIds = [...(existing.portfolioThumbPublicIds || []), ...newThumbPids];
       }
     }
     updateFields.portfolio = currentPortfolio;
@@ -140,10 +220,32 @@ exports.reorderFeaturedProfiles = async (req, res) => {
 
 exports.deleteFeaturedProfile = async (req, res) => {
   try {
-    const profile = await FeaturedProfile.findByIdAndDelete(req.params.id);
+    const profile = await FeaturedProfile.findById(req.params.id);
     if (!profile) {
       return res.status(404).json({ success: false, message: 'Profile not found' });
     }
+
+    // Cleanup images (best effort)
+    const pids = [];
+    if (profile.imagePublicId) pids.push(profile.imagePublicId);
+    if (profile.imageThumbPublicId) pids.push(profile.imageThumbPublicId);
+    const derived = extractCloudinaryPublicIdFromUrl(profile.image);
+    if (derived) {
+      pids.push(derived, `${derived}_thumb`, `${derived}_opt`);
+    }
+    for (const pid of pids) {
+      await deleteCloudinaryAsset(pid);
+    }
+
+    const portfolioUrls = Array.isArray(profile.portfolio) ? profile.portfolio : [];
+    for (const url of portfolioUrls) {
+      const pid = extractCloudinaryPublicIdFromUrl(url);
+      await deleteCloudinaryAsset(pid);
+      await deleteCloudinaryAsset(pid ? `${pid}_thumb` : null);
+      await deleteCloudinaryAsset(pid ? `${pid}_opt` : null);
+    }
+
+    await FeaturedProfile.findByIdAndDelete(req.params.id);
     res.status(200).json({ success: true, message: 'Profile deleted' });
   } catch (error) {
     console.error('Error deleting featured profile:', error);

@@ -25,6 +25,7 @@
     "nodemailer": "^8.0.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "sharp": "^0.34.3",
     "twilio": "^5.13.1"
   },
   "devDependencies": {

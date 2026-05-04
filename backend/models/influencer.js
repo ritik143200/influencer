@@ -57,6 +57,9 @@ const influencerSchema = new mongoose.Schema({
     default: 'https://picsum.photos/seed/artist-avatar/400/400.jpg'
   },
   profilePicture: { type: String },
+  profileImageThumb: { type: String },
+  profileImagePublicId: { type: String },
+  profileImageThumbPublicId: { type: String },
   socialLinks: {
     instagram: { type: String, default: '' },
     youtube: { type: String, default: '' },
