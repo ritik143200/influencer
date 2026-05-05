@@ -306,6 +306,8 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 <div>
                   <h5 className="font-semibold text-gray-700 mb-2">Influencer Details</h5>
                   <div className="space-y-2 text-sm">
+                     <div><strong>Full Name:</strong> {selectedInfluencer.fullName}</div>
+                     <div><strong>Location:</strong> {selectedInfluencer.location}</div>
                     <div><strong>Profile Type:</strong> {selectedInfluencer.profileType}</div>
                     <div><strong>Categories:</strong> {selectedInfluencer.categories?.length > 0 ? selectedInfluencer.categories.join(', ') : (selectedInfluencer.category || 'None')}</div>
                     {/* <div><strong>Subcategories:</strong> {selectedInfluencer.subcategories?.join(', ') || 'None'}</div> */}
@@ -336,8 +338,8 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   <div className="space-y-2 text-sm">
                     <div><strong>Instagram:</strong> {selectedInfluencer.socialLinks?.instagram || 'Not provided'}</div>
                     <div><strong>YouTube:</strong> {selectedInfluencer.socialLinks?.youtube || 'Not provided'}</div>
-                    <div><strong>Facebook:</strong> {selectedInfluencer.socialLinks?.facebook || 'Not provided'}</div>
-                    <div><strong>Website:</strong> {selectedInfluencer.socialLinks?.website || 'Not provided'}</div>
+                    {/* <div><strong>Facebook:</strong> {selectedInfluencer.socialLinks?.facebook|| 'Not provided'}</div> */}
+                    {/* <div><strong>Website:</strong> {selectedInfluencer.socialLinks?.website || 'Not provided'}</div> */}
                   </div>
                 </div>
               </div>

@@ -5,3 +5,5 @@ export const defaultConfig = {
   primary_action: '#9333ea', // Purple tone based on the loader
   secondary_action: '#c084fc'
 };
+
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '');

@@ -12,6 +12,7 @@ const {
   deleteCloudinaryAsset,
   extractCloudinaryPublicIdFromUrl
 } = require('../utils/imageVariants');
+const { sendInfluencerWelcomeMessage } = require('../utils/whatsappService');
 
 const toDayStartUtc = (input) => {
   const d = new Date(input);
@@ -357,6 +358,9 @@ const registerInfluencer = async (req, res) => {
     } catch (err) {
       console.error('Failed to log influencer registration activity:', err);
     }
+
+    // Send Welcome WhatsApp Message via AiSensy
+    sendInfluencerWelcomeMessage(newInfluencer.phone, newInfluencer.fullName || newInfluencer.firstName);
 
     // Generate JWT token for automatic login
     const token = jwt.sign(

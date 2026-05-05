@@ -5,6 +5,7 @@ const { logUserRegistration } = require('../middleware/activityLogger');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { sendWelcomeMessage } = require('../utils/whatsappService');
 
 // Generate JWT Token
 const generateToken = (id) => {
@@ -57,6 +58,9 @@ const registerUser = async (req, res) => {
       } catch (err) {
         console.error('Failed to log user registration activity:', err);
       }
+
+      // Send Welcome WhatsApp Message via AiSensy
+      sendWelcomeMessage(user.phone, user.name);
 
       res.status(201).json({
         _id: user._id,

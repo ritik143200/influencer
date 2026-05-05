@@ -121,6 +121,9 @@ const AppContent = ({ config }) => {
   );
 };
 
+import { SocketProvider } from './contexts/SocketContext';
+
+
 function App() {
   const [config, setConfig] = useState(defaultConfig);
   const [isReady, setIsReady] = useState(false);
@@ -145,11 +148,13 @@ function App() {
 
   return (
     <AuthProvider>
-      <NotificationProvider>
-        <RouterProvider>
-          <AppContent config={config} />
-        </RouterProvider>
-      </NotificationProvider>
+      <SocketProvider>
+        <NotificationProvider>
+          <RouterProvider>
+            <AppContent config={config} />
+          </RouterProvider>
+        </NotificationProvider>
+      </SocketProvider>
     </AuthProvider>
   );
 }

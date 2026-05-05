@@ -24,4 +24,13 @@ const notificationSchema = new mongoose.Schema({
     timestamps: true
 });
 
+notificationSchema.post('save', function(doc) {
+    try {
+        const { emitToAdmin } = require('../utils/socket');
+        emitToAdmin('new-notification', doc);
+    } catch (error) {
+        console.error('Error emitting new-notification via socket:', error);
+    }
+});
+
 module.exports = mongoose.model('Notification', notificationSchema);

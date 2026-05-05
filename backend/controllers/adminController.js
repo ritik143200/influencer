@@ -14,68 +14,114 @@ const toDayRangeUtc = (dateInput) => {
     return { dayStart, dayEnd };
 };
 
+let overviewCache = null;
+let lastCacheUpdate = 0;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const clearOverviewCache = () => {
+    overviewCache = null;
+    lastCacheUpdate = 0;
+};
+
 // @desc    Get admin overview analytics (counts + top inquirer)
 // @route   GET /api/admin/overview
 // @access  Private/Admin
 const getAdminOverview = async (req, res) => {
     try {
-        const [totalUsers, totalInfluencers, inquiries] = await Promise.all([
-            User.countDocuments(),
-            Influencer.countDocuments({ profileType: 'influencer' }),
-            Inquiry.find().select('userId status adminStatus createdAt').populate('userId', 'name email fullName')
+        // Check cache first
+        const now = Date.now();
+        if (overviewCache && (now - lastCacheUpdate < CACHE_TTL)) {
+            return res.status(200).json({
+                success: true,
+                data: overviewCache,
+                fromCache: true
+            });
+        }
+
+        const statsPromise = Inquiry.aggregate([
+            {
+                $facet: {
+                    counts: [
+                        {
+                            $group: {
+                                _id: null,
+                                total: { $sum: 1 },
+                                pending: {
+                                    $sum: {
+                                        $cond: [
+                                            {
+                                                $or: [
+                                                    { $eq: [{ $toLower: "$status" }, "pending"] },
+                                                    { $eq: [{ $toLower: "$adminStatus" }, "pending"] },
+                                                    { $eq: [{ $toLower: "$status" }, "sent"] }
+                                                ]
+                                            },
+                                            1,
+                                            0
+                                        ]
+                                    }
+                                },
+                                completed: {
+                                    $sum: {
+                                        $cond: [{ $eq: [{ $toLower: "$status" }, "completed"] }, 1, 0]
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    topInquirer: [
+                        { $match: { userId: { $ne: null } } },
+                        { $group: { _id: "$userId", inquiriesCount: { $sum: 1 } } },
+                        { $sort: { inquiriesCount: -1 } },
+                        { $limit: 1 },
+                        {
+                            $lookup: {
+                                from: 'users',
+                                localField: '_id',
+                                foreignField: '_id',
+                                as: 'userDetails'
+                            }
+                        },
+                        { $unwind: '$userDetails' },
+                        {
+                            $project: {
+                                userId: '$_id',
+                                inquiriesCount: 1,
+                                name: '$userDetails.name',
+                                email: '$userDetails.email'
+                            }
+                        }
+                    ]
+                }
+            }
         ]);
 
-        const totalInquiries = inquiries.length;
+        const [totalUsers, totalInfluencers, statsData] = await Promise.all([
+            User.countDocuments(),
+            Influencer.countDocuments({ profileType: 'influencer' }),
+            statsPromise
+        ]);
 
-        const isPendingInquiry = (inq) => {
-            const status = (inq.status || '').toLowerCase();
-            const adminStatus = (inq.adminStatus || '').toLowerCase();
-            return status === 'pending' || adminStatus === 'pending' || status === 'sent';
+        const counts = statsData[0].counts[0] || { total: 0, pending: 0, completed: 0 };
+        const topInquirer = statsData[0].topInquirer[0] || null;
+
+        const overviewData = {
+            totalUsers,
+            totalInfluencers,
+            totalInquiries: counts.total,
+            pendingInquiries: counts.pending,
+            processedInquiries: counts.total - counts.pending,
+            completedInquiries: counts.completed,
+            topInquirer
         };
 
-        const pendingInquiries = inquiries.filter(isPendingInquiry).length;
-        const processedInquiries = totalInquiries - pendingInquiries;
-        const completedInquiries = inquiries.filter(inq => {
-            const status = (inq.status || '').toLowerCase();
-            const adminStatus = (inq.adminStatus || '').toLowerCase();
-            const artistStatus = (inq.artistStatus || '').toLowerCase();
-            
-            // Only count inquiries that are fully completed (status === 'completed')
-            return status === 'completed';
-        }).length;
-
-        const countsByUserId = new Map();
-        for (const inq of inquiries) {
-            if (!inq.userId) continue;
-            const id = String(inq.userId._id || inq.userId);
-            countsByUserId.set(id, (countsByUserId.get(id) || 0) + 1);
-        }
-
-        let topInquirer = null;
-        for (const [userId, count] of countsByUserId.entries()) {
-            if (!topInquirer || count > topInquirer.inquiriesCount) {
-                const sampleInquiry = inquiries.find(i => String(i.userId?._id || i.userId) === userId);
-                const u = sampleInquiry?.userId;
-                topInquirer = {
-                    userId,
-                    inquiriesCount: count,
-                    name: u?.name || u?.fullName || null,
-                    email: u?.email || null
-                };
-            }
-        }
+        // Update cache
+        overviewCache = overviewData;
+        lastCacheUpdate = Date.now();
 
         res.status(200).json({
             success: true,
-            data: {
-                totalUsers,
-                totalInfluencers,
-                totalInquiries,
-                pendingInquiries,
-                processedInquiries,
-                completedInquiries,
-                topInquirer
-            }
+            data: overviewData
         });
     } catch (error) {
         console.error('Error fetching admin overview:', error);
@@ -99,6 +145,9 @@ const updateArtistStatus = async (req, res) => {
         const oldStatus = influencer.isActive;
         influencer.isActive = isActive;
         await influencer.save();
+
+        // Invalidate cache
+        clearOverviewCache();
 
         // Log influencer status update activity
         try {
@@ -174,6 +223,9 @@ const deleteUser = async (req, res) => {
         const user = await User.findByIdAndDelete(req.params.id);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
+        // Invalidate cache
+        clearOverviewCache();
+
         res.status(200).json({ success: true, message: 'User deleted permanently' });
     } catch (error) {
         console.error(`Error deleting user:`, error);
@@ -243,6 +295,9 @@ const updateInquiryStatus = async (req, res) => {
         });
 
         await inquiry.save();
+
+        // Invalidate cache
+        clearOverviewCache();
 
         // Log inquiry status update activity
         try {
@@ -315,6 +370,9 @@ const forwardInquiry = async (req, res) => {
         });
 
         await inquiry.save();
+
+        // Invalidate cache
+        clearOverviewCache();
 
         // Return populated inquiry
         const populated = await Inquiry.findById(id)
@@ -441,6 +499,9 @@ const assignInquiryToArtist = async (req, res) => {
         // Save inquiry
         await inquiry.save();
 
+        // Invalidate cache
+        clearOverviewCache();
+
         // Populate and return
         const populated = await Inquiry.findById(id)
             .populate('userId', 'name email phone')
@@ -562,6 +623,9 @@ const updateFeaturedInfluencers = async (req, res) => {
         if (bulkOps.length > 0) {
             await Influencer.bulkWrite(bulkOps);
         }
+
+        // Invalidate cache
+        clearOverviewCache();
 
         res.status(200).json({ success: true, message: 'Featured influencers updated successfully' });
     } catch (error) {

@@ -133,7 +133,7 @@ router.get('/debug', (req, res) => {
     googleClientId: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET',
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET',
     nodeEnv: process.env.NODE_ENV || 'development',
-    port: process.env.PORT || '5002'
+    port: process.env.PORT 
   });
 });
 

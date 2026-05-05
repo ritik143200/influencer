@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 
 import { useAuth } from '../contexts/AuthContext';
+import { useNotifications } from '../contexts/NotificationContext';
 
 import InquiryProgressBar from '../components/InquiryProgressBar';
 
@@ -15,16 +16,16 @@ import AdminUserManagement from '../components/AdminUserManagement';
 import AdminContactManagement from '../components/AdminContactManagement';
 
 import AdminInquiryManagement from '../components/AdminInquiryManagement';
-
 import RecentActivity from '../components/RecentActivity';
-
+import { useSocket } from '../contexts/SocketContext';
+import { API_BASE_URL } from '../data/config';
 
 
 const AdminDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { user, logout } = useAuth();
-
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  const { socket } = useSocket();
+  const { addNotification } = useNotifications();
 
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
@@ -221,194 +222,53 @@ const AdminDashboard = ({ config }) => {
     }
   };
 
+  const memoizedAnalytics = React.useMemo(() => analytics, [analytics]);
+  const memoizedAdminData = React.useMemo(() => adminData, [adminData]);
+
 
 
   // Fetch dashboard data function
 
   const fetchDashboardData = async (isSilent = false) => {
-
     try {
-
       if (!isSilent) setLoading(true);
-
       setError(null);
-
-
-
-      // Fetch all data in parallel
-
       const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` };
 
-      const [usersRes, inquiriesRes] = await Promise.all([
-
-        fetch(`${API_BASE_URL}/api/admin/users`, { headers: authHeader }),
-
-        fetch(`${API_BASE_URL}/api/admin/inquiries`, { headers: authHeader })
-
-      ]);
-
-
-
-      // Handle responses
-
-      if (usersRes.ok) {
-
-        const usersData = await usersRes.json();
-
-        setUsers(usersData.data || usersData || []);
-
-      }
-
-
-
-      if (inquiriesRes.ok) {
-
-        const inquiriesData = await inquiriesRes.json();
-
-        setInquiries(inquiriesData.data || inquiriesData || []);
-
-      }
-
-
-
-      // Fetch influencers data
-
-      const influencersRes = await fetch(`${API_BASE_URL}/api/influencer`, {
-
-        headers: {
-
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-
+      // Optimized: Only fetch data for the active tab
+      if (activeTab === 'users' && users.length === 0) {
+        const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, { headers: authHeader });
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          setUsers(usersData.data || usersData || []);
         }
-
-      });
-
-
-
-      if (influencersRes.ok) {
-        const influencersData = await influencersRes.json();
-        const influencersArray = Array.isArray(influencersData.data) ? influencersData.data :
-          Array.isArray(influencersData) ? influencersData :
-            Array.isArray(influencersData.artists) ? influencersData.artists : [];
-
-        // Filter out influencers with missing required fields and create demo influencers if needed
-        const validInfluencers = influencersArray.filter(influencer =>
-          influencer && influencer.email &&
-          (influencer.categories && influencer.categories.length > 0 || influencer.category)
-        );
-
-        if (validInfluencers.length === 0) {
-          const demoInfluencers = [
-            {
-              _id: 'demo1',
-              fullName: 'Demo Influencer 1',
-              email: 'influencer1@example.com',
-              categories: ['Lifestyle'],
-              profileType: 'influencer'
-            }
-          ];
-          setInfluencers(demoInfluencers);
-        } else {
-          setInfluencers(validInfluencers);
+      } else if (activeTab === 'inquiries' && inquiries.length === 0) {
+        const inquiriesRes = await fetch(`${API_BASE_URL}/api/admin/inquiries`, { headers: authHeader });
+        if (inquiriesRes.ok) {
+          const inquiriesData = await inquiriesRes.json();
+          setInquiries(inquiriesData.data || inquiriesData || []);
         }
-
-      } else {
-
-        console.error('Failed to fetch influencers:', influencersRes.status, influencersRes.statusText);
-
-        try {
-
-          const errorData = await influencersRes.json();
-
-          console.error('Error response:', errorData);
-
-        } catch (e) {
-
-          const errorText = await influencersRes.text();
-
-          console.error('Error text:', errorText);
-
+      } else if (activeTab === 'influencers' && influencers.length === 0) {
+        const influencersRes = await fetch(`${API_BASE_URL}/api/influencer`, { headers: authHeader });
+        if (influencersRes.ok) {
+          const influencersData = await influencersRes.json();
+          const influencersArray = Array.isArray(influencersData.data) ? influencersData.data :
+            Array.isArray(influencersData) ? influencersData :
+              Array.isArray(influencersData.artists) ? influencersData.artists : [];
+          setInfluencers(influencersArray.filter(i => i && i.email));
         }
-
-
-
-        // Set demo artists as fallback
-
-        const demoInfluencers = [
-
-          {
-
-            _id: 'demo1',
-
-            fullName: 'Demo Influencer 1',
-
-            email: 'influencer1@example.com',
-
-            categories: ['Lifestyle'],
-
-            profileType: 'influencer'
-
-          }
-
-        ];
-
-        setInfluencers(demoInfluencers);
-
-      }
-
-
-
-      // Update analytics with real data (ensure arrays exist)
-
-      setAnalytics({
-
-        totalRevenue: 245678,
-
-        thisMonthRevenue: 45678,
-
-        lastMonthRevenue: 38956,
-
-        totalUsers: Array.isArray(users) ? users.length : 0,
-
-        totalInfluencers: Array.isArray(influencers) ? influencers.length : 0,
-
-        totalInquiries: Array.isArray(inquiries) ? inquiries.length : 0,
-
-        pendingInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'pending').length : 0,
-
-        processedInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() !== 'pending').length : 0,
-
-        completedInquiries: Array.isArray(inquiries) ? inquiries.filter(i => (i.status || '').toLowerCase() === 'completed').length : 0,
-
-        topInquirer: null,
-
-        activeUsers: Array.isArray(users) ? Math.floor(users.length * 0.8) : 0,
-
-        conversionRate: 12.5
-
-      });
-
-
-
-      // Static notifications fetch removed as per request to only allow real-time notifications
-
-      // Fetch contacts
-      try {
-        const contactsRes = await fetch(`${API_BASE_URL}/api/contacts`, {
-          headers: authHeader
-        });
-
+      } else if (activeTab === 'contacts' && contacts.length === 0) {
+        const contactsRes = await fetch(`${API_BASE_URL}/api/contacts`, { headers: authHeader });
         if (contactsRes.ok) {
           const contactsData = await contactsRes.json();
           setContacts(contactsData.data || []);
         }
-      } catch (contactsErr) {
-        console.error('Error fetching contacts:', contactsErr);
-        setContacts([]);
       }
 
-
-
+      // Always fetch overview analytics for the overview tab
+      if (activeTab === 'overview') {
+        await fetchOverviewAnalytics(isSilent);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError('Failed to load dashboard data');
@@ -450,14 +310,54 @@ const AdminDashboard = ({ config }) => {
   useEffect(() => {
     if (!adminData) return;
     fetchDashboardData();
-    fetchOverviewAnalytics();
-  }, [adminData, API_BASE_URL]);
+  }, [adminData, activeTab]);
 
-  // Real-time notifications polling
+  // Real-time notifications and activity via Socket.io
+  useEffect(() => {
+    if (!socket || !adminData) return;
+
+    const handleNewNotification = (notification) => {
+      setNotifications(prev => [notification, ...prev]);
+      
+      // Show global toast notification
+      addNotification({
+        type: notification.type || 'general',
+        title: 'New Notification',
+        message: notification.message,
+        priority: 'high'
+      });
+      
+      console.log('New notification received:', notification);
+    };
+
+    const handleNewActivity = (activity) => {
+      // Show global toast for activities
+      addNotification({
+        type: activity.type || 'activity',
+        title: 'New Activity',
+        message: activity.description,
+        priority: activity.priority || 'medium'
+      });
+      
+      // We might want to refresh analytics if a new activity happens
+      fetchOverviewAnalytics();
+      console.log('New activity received:', activity);
+    };
+
+    socket.on('new-notification', handleNewNotification);
+    socket.on('new-activity', handleNewActivity);
+
+    return () => {
+      socket.off('new-notification', handleNewNotification);
+      socket.off('new-activity', handleNewActivity);
+    };
+  }, [socket, adminData]);
+
+  // Initial notifications fetch
   useEffect(() => {
     if (!adminData) return;
 
-    const fetchRealTimeNotifications = async () => {
+    const fetchInitialNotifications = async () => {
       try {
         const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
@@ -467,17 +367,11 @@ const AdminDashboard = ({ config }) => {
           setNotifications(Array.isArray(notifData) ? notifData : []);
         }
       } catch (err) {
-        console.error('Error fetching real-time notifications:', err);
+        console.error('Error fetching initial notifications:', err);
       }
     };
 
-    // Fetch immediately
-    fetchRealTimeNotifications();
-
-    // Poll every 10 seconds for real-time updates
-    const intervalId = setInterval(fetchRealTimeNotifications, 10000);
-
-    return () => clearInterval(intervalId);
+    fetchInitialNotifications();
   }, [adminData, API_BASE_URL]);
 
   // Helper to safely render location (handles both string and object formats)
@@ -1328,7 +1222,7 @@ const AdminDashboard = ({ config }) => {
             </div>
           </div>
           <div className="p-6 max-h-96 overflow-y-auto">
-            <RecentActivity API_BASE_URL={API_BASE_URL} getThemeColor={getThemeColor} />
+            <RecentActivity getThemeColor={getThemeColor} />
           </div>
         </div>
 

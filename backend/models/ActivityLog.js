@@ -164,4 +164,14 @@ activityLogSchema.virtual('timeAgo').get(function() {
 activityLogSchema.set('toJSON', { virtuals: true });
 activityLogSchema.set('toObject', { virtuals: true });
 
+// Real-time notification via Socket.io
+activityLogSchema.post('save', function(doc) {
+  try {
+    const { emitToAdmin } = require('../utils/socket');
+    emitToAdmin('new-activity', doc);
+  } catch (error) {
+    console.error('Error emitting new-activity via socket:', error);
+  }
+});
+
 module.exports = mongoose.model('ActivityLog', activityLogSchema);
