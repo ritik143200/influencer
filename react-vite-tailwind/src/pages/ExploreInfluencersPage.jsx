@@ -82,19 +82,14 @@ const ExploreInfluencersPage = ({ config }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch both featured and regular influencers
-        const [featRes, allRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/featured-profiles`),
-          fetch(`${API_BASE_URL}/api/influencer`)
-        ]);
-
+        // Only fetch featured influencers as requested
+        const featRes = await fetch(`${API_BASE_URL}/api/featured-profiles`);
         const featData = await featRes.json();
-        const allData = await allRes.json();
 
-        let combined = [];
+        let featured = [];
 
         if (featRes.ok && featData.success) {
-          combined = [...combined, ...featData.data.map(inf => ({
+          featured = featData.data.map(inf => ({
             id: inf._id,
             name: inf.name,
             image: inf.image,
@@ -108,29 +103,10 @@ const ExploreInfluencersPage = ({ config }) => {
             youtubeLink: inf.socialLinks?.youtube || '',
             isFeatured: true,
             subCategory: '' // FeaturedProfiles usually don't have subCategory
-          }))];
+          }));
         }
 
-        if (allRes.ok && allData.success) {
-          // Avoid duplicates if a featured influencer is also in regular list (though they are different collections)
-          combined = [...combined, ...allData.data.map(inf => ({
-            id: inf._id,
-            name: inf.fullName || `${inf.firstName} ${inf.lastName}`,
-            image: inf.profileImage,
-            category: inf.category || inf.niche?.[0] || 'Influencer',
-            subCategory: inf.subcategory || inf.subcategories?.[0] || '',
-            followers: inf.followers || '0',
-            posts: inf.posts || '0',
-            budget: inf.budgetMin ? `₹${inf.budgetMin}` : '',
-            bio: inf.bio,
-            verified: inf.verificationStatus === 'verified',
-            instagramLink: inf.socialLinks?.instagram || inf.platforms?.instagram?.url || '',
-            youtubeLink: inf.socialLinks?.youtube || inf.platforms?.youtube?.url || '',
-            isFeatured: false
-          }))];
-        }
-
-        setDbInfluencers(combined);
+        setDbInfluencers(featured);
       } catch (err) {
         console.error('Failed to fetch influencers:', err);
       } finally {
