@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../data/config';
 
 /**
  * Influencer Registration Page Component
@@ -41,7 +42,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const cityInputRef = useRef(null);
   const cityDropdownRef = useRef(null);
   const cityFetchTimer = useRef(null);
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
+
 
   // Close dropdown when clicking outside
   useEffect(() => {

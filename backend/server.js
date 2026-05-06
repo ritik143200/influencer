@@ -146,7 +146,7 @@ const { initSocket } = require('./utils/socket');
 const server = http.createServer(app);
 const io = initSocket(server);
 
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT;
 
 const startServer = async () => {
   try {

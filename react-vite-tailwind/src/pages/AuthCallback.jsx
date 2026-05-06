@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
+import { API_BASE_URL } from '../data/config';
 
 const AuthCallback = () => {
   const { navigate } = useRouter();
@@ -10,7 +11,7 @@ const AuthCallback = () => {
     // Handle OAuth callback
     const handleCallback = async () => {
       try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
+
         
         // Get user data from session (passport session)
         const response = await fetch(`${API_BASE_URL}/api/auth/google/user`, {

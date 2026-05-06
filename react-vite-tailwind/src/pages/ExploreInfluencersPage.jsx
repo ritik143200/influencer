@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import InfluencerCard from '../components/InfluencerCard';
+import { API_BASE_URL } from '../data/config';
 
 const categoryOptions = {
   'influencer': [
@@ -54,7 +55,7 @@ const ExploreInfluencersPage = ({ config }) => {
   const [dbInfluencers, setDbInfluencers] = useState([]);
   const [loading, setLoading] = useState(true);
   const ITEMS_PER_PAGE = 9;
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
+
 
   // Reset to first page when filters change
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import AuthInput from '../components/AuthInput';
 import AuthButton from '../components/AuthButton';
+import { API_BASE_URL } from '../data/config';
 
 const AuthPage = ({ initialTab, embedded = false }) => {
   const { login } = useAuth();
@@ -156,7 +157,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
     try {
       const endpoint = isResetPassword ? 'reset-password' : (isForgotPassword ? 'forgot-password' : (isLogin ? 'login' : 'register'));
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
+
       
       const payload = isResetPassword ? {
         token: resetToken,
@@ -282,7 +283,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
   };
 
   const handleGoogleLogin = () => {
-    const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '');
+
     window.location.href = `${API_BASE_URL}/api/auth/google`;
   };
 

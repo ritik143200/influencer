@@ -10,7 +10,7 @@ const PORT = 5001;
 
 // Enable CORS for all routes
 app.use(cors({
-  origin: ['http://localhost:5175', 'http://localhost:3000', 'http://127.0.0.1:5175'],
+  origin: ['http:viralmantrix.com', 'http://viralmantrix.com', 'http://127.0.0.1:5175'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

@@ -4,11 +4,11 @@ const passport = require('../config/passport');
 const router = express.Router();
 
 const {
-    registerUser,
-    loginUser,
-    forgotPassword,
-    resetPassword,
-    changePassword
+  registerUser,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+  changePassword
 } = require('../controllers/authController');
 
 const { protect } = require('../middleware/authMiddleware');
@@ -32,13 +32,13 @@ router.get('/google', (req, res, next) => {
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ? '✅ SET' : '❌ NOT SET',
     callbackURL: process.env.GOOGLE_CALLBACK_URL || `http://localhost:${process.env.PORT || 5002}/api/auth/google/callback`
   });
-  
+
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     console.log('❌ Google OAuth not configured - credentials missing');
     const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
     return res.redirect(`${frontendUrl}/auth?error=google_not_configured`);
   }
-  
+
   console.log('✅ Proceeding with Google OAuth - authenticate middleware');
   console.log('🔍 Available strategies:', Object.keys(passport._strategies || {}));
   try {
@@ -57,18 +57,18 @@ router.get('/google/callback', (req, res, next) => {
     clientId: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET'
   });
-  
+
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     console.log('❌ Google OAuth not configured');
-    return res.status(503).json({ 
-      success: false, 
-      message: 'Google OAuth is not configured.' 
+    return res.status(503).json({
+      success: false,
+      message: 'Google OAuth is not configured.'
     });
   }
-  
+
   const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
   const failureUrl = `${frontendUrl}/auth?error=google_auth_failed`;
-  
+
   passport.authenticate('google', { failureRedirect: failureUrl })(req, res, next);
 }, (req, res) => {
   // Successful authentication, redirect to frontend callback
@@ -133,7 +133,7 @@ router.get('/debug', (req, res) => {
     googleClientId: process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET',
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET',
     nodeEnv: process.env.NODE_ENV || 'development',
-    port: process.env.PORT 
+    port: process.env.PORT
   });
 });
 
