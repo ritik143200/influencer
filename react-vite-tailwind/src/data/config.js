@@ -6,4 +6,4 @@ export const defaultConfig = {
   secondary_action: '#c084fc'
 };
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');

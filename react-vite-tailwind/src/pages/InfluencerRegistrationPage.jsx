@@ -41,7 +41,7 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
   const cityInputRef = useRef(null);
   const cityDropdownRef = useRef(null);
   const cityFetchTimer = useRef(null);
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
 
   // Close dropdown when clicking outside
   useEffect(() => {

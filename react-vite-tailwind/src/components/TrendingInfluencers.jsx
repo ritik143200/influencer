@@ -7,7 +7,7 @@ const TrendingInfluencers = ({ config }) => {
   const { navigate } = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const [dbFeaturedProfiles, setDbFeaturedProfiles] = useState([]);
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
 
   useEffect(() => {
     const fetchFeatured = async () => {

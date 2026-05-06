@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, Image as ImageIcon, Link as LinkIcon, ExternalLink } from 'lucide-react';
 
 // Small helper to safely read env base
-const getApiBase = () => (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+const getApiBase = () => (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
 
 // Same categories as used in InfluencerRegistrationPage for consistency
 const influencerCategories = [

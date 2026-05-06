@@ -4,7 +4,7 @@ import { useRouter } from '../contexts/RouterContext';
 const InfluencerDetailPage = ({ config }) => {
   const { params, navigate } = useRouter();
   const influencerId = params?.id;
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
 
   const [influencer, setInfluencer] = useState(null);
   const [loading, setLoading] = useState(true);

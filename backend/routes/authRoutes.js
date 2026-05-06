@@ -30,12 +30,12 @@ router.get('/google', (req, res, next) => {
   console.log('🔍 Environment Check:', {
     clientId: process.env.GOOGLE_CLIENT_ID ? '✅ SET' : '❌ NOT SET',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ? '✅ SET' : '❌ NOT SET',
-    callbackURL: `http://localhost:${process.env.PORT || 5002}/api/auth/google/callback`
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || `http://localhost:${process.env.PORT || 5002}/api/auth/google/callback`
   });
   
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     console.log('❌ Google OAuth not configured - credentials missing');
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
     return res.redirect(`${frontendUrl}/auth?error=google_not_configured`);
   }
   
@@ -46,7 +46,7 @@ router.get('/google', (req, res, next) => {
     authenticator(req, res, next);
   } catch (error) {
     console.error('❌ Google OAuth Error:', error.message, error.stack);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
     return res.redirect(`${frontendUrl}/auth?error=google_error&msg=${encodeURIComponent(error.message)}`);
   }
 });
@@ -66,13 +66,13 @@ router.get('/google/callback', (req, res, next) => {
     });
   }
   
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
   const failureUrl = `${frontendUrl}/auth?error=google_auth_failed`;
   
   passport.authenticate('google', { failureRedirect: failureUrl })(req, res, next);
 }, (req, res) => {
   // Successful authentication, redirect to frontend callback
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl = process.env.FRONTEND_URL || 'https://viralmantrix.com';
   res.redirect(`${frontendUrl}/?path=auth/callback`);
 });
 

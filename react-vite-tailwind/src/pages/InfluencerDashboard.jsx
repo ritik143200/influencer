@@ -36,7 +36,7 @@ const InfluencerDashboard = ({ config }) => {
   const fetchInquiries = async () => {
     setLoadingInquiries(true);
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
       const influencerData = localStorage.getItem('userData') ? JSON.parse(localStorage.getItem('userData')) : null;
       const influencerId = influencerData?._id || influencerData?.id;
       const userToken = localStorage.getItem('userToken');
@@ -267,7 +267,7 @@ const InfluencerDashboard = ({ config }) => {
     // Listen for custom profile update event - fetch fresh data from server
     const handleProfileUpdate = async (event) => {
       try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
         const token = localStorage.getItem('userToken');
         
         const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
@@ -940,7 +940,7 @@ const InfluencerDashboard = ({ config }) => {
         return inq;
       }));
 
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
       const response = await fetch(`${API_BASE_URL}/api/influencer/inquiries/${inquiryId}/respond`, {
         method: 'PATCH',
         headers: {
@@ -1067,7 +1067,7 @@ const InfluencerDashboard = ({ config }) => {
                   if (tab === 'inquiries') {
                     // Fetch fresh profile data from server when user attempts to access inquiries
                     try {
-                      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+                      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
                       const token = localStorage.getItem('userToken');
                       
                       // Refresh profile before opening inquiries

@@ -10,7 +10,7 @@ const AuthCallback = () => {
     // Handle OAuth callback
     const handleCallback = async () => {
       try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
         
         // Get user data from session (passport session)
         const response = await fetch(`${API_BASE_URL}/api/auth/google/user`, {

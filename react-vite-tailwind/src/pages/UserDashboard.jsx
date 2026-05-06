@@ -48,7 +48,7 @@ const UserDashboard = ({ config }) => {
         setInquiriesError('');
         try {
           const token = localStorage.getItem('userToken');
-          const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+          const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
           const res = await fetch(`${API_BASE_URL}/api/inquiries`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
           });
@@ -107,7 +107,7 @@ const UserDashboard = ({ config }) => {
     setIsChangingPassword(true);
     try {
       const token = localStorage.getItem('userToken');
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
       const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
         method: 'POST',
         headers: {

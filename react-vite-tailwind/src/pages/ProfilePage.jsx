@@ -178,7 +178,7 @@ const ProfilePage = ({ config }) => {
 
       setProfileLoading(true);
       try {
-        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+        const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
         const token = localStorage.getItem('userToken');
         const res = await fetch(`${API_BASE_URL}/api/influencer/me`, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -222,7 +222,7 @@ const ProfilePage = ({ config }) => {
   const handleSave = async () => {
     setIsUpdating(true);
     try {
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
       const token = localStorage.getItem('userToken');
 
       console.log('Profile update - Token check:', { token: !!token, tokenLength: token?.length });

@@ -156,7 +156,7 @@ const AuthPage = ({ initialTab, embedded = false }) => {
 
     try {
       const endpoint = isResetPassword ? 'reset-password' : (isForgotPassword ? 'forgot-password' : (isLogin ? 'login' : 'register'));
-      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001').replace(/\/$/, '');
+      const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
       
       const payload = isResetPassword ? {
         token: resetToken,
