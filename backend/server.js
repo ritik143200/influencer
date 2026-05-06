@@ -29,19 +29,13 @@ const connectDB = require('./config/db');
 
 const app = express();
 
-// Rate limiter (basic)
-const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100
-});
-app.use(limiter);
-
 // Middleware
 const allowedOrigins = [
   "https://viralmantrix.com",
   "https://www.viralmantrix.com",
-    "http://localhost:5174",
-     "http://localhost:5173"
+  "https://api.viralmantrix.com",
+  "http://localhost:5174",
+  "http://localhost:5173"
 ];
 
 app.use(cors({
@@ -49,11 +43,20 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("CORS blocked: " + origin));
+      console.warn('CORS blocked origin:', origin);
+      callback(null, false);
     }
   },
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
+
+// Rate limiter (basic)
+const limiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100
+});
+app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

@@ -8,6 +8,7 @@ const initSocket = (server) => {
       origin: [
         "https://viralmantrix.com",
         "https://www.viralmantrix.com",
+        "https://api.viralmantrix.com",
         "http://localhost:5174",
         "http://localhost:5173"
       ],
