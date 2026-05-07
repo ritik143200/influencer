@@ -843,8 +843,10 @@ const InfluencerDashboard = ({ config }) => {
                     <span className="ml-2 text-gray-800">{inq.eventType || 'Not specified'}</span>
                   </div>
                   <div className="mb-2">
-                    <span className="font-medium text-gray-600">Requirements:</span> 
-                    <span className="ml-2 break-words text-gray-800">{inq.requirements || '—'}</span>
+                    <div className="font-medium text-gray-600 mb-1">Requirements:</div> 
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 whitespace-pre-wrap text-gray-800 leading-relaxed">
+                      {inq.requirements || 'No specific requirements mentioned'}
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-4 text-xs text-gray-500">
                     <span><strong>Budget:</strong> {inq.budget ? `₹${Number(inq.budget).toLocaleString('en-IN')}` : '—'}</span>

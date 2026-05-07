@@ -354,10 +354,17 @@ const AdminInquiryManagement = ({
                   </div>
                 </div>
 
-                {/* Message Preview */}
-                <div className="mb-4">
-                  <h4 className="font-semibold text-gray-900 text-sm mb-1">Message Preview</h4>
-                  <p className="text-sm text-gray-600 line-clamp-2">{inquiry.message}</p>
+                {/* Requirements / Message */}
+                <div className="mb-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Campaign Details / Requirements
+                  </h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                    {inquiry.requirements || inquiry.message || 'No specific requirements mentioned'}
+                  </p>
                 </div>
 
                 {/* Actions */}
@@ -390,7 +397,7 @@ const AdminInquiryManagement = ({
                   
                   {(status === 'artist_accepted' || status === 'artist_rejected') && (
                     <button
-                      onClick={() => handleAssignToArtist(inquiryId)}
+                      onClick={() => handleAssignToInfluencer(inquiryId)}
                       className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                     >
                       Complete

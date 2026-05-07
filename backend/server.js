@@ -140,11 +140,6 @@ app.use('*', (req, res) => {
   });
 });
 
-const http = require('http');
-const { initSocket } = require('./utils/socket');
-
-const server = http.createServer(app);
-const io = initSocket(server);
 
 const PORT = process.env.PORT;
 
@@ -156,7 +151,7 @@ const startServer = async () => {
       console.error('Database connection failed at startup:', err);
     });
 
-    server.listen(PORT, () => {
+    app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
       console.log(`📁 Uploads directory: ${uploadsDir}`);
       console.log(`🔗 API Health: http://localhost:${PORT}/api/health`);

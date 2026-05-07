@@ -272,7 +272,7 @@ backend/
 
 ### Phase 2 Features
 - **Payment Integration** with Stripe/PayPal
-- **Real-time Notifications** with WebSocket
+
 - **Advanced Search** with filters and sorting
 - **Rating & Review System** for artists
 - **Mobile App** (React Native)

@@ -18,9 +18,7 @@ const AdminUserManagement = ({
   handleViewUserDetails,
   handleUpdateUserStatus,
   handleDeleteUser,
-  getCategoryColors,
-  successMessage,
-  setSuccessMessage
+  getCategoryColors
 }) => {
   // Reset pagination when user filters change
   useEffect(() => {

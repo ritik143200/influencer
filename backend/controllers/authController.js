@@ -88,17 +88,27 @@ const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Check for user in User collection first
-    let user = await User.findOne({ email });
+    let user = await User.findOne({ email }).select('+password');
     let userType = 'user';
 
     // If not found in User collection, check Artist collection
     if (!user) {
-      user = await Influencer.findOne({ email });
+      user = await Influencer.findOne({ email }).select('+password');
       userType = 'artist';
     }
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Guard: account was created via Google OAuth and has no usable password.
+    // Detect this by checking if the stored password looks like our placeholder
+    // OR if the user has a googleId but the password field is missing/falsy.
+    const hasUsablePassword = user.password && user.password.length >= 10;
+    if (!hasUsablePassword) {
+      return res.status(400).json({
+        message: 'This account was created via Google. Please use "Sign in with Google" or reset your password to set a manual password.'
+      });
     }
 
     // Check for password

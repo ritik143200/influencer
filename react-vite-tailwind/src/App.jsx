@@ -121,7 +121,7 @@ const AppContent = ({ config }) => {
   );
 };
 
-import { SocketProvider } from './contexts/SocketContext';
+
 
 
 function App() {
@@ -148,13 +148,13 @@ function App() {
 
   return (
     <AuthProvider>
-      <SocketProvider>
+
         <NotificationProvider>
           <RouterProvider>
             <AppContent config={config} />
           </RouterProvider>
         </NotificationProvider>
-      </SocketProvider>
+
     </AuthProvider>
   );
 }

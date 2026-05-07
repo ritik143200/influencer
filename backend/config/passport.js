@@ -2,6 +2,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("../models/User");
 const Influencer = require("../models/influencer");
+const crypto = require("crypto");
 
 // Debug: Log environment variables
 console.log('🔍 Google OAuth Environment Check:');
@@ -20,33 +21,68 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       async (accessToken, refreshToken, profile, done) => {
         try {
           const email = profile.emails[0].value;
+          const googleId = profile.id;
+          const avatar = profile.photos?.[0]?.value || null;
+          const displayName = profile.displayName;
 
-          // Step 1: Check if email already exists in User collection
-          const existingUser = await User.findOne({ email });
+          // ── Fast path: already linked by googleId ──────────────────────────
+          let existingUser = await User.findOne({ googleId });
+          if (existingUser) return done(null, existingUser);
+
+          let existingInfluencer = await Influencer.findOne({ googleId });
+          if (existingInfluencer) return done(null, existingInfluencer);
+
+          // ── Existing User by email — merge Google fields, NEVER touch password ──
+          existingUser = await User.findOne({ email });
           if (existingUser) {
-            // Login with existing user role — do NOT change role
-            return done(null, existingUser);
+            // Use updateOne with $set so the pre-save hook (which hashes passwords)
+            // is NOT triggered, and the existing hashed password is preserved as-is.
+            const updates = {};
+            if (!existingUser.googleId) updates.googleId = googleId;
+            if (!existingUser.avatar && avatar) updates.avatar = avatar;
+
+            if (Object.keys(updates).length > 0) {
+              await User.updateOne({ _id: existingUser._id }, { $set: updates });
+            }
+
+            // Return fresh doc so session has latest fields
+            const refreshed = await User.findById(existingUser._id);
+            return done(null, refreshed);
           }
 
-          // Step 2: Check if email already exists in Influencer collection
-          const existingInfluencer = await Influencer.findOne({ email });
+          // ── Existing Influencer by email — merge Google fields ─────────────
+          existingInfluencer = await Influencer.findOne({ email });
           if (existingInfluencer) {
-            // Login with existing influencer role — do NOT change role, do NOT create a new user
-            return done(null, existingInfluencer);
+            const updates = {};
+            if (!existingInfluencer.googleId) updates.googleId = googleId;
+            if (!existingInfluencer.avatar && avatar) updates.avatar = avatar;
+
+            if (Object.keys(updates).length > 0) {
+              await Influencer.updateOne({ _id: existingInfluencer._id }, { $set: updates });
+            }
+
+            const refreshed = await Influencer.findById(existingInfluencer._id);
+            return done(null, refreshed);
           }
 
-          // Step 3: Email not found anywhere — create a new User with default role = "user"
+          // ── Brand-new Google user — create account ─────────────────────────
+          // Placeholder password: 48-char hex, hashed by the User pre-save hook.
+          // The user never needs to know or use this password unless they explicitly
+          // set one via "Forgot Password" flow later.
+          const randomPassword = crypto.randomBytes(24).toString('hex');
+
           const newUser = await User.create({
-            name: profile.displayName,
+            name: displayName,
             email,
-            googleId: profile.id,
-            // Random password for Google users (they won't use it directly)
-            password: 'google-auth-' + Math.random().toString(36).slice(-8),
-            role: 'user'
+            googleId,
+            avatar,
+            password: randomPassword,
+            role: 'user',
           });
 
           return done(null, newUser);
         } catch (err) {
+          console.error('Google OAuth error:', err);
           return done(err, null);
         }
       }

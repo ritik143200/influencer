@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { useSocket } from '../contexts/SocketContext';
+
 import { API_BASE_URL } from '../data/config';
 
 const RecentActivity = ({ getThemeColor }) => {
@@ -12,37 +12,10 @@ const RecentActivity = ({ getThemeColor }) => {
   const [hasMore, setHasMore] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [stats, setStats] = useState({});
-  const { socket } = useSocket();
+
 
   // Listen for real-time activities
-  useEffect(() => {
-    if (!socket) return;
 
-    const handleNewActivity = (activity) => {
-      // Check if activity matches current filter
-      if (filter === 'all' || activity.type === filter) {
-        setActivities(prev => [activity, ...prev]);
-      }
-      
-      if (!activity.isRead) {
-        setUnreadCount(prev => prev + 1);
-      }
-      
-      // Update stats if needed
-      if (activity.type) {
-        setStats(prev => ({
-          ...prev,
-          [activity.type]: (prev[activity.type] || 0) + 1
-        }));
-      }
-    };
-
-    socket.on('new-activity', handleNewActivity);
-
-    return () => {
-      socket.off('new-activity', handleNewActivity);
-    };
-  }, [socket, filter]);
 
   // Fetch recent activities
   const fetchActivities = async (reset = false) => {

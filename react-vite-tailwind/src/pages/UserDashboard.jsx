@@ -586,6 +586,28 @@ const UserDashboard = ({ config }) => {
                 <div className="mt-2">
                   <InquiryProgressBar status={statusKey} progressPercentage={progressPercentage} />
                 </div>
+
+                {/* Expanded Details */}
+                {expandedInquiryIds.has(id) && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 animate-in slide-in-from-top-2 duration-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <div className="bg-gray-50 p-3 rounded-xl">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Budget</p>
+                        <p className="text-sm font-semibold text-gray-900">₹{inq.budget?.toLocaleString('en-IN') || '—'}</p>
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-xl">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-sm font-semibold text-gray-900 truncate">{inq.location || '—'}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Campaign Details / Requirements</p>
+                      <div className="bg-gray-50 p-4 rounded-xl text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border border-gray-100 shadow-inner">
+                        {inq.requirements || 'No specific requirements provided.'}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}

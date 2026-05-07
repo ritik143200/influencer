@@ -1,49 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { useRouter } from '../contexts/RouterContext';
-
 import { useAuth } from '../contexts/AuthContext';
 import { useNotifications } from '../contexts/NotificationContext';
 
 import InquiryProgressBar from '../components/InquiryProgressBar';
-
 import AdminInfluencersManagement from '../components/AdminInfluencersManagement';
-
 import AdminFeaturedInfluencers from '../components/AdminFeaturedInfluencers';
-
 import AdminUserManagement from '../components/AdminUserManagement';
-
 import AdminContactManagement from '../components/AdminContactManagement';
-
 import AdminInquiryManagement from '../components/AdminInquiryManagement';
 import RecentActivity from '../components/RecentActivity';
-import { useSocket } from '../contexts/SocketContext';
+
+import { useAdminData } from '../hooks/useAdminData';
+import { useToast } from '../hooks/useToast';
+import { useDebounce } from '../hooks/useDebounce';
+import { adminApi } from '../services/adminApiService';
 import { API_BASE_URL } from '../data/config';
 
 
 const AdminDashboard = ({ config }) => {
   const { navigate } = useRouter();
   const { user, logout } = useAuth();
-  const { socket } = useSocket();
   const { addNotification } = useNotifications();
+  const { showToast, ToastContainer } = useToast();
 
+  // ── centralised data via custom hook ──────────────────────────────────────
+  const {
+    overview,
+    users, influencers, inquiries, contacts, notifications,
+    loadingOverview, loadingUsers, loadingInfluencers, loadingInquiries, loadingContacts,
+    errors,
+    loadTab, refreshTab, fetchNotifications,
+    updateInquiryInState, updateUserInState, removeUserFromState,
+    updateInfluencerInState, updateContactInState,
+    markNotificationReadInState, markAllNotificationsReadInState,
+    setInfluencers, setInquiries,
+  } = useAdminData();
+
+  // ── UI-only state ─────────────────────────────────────────────────────────
   const [adminData, setAdminData] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
-
-  // Notifications state
-  const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Data states
-  const [users, setUsers] = useState([]);
-  const [influencers, setInfluencers] = useState([]);
-  const [inquiries, setInquiries] = useState([]);
-  const [contacts, setContacts] = useState([]);
+  // Derive analytics from overview (backwards-compat shape)
+  const analytics = useMemo(() => ({
+    totalRevenue: 245678,
+    thisMonthRevenue: 45678,
+    lastMonthRevenue: 38956,
+    totalUsers: overview?.totalUsers ?? 0,
+    totalInfluencers: overview?.totalInfluencers ?? 0,
+    totalInquiries: overview?.totalInquiries ?? 0,
+    pendingInquiries: overview?.pendingInquiries ?? 0,
+    processedInquiries: overview?.processedInquiries ?? 0,
+    completedInquiries: overview?.completedInquiries ?? 0,
+    topInquirer: overview?.topInquirer ?? null,
+  }), [overview]);
 
-  // Influencer detail modal state
+  // Loading flag for initial page load (overview only)
+  const loading = loadingOverview && !overview;
+
+  // Modal state
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
   const [showInfluencerModal, setShowInfluencerModal] = useState(false);
   const [selectedForwardedInfluencer, setSelectedForwardedInfluencer] = useState(null);
@@ -56,738 +74,264 @@ const AdminDashboard = ({ config }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModal, setShowUserModal] = useState(false);
 
-  // Forward inquiry modal state
+  // Forward modal
   const [showForwardModal, setShowForwardModal] = useState(false);
   const [forwardInquiryId, setForwardInquiryId] = useState(null);
   const [forwardRecipients, setForwardRecipients] = useState(new Set());
   const [isFilteringInfluencers, setIsFilteringInfluencers] = useState(false);
 
-  // Pagination state for inquiries
+  // Pagination
   const [inquiryCurrentPage, setInquiryCurrentPage] = useState(1);
   const [inquiryItemsPerPage] = useState(10);
-
-  // Pagination state for users
   const [userCurrentPage, setUserCurrentPage] = useState(1);
   const [userItemsPerPage] = useState(10);
-
-  // Pagination state for contacts
   const [contactCurrentPage, setContactCurrentPage] = useState(1);
   const [contactItemsPerPage] = useState(10);
 
-  // Analytics state
-  const [analytics, setAnalytics] = useState({
-    totalRevenue: 245678,
-    thisMonthRevenue: 45678,
-    lastMonthRevenue: 38956,
-    totalUsers: 0,
-    totalInfluencers: 0,
-    totalInquiries: 0,
-    pendingInquiries: 0,
-    processedInquiries: 0,
-    completedInquiries: 0,
-  });
-
-  // Refresh state
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (showForwardModal) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [showForwardModal]);
-
-  // Filter states for Users
+  // Filter state (raw — debounced versions used for filtering)
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Filter states for Inquiries
   const [filterStatusInquiry, setFilterStatusInquiry] = useState('all');
   const [filterDate, setFilterDate] = useState('');
   const [searchTermInquiry, setSearchTermInquiry] = useState('');
 
-  // Forward modal filters (search by category, budget, location)
+  // Forward modal filters
   const [forwardSearchCategory, setForwardSearchCategory] = useState('');
   const [forwardFilterBudgetMin, setForwardFilterBudgetMin] = useState('');
   const [forwardFilterBudgetMax, setForwardFilterBudgetMax] = useState('');
   const [forwardFilterLocation, setForwardFilterLocation] = useState('');
 
+  // Debounced search — avoids filter re-calc on every keystroke
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const debouncedSearchTermInquiry = useDebounce(searchTermInquiry, 300);
+  const debouncedForwardSearchCategory = useDebounce(forwardSearchCategory, 300);
+  const debouncedForwardFilterLocation = useDebounce(forwardFilterLocation, 300);
+
   // Reset pagination when filters change
+  useEffect(() => { setInquiryCurrentPage(1); },
+    [filterStatusInquiry, filterDate, debouncedSearchTermInquiry]);
+  useEffect(() => { setUserCurrentPage(1); },
+    [filterRole, filterStatus, debouncedSearchTerm]);
+
+  // Lock scroll when forward modal is open
   useEffect(() => {
-    setInquiryCurrentPage(1);
-  }, [filterStatusInquiry, filterDate, searchTermInquiry]);
+    document.body.style.overflow = showForwardModal ? 'hidden' : 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [showForwardModal]);
 
-  // Reset pagination when user filters change
+  // Auth guard
   useEffect(() => {
-    setUserCurrentPage(1);
-  }, [filterRole, filterStatus, searchTerm]);
-
-  // Reset pagination when contact filters change (if any)
-  useEffect(() => {
-    setContactCurrentPage(1);
-  }, []); // Add contact filter dependencies when available
-
-  // Derived filtered influencers for forward modal
-  const filteredInfluencersForForward = (Array.isArray(influencers) ? influencers : []).filter(i => {
-    // Category check
-    const cats = (i.categories || (i.category ? [i.category] : [])).map(c => String(c).toLowerCase());
-    const catQuery = (forwardSearchCategory || '').trim().toLowerCase();
-    const matchesCategory = !catQuery || cats.some(c => c.includes(catQuery));
-
-    // Location check
-    const locStr = (typeof i.location === 'string') ? i.location : ((i.location && (i.location.city || i.location.country)) ? `${i.location.city || ''} ${i.location.country || ''}` : '');
-    const locQuery = (forwardFilterLocation || '').trim().toLowerCase();
-    const matchesLocation = !locQuery || String(locStr).toLowerCase().includes(locQuery);
-
-    // Budget check (tolerant - accept if influencer has any budget-like field overlapping requested range)
-    let matchesBudget = true;
-    if (forwardFilterBudgetMin || forwardFilterBudgetMax) {
-      const min = forwardFilterBudgetMin ? Number(forwardFilterBudgetMin) : Number.NEGATIVE_INFINITY;
-      const max = forwardFilterBudgetMax ? Number(forwardFilterBudgetMax) : Number.POSITIVE_INFINITY;
-      const infMin = Number(i.budgetMin || i.minBudget || i.expectedBudget || i.budget || 0) || 0;
-      const infMax = Number(i.budgetMax || i.maxBudget || i.expectedBudget || i.budget || infMin) || infMin;
-      matchesBudget = (infMax >= min && infMin <= max);
-    }
-
-    return matchesCategory && matchesLocation && matchesBudget;
-  });
-
-  // Filter states for Inquiries
-  // Check admin role
-
-  useEffect(() => {
-
-    if (!user || user.role !== 'admin') {
-      navigate('home');
-      return;
-    }
-
+    if (!user || user.role !== 'admin') { navigate('home'); return; }
     setAdminData(user);
-
   }, [user, navigate]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('home');
-  };
+  // Lazy-load data when tab changes
+  useEffect(() => {
+    loadTab(activeTab);
+  }, [activeTab, loadTab]);
 
+  // Memoised filtered influencers for forward modal (only recomputes when deps change)
+  const filteredInfluencersForForward = useMemo(() => {
+    const list = Array.isArray(influencers) ? influencers : [];
+    const catQ = debouncedForwardSearchCategory.trim().toLowerCase();
+    const locQ = debouncedForwardFilterLocation.trim().toLowerCase();
+    return list.filter(i => {
+      const cats = (i.categories || (i.category ? [i.category] : [])).map(c => String(c).toLowerCase());
+      const matchesCategory = !catQ || cats.some(c => c.includes(catQ));
+      const locStr = typeof i.location === 'string' ? i.location
+        : (i.location ? `${i.location.city || ''} ${i.location.country || ''}` : '');
+      const matchesLocation = !locQ || String(locStr).toLowerCase().includes(locQ);
+      let matchesBudget = true;
+      if (forwardFilterBudgetMin || forwardFilterBudgetMax) {
+        const min = forwardFilterBudgetMin ? Number(forwardFilterBudgetMin) : -Infinity;
+        const max = forwardFilterBudgetMax ? Number(forwardFilterBudgetMax) : Infinity;
+        const iMin = Number(i.budgetMin || i.minBudget || i.expectedBudget || i.budget || 0) || 0;
+        const iMax = Number(i.budgetMax || i.maxBudget || i.expectedBudget || i.budget || iMin) || iMin;
+        matchesBudget = iMax >= min && iMin <= max;
+      }
+      return matchesCategory && matchesLocation && matchesBudget;
+    });
+  }, [influencers, debouncedForwardSearchCategory, debouncedForwardFilterLocation,
+      forwardFilterBudgetMin, forwardFilterBudgetMax]);
 
-  const handleOpenForwardModal = (inquiryId) => {
+  const handleLogout = useCallback(() => { logout(); navigate('home'); }, [logout, navigate]);
+
+  const handleOpenForwardModal = useCallback((inquiryId) => {
     setForwardInquiryId(inquiryId);
     setForwardRecipients(new Set());
     setShowForwardModal(true);
-  };
+  }, []);
 
-  const handleViewInquiryDetails = (inquiry) => {
+  const handleViewInquiryDetails = useCallback((inquiry) => {
     setSelectedInquiry(inquiry);
     setShowInquiryDetailsModal(true);
-  };
+  }, []);
 
-  const handleViewInfluencerDetails = async (influencer) => {
+  const handleViewInfluencerDetails = useCallback(async (influencer) => {
     setLoadingInfluencerDetails(true);
     try {
       const influencerId = influencer._id || influencer.id;
-      let fullInfluencerData = influencer;
-
-      if (!influencer.email || !influencer.phone || influencer.email === 'N/A' || !influencer.categories) {
+      let fullData = influencer;
+      if (!influencer.email || !influencer.categories) {
         const existing = influencers.find(i => (i._id || i.id) === influencerId);
-        if (existing && (existing.email || existing.phone)) {
-          fullInfluencerData = { ...influencer, ...existing };
-        } else {
-          const response = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
+        if (existing?.email) { fullData = { ...influencer, ...existing }; }
+        else {
+          const res = await fetch(`${API_BASE_URL}/api/admin/artists/${influencerId}`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
           });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.data) fullInfluencerData = data.data;
-          }
+          if (res.ok) { const d = await res.json(); if (d.data) fullData = d.data; }
         }
       }
-
-      setSelectedForwardedInfluencer(fullInfluencerData);
+      setSelectedForwardedInfluencer(fullData);
       setShowInfluencerDetailsModal(true);
     } catch (err) {
-      console.error('Error fetching Influencer Details:', err);
-      alert('Failed to fetch complete Influencer Details. Showing available information.');
+      showToast('Could not load full influencer details.', 'warning');
       setSelectedForwardedInfluencer(influencer);
       setShowInfluencerDetailsModal(true);
-    } finally {
-      setLoadingInfluencerDetails(false);
-    }
-  };
+    } finally { setLoadingInfluencerDetails(false); }
+  }, [influencers, showToast]);
 
-  const memoizedAnalytics = React.useMemo(() => analytics, [analytics]);
-  const memoizedAdminData = React.useMemo(() => adminData, [adminData]);
+  const fetchOverviewAnalytics = useCallback(async (manual = false) => {
+    if (manual) setIsRefreshing(true);
+    await refreshTab('overview');
+    if (manual) setIsRefreshing(false);
+  }, [refreshTab]);
 
-
-
-  // Fetch dashboard data function
-
-  const fetchDashboardData = async (isSilent = false) => {
-    try {
-      if (!isSilent) setLoading(true);
-      setError(null);
-      const authHeader = { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` };
-
-      // Optimized: Only fetch data for the active tab
-      if (activeTab === 'users' && users.length === 0) {
-        const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, { headers: authHeader });
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          setUsers(usersData.data || usersData || []);
-        }
-      } else if (activeTab === 'inquiries' && inquiries.length === 0) {
-        const inquiriesRes = await fetch(`${API_BASE_URL}/api/admin/inquiries`, { headers: authHeader });
-        if (inquiriesRes.ok) {
-          const inquiriesData = await inquiriesRes.json();
-          setInquiries(inquiriesData.data || inquiriesData || []);
-        }
-      } else if (activeTab === 'influencers' && influencers.length === 0) {
-        const influencersRes = await fetch(`${API_BASE_URL}/api/influencer`, { headers: authHeader });
-        if (influencersRes.ok) {
-          const influencersData = await influencersRes.json();
-          const influencersArray = Array.isArray(influencersData.data) ? influencersData.data :
-            Array.isArray(influencersData) ? influencersData :
-              Array.isArray(influencersData.artists) ? influencersData.artists : [];
-          setInfluencers(influencersArray.filter(i => i && i.email));
-        }
-      } else if (activeTab === 'contacts' && contacts.length === 0) {
-        const contactsRes = await fetch(`${API_BASE_URL}/api/contacts`, { headers: authHeader });
-        if (contactsRes.ok) {
-          const contactsData = await contactsRes.json();
-          setContacts(contactsData.data || []);
-        }
-      }
-
-      // Always fetch overview analytics for the overview tab
-      if (activeTab === 'overview') {
-        await fetchOverviewAnalytics(isSilent);
-      }
-    } catch (err) {
-      console.error('Error fetching dashboard data:', err);
-      setError('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchOverviewAnalytics = async (isManualRefresh = false) => {
-    try {
-      if (isManualRefresh) {
-        setIsRefreshing(true);
-      }
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/overview`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-      });
-      const data = await res.json();
-      if (!res.ok || !data?.success) return;
-      setAnalytics(prev => ({
-        ...prev,
-        totalUsers: data.data?.totalUsers ?? prev.totalUsers,
-        totalInfluencers: data.data?.totalInfluencers ?? prev.totalInfluencers,
-        totalInquiries: data.data?.totalInquiries ?? prev.totalInquiries,
-        pendingInquiries: data.data?.pendingInquiries ?? prev.pendingInquiries,
-        processedInquiries: data.data?.processedInquiries ?? prev.processedInquiries,
-        completedInquiries: data.data?.completedInquiries ?? prev.completedInquiries,
-        topInquirer: data.data?.topInquirer ?? prev.topInquirer
-      }));
-    } catch (e) {
-      console.error('Error fetching admin overview analytics:', e);
-    } finally {
-      if (isManualRefresh) {
-        setIsRefreshing(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!adminData) return;
-    fetchDashboardData();
-  }, [adminData, activeTab]);
-
-  // Real-time notifications and activity via Socket.io
-  useEffect(() => {
-    if (!socket || !adminData) return;
-
-    const handleNewNotification = (notification) => {
-      setNotifications(prev => [notification, ...prev]);
-      
-      // Show global toast notification
-      addNotification({
-        type: notification.type || 'general',
-        title: 'New Notification',
-        message: notification.message,
-        priority: 'high'
-      });
-      
-      console.log('New notification received:', notification);
-    };
-
-    const handleNewActivity = (activity) => {
-      // Show global toast for activities
-      addNotification({
-        type: activity.type || 'activity',
-        title: 'New Activity',
-        message: activity.description,
-        priority: activity.priority || 'medium'
-      });
-      
-      // We might want to refresh analytics if a new activity happens
-      fetchOverviewAnalytics();
-      console.log('New activity received:', activity);
-    };
-
-    socket.on('new-notification', handleNewNotification);
-    socket.on('new-activity', handleNewActivity);
-
-    return () => {
-      socket.off('new-notification', handleNewNotification);
-      socket.off('new-activity', handleNewActivity);
-    };
-  }, [socket, adminData]);
-
-  // Initial notifications fetch
-  useEffect(() => {
-    if (!adminData) return;
-
-    const fetchInitialNotifications = async () => {
-      try {
-        const notifRes = await fetch(`${API_BASE_URL}/api/admin/notifications`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-        });
-        if (notifRes.ok) {
-          const notifData = await notifRes.json();
-          setNotifications(Array.isArray(notifData) ? notifData : []);
-        }
-      } catch (err) {
-        console.error('Error fetching initial notifications:', err);
-      }
-    };
-
-    fetchInitialNotifications();
-  }, [adminData, API_BASE_URL]);
-
-  // Helper to safely render location (handles both string and object formats)
   const renderLocation = (loc) => {
     if (!loc) return 'Not specified';
     if (typeof loc === 'string') return loc;
     const { city = '', country = '' } = loc;
-    const formatted = [city, country].filter(Boolean).join(', ');
-    return formatted || 'Not specified';
+    return [city, country].filter(Boolean).join(', ') || 'Not specified';
   };
 
-  const handleAdminInquiryAction = async (inquiryId, action) => {
+
+  const handleAdminInquiryAction = useCallback(async (inquiryId, action) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/${action}`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        const updatedInquiry = data.data;
-        setInquiries(prev => {
-          return prev.map(i =>
-            (i._id === inquiryId || i.id === inquiryId) ? updatedInquiry : i
-          );
-        });
-        setSuccessMessage(`Inquiry ${action === 'accept' ? 'accepted' : 'rejected'} successfully!`);
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } else {
-        alert(data.message || 'Failed to update inquiry');
-      }
+      const updated = await adminApi.updateInquiryStatus(inquiryId, action);
+      updateInquiryInState(inquiryId, updated);
+      showToast(`Inquiry ${action === 'accept' ? 'accepted' : 'rejected'} successfully!`, 'success');
     } catch (err) {
-      console.error('Error updating inquiry:', err);
-      alert('Network error while updating inquiry.');
+      showToast(err.message || 'Failed to update inquiry', 'error');
     }
-  };
+  }, [updateInquiryInState, showToast]);
 
-  const handleUpdateContactStatus = async (contactId, status) => {
+  const handleUpdateContactStatus = useCallback(async (contactId, status) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/contacts/${contactId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-        },
-        body: JSON.stringify({ status })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        const updatedContact = data.data;
-        setContacts(prev => prev.map(c =>
-          (c._id === contactId || c.id === contactId) ? updatedContact : c
-        ));
-        setSelectedContact(updatedContact);
-        setSuccessMessage(`Contact status updated to ${status} successfully!`);
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } else {
-        alert(data.message || 'Failed to update contact');
-      }
+      const updated = await adminApi.updateContactStatus(contactId, status);
+      updateContactInState(contactId, updated);
+      setSelectedContact(updated);
+      showToast(`Contact status updated to ${status}!`, 'success');
     } catch (err) {
-      console.error('Error updating contact:', err);
-      alert('Network error while updating contact.');
+      showToast(err.message || 'Failed to update contact', 'error');
     }
-  };
+  }, [updateContactInState, showToast]);
 
-  const handleAssignToInfluencer = async (inquiryId, influencerId = null) => {
-
+  const handleAssignToInfluencer = useCallback(async (inquiryId, influencerId = null) => {
+    if (!inquiryId) { showToast('Inquiry ID is missing', 'error'); return; }
+    const targetId = influencerId ? String(influencerId).trim() : 'demo';
+    if (targetId !== 'demo' && targetId.length < 10) {
+      showToast('Invalid influencer ID format', 'error'); return;
+    }
     try {
-
-      // Validate inputs
-      if (!inquiryId) {
-        alert('Error: Inquiry ID is missing');
-        return;
+      const notes = influencerId ? 'Inquiry assigned to selected influencer' : 'Inquiry completed by admin';
+      const updated = await adminApi.assignInquiry(inquiryId, targetId, notes);
+      updateInquiryInState(inquiryId, updated);
+      if (selectedInquiry && (selectedInquiry._id === inquiryId || selectedInquiry.id === inquiryId)) {
+        setSelectedInquiry(updated);
       }
-
-      // Use provided influencerId or use demo mode
-      const targetId = influencerId ? String(influencerId).trim() : 'demo';
-
-      if (targetId !== 'demo' && targetId.length < 10) {
-        console.error('Invalid influencer ID:', targetId);
-        alert('Error: Invalid influencer ID format');
-        return;
-      }
-
-      console.log('handleAssignToInfluencer called with:', { inquiryId, targetId });
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${inquiryId}/assign/${targetId}`, {
-
-        method: 'PATCH',
-
-        headers: {
-
-          'Content-Type': 'application/json',
-
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-
-        },
-
-        body: JSON.stringify({
-
-          notes: influencerId ? `Inquiry assigned to selected influencer` : 'Inquiry completed by admin'
-
-        })
-
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-
-        setInquiries(prev => prev.map(i =>
-
-          (i._id === inquiryId || i.id === inquiryId) ? data.data : i
-
-        ));
-
-        // Also update selectedInquiry if it's the same one
-        if (selectedInquiry && (selectedInquiry._id === inquiryId || selectedInquiry.id === inquiryId)) {
-
-          setSelectedInquiry(data.data);
-
-        }
-
-        setSuccessMessage('Inquiry assigned successfully! Other influencers have been auto-rejected.');
-
-        setTimeout(() => setSuccessMessage(null), 4000);
-
-      } else {
-
-        const errorMsg = data.message || `Assignment failed (Status: ${res.status})`;
-        console.error('Assignment failed:', { 
-          errorMsg, 
-          errorName: data.errorName, 
-          errorDetails: data.errorDetails,
-          fullResponse: data 
-        });
-        alert(errorMsg);
-
-      }
-
+      showToast('Inquiry assigned! Others auto-rejected.', 'success');
     } catch (err) {
-
-      console.error('Error assigning inquiry:', err);
-
-      alert('Network error while assigning inquiry: ' + err.message);
+      showToast(err.message || 'Assignment failed', 'error');
     }
-  };
+  }, [updateInquiryInState, selectedInquiry, showToast]);
 
-  // User management functions
-  const handleViewUserDetails = (user) => {
-    setSelectedUser(user);
-    setShowUserModal(true);
-  };
+  const handleViewUserDetails = useCallback((u) => { setSelectedUser(u); setShowUserModal(true); }, []);
 
-  const handleUpdateUserStatus = async (userId, action) => {
+  const handleUpdateUserStatus = useCallback(async (userId, action) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/${action}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (res.ok) {
-        const updatedUser = await res.json();
-        setUsers(prev => prev.map(u => (u._id === userId || u.id === userId) ? updatedUser : u));
-        setSuccessMessage(`User status updated to ${updatedUser.status} successfully!`);
-        setTimeout(() => setSuccessMessage(null), 3000);
-
-        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
-          setSelectedUser(updatedUser);
-        }
-      } else {
-        const errorData = await res.json();
-        alert(errorData.message || 'Failed to update user status');
-      }
+      const updated = await adminApi.updateUserStatus(userId, action);
+      updateUserInState(userId, updated);
+      if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) setSelectedUser(updated);
+      showToast(`User status updated to ${updated.status}!`, 'success');
     } catch (err) {
-      console.error('Error updating user status:', err);
-      alert('Network error while updating user status');
+      showToast(err.message || 'Failed to update user status', 'error');
     }
-  };
+  }, [updateUserInState, selectedUser, showToast]);
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user permanently? This action cannot be undone.')) {
-      return;
-    }
-
+  const handleDeleteUser = useCallback(async (userId) => {
+    if (!window.confirm('Delete this user permanently? This cannot be undone.')) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-      });
-
-      if (res.ok) {
-        setUsers(prev => prev.filter(u => u._id !== userId && u.id !== userId));
-        setSuccessMessage('User deleted successfully');
-        setTimeout(() => setSuccessMessage(null), 3000);
-
-        if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
-          setShowUserModal(false);
-          setSelectedUser(null);
-        }
-      } else {
-        const errorData = await res.json();
-        alert(errorData.message || 'Failed to delete user');
+      await adminApi.deleteUser(userId);
+      removeUserFromState(userId);
+      if (selectedUser && (selectedUser._id === userId || selectedUser.id === userId)) {
+        setShowUserModal(false); setSelectedUser(null);
       }
+      showToast('User deleted successfully', 'success');
     } catch (err) {
-      console.error('Error deleting user:', err);
-      alert('Network error while deleting user');
+      showToast(err.message || 'Failed to delete user', 'error');
     }
-  };
+  }, [removeUserFromState, selectedUser, showToast]);
 
-  const handleToggleRecipient = (influencerId) => {
-
+  const handleToggleRecipient = useCallback((influencerId) => {
     setForwardRecipients(prev => {
-
       const next = new Set(prev);
-
-      if (next.has(influencerId)) next.delete(influencerId);
-
-      else next.add(influencerId);
-
+      if (next.has(influencerId)) next.delete(influencerId); else next.add(influencerId);
       return next;
-
     });
+  }, []);
 
-  };
-
-
-
-  const handleConfirmForward = async () => {
-
+  const handleConfirmForward = useCallback(async () => {
     if (!forwardInquiryId) return;
-
     const recipients = Array.from(forwardRecipients);
-
-    if (recipients.length === 0) {
-
-      alert('Select at least one influencer to forward to');
-
-      return;
-
-    }
-
-    console.log('Forwarding inquiry:', { forwardInquiryId, recipients });
-
-    // Set loading state
+    if (recipients.length === 0) { showToast('Select at least one influencer', 'warning'); return; }
     setIsFilteringInfluencers(true);
-
     try {
-
-      const res = await fetch(`${API_BASE_URL}/api/admin/inquiries/${forwardInquiryId}/forward`, {
-
-        method: 'POST',
-
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('userToken')}` },
-
-        body: JSON.stringify({ recipients })
-
-      });
-
-      const data = await res.json();
-
-      console.log('Forward response:', { status: res.status, data });
-
-      if (res.ok && data.success) {
-
-        // Update the inquiry in state
-
-        setInquiries(prev => prev.map(i => (i._id === forwardInquiryId || i.id === forwardInquiryId) ? data.data : i));
-
-        setShowForwardModal(false);
-
-        setForwardInquiryId(null);
-
-        setForwardRecipients(new Set());
-
-        setSuccessMessage('Inquiry forwarded successfully');
-
-        setTimeout(() => setSuccessMessage(null), 3000);
-
-      } else {
-
-        alert(data.message || 'Failed to forward inquiry');
-
-      }
-
+      const updated = await adminApi.forwardInquiry(forwardInquiryId, recipients);
+      updateInquiryInState(forwardInquiryId, updated);
+      setShowForwardModal(false);
+      setForwardInquiryId(null);
+      setForwardRecipients(new Set());
+      showToast('Inquiry forwarded successfully', 'success');
     } catch (err) {
+      showToast(err.message || 'Failed to forward inquiry', 'error');
+    } finally { setIsFilteringInfluencers(false); }
+  }, [forwardInquiryId, forwardRecipients, updateInquiryInState, showToast]);
 
-      console.error('Error forwarding inquiry:', err);
-
-      alert('Network error while forwarding inquiry');
-
-    } finally {
-
-      setIsFilteringInfluencers(false);
-
-    }
-
-  };
-
-
-
-  const handleMarkAllNotificationsRead = async () => {
-
+  const handleMarkAllNotificationsRead = useCallback(async () => {
     try {
+      await adminApi.markAllNotificationsRead();
+      markAllNotificationsReadInState();
+    } catch (_) { /* silent */ }
+  }, [markAllNotificationsReadInState]);
 
-      const res = await fetch(`${API_BASE_URL}/api/admin/notifications/read-all`, {
-
-        method: 'PATCH',
-
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-
-      });
-
-      if (res.ok) {
-
-        setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-
-      }
-
-    } catch (err) {
-
-      console.error('Failed to mark all as read:', err);
-
-    }
-
-  };
-
-
-
-  const handleMarkNotificationRead = async (id) => {
-
+  const handleMarkNotificationRead = useCallback(async (id) => {
     try {
+      await adminApi.markNotificationRead(id);
+      markNotificationReadInState(id);
+    } catch (_) { /* silent */ }
+  }, [markNotificationReadInState]);
 
-      const res = await fetch(`${API_BASE_URL}/api/admin/notifications/${id}/read`, {
-
-        method: 'PATCH',
-
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('userToken')}` }
-
-      });
-
-      if (res.ok) {
-
-        setNotifications(prev =>
-
-          prev.map(n => (n._id === id || n.id === id) ? { ...n, isRead: true } : n)
-
-        );
-
-      }
-
-    } catch (err) {
-
-      console.error('Failed to mark notification as read:', err);
-
-    }
-
-  };
-
-
-
-  
-
-
-  
-
-
-  
-
-
-  const handleToggleInfluencerStatus = async (influencerId, currentStatus) => {
+  const handleToggleInfluencerStatus = useCallback(async (influencerId, currentStatus) => {
+    const newStatus = !currentStatus;
+    // Optimistic update
+    setInfluencers(prev => prev.map(i =>
+      (i._id === influencerId || i.id === influencerId) ? { ...i, isActive: newStatus } : i));
     try {
-      const newStatus = !currentStatus;
-      const res = await fetch(`${API_BASE_URL}/api/admin/influencer/${influencerId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('userToken')}`
-        },
-        body: JSON.stringify({ isActive: newStatus })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.success) {
-        const updatedInfluencer = data.data;
-
-        // Update influencers list
-        setInfluencers(prev => prev.map(i =>
-          (i._id === influencerId || i.id === influencerId) ? updatedInfluencer : i
-        ));
-
-        // Update selected influencer if open in modal
-        if (selectedInfluencer && (selectedInfluencer._id === influencerId || selectedInfluencer.id === influencerId)) {
-          setSelectedInfluencer(updatedInfluencer);
-        }
-
-        // Update selected forwarded influencer if open in modal
-        if (selectedForwardedInfluencer && (selectedForwardedInfluencer._id === influencerId || selectedForwardedInfluencer.id === influencerId)) {
-          setSelectedForwardedInfluencer(updatedInfluencer);
-        }
-
-        setSuccessMessage(`Influencer ${newStatus ? 'activated' : 'deactivated'} successfully!`);
-
-        // Don't refresh entire dashboard - just update local state
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } else {
-        alert(data.message || 'Failed to update influencer status');
-      }
+      const updated = await adminApi.toggleInfluencerStatus(influencerId, newStatus);
+      updateInfluencerInState(influencerId, updated);
+      if (selectedInfluencer && (selectedInfluencer._id === influencerId || selectedInfluencer.id === influencerId))
+        setSelectedInfluencer(updated);
+      if (selectedForwardedInfluencer && (selectedForwardedInfluencer._id === influencerId || selectedForwardedInfluencer.id === influencerId))
+        setSelectedForwardedInfluencer(updated);
+      showToast(`Influencer ${newStatus ? 'activated' : 'deactivated'}!`, 'success');
     } catch (err) {
-      console.error('Error updating influencer status:', err);
-      alert('Network error while updating influencer status');
+      // Rollback on failure
+      setInfluencers(prev => prev.map(i =>
+        (i._id === influencerId || i.id === influencerId) ? { ...i, isActive: currentStatus } : i));
+      showToast(err.message || 'Failed to update influencer status', 'error');
     }
-  };
+  }, [updateInfluencerInState, selectedInfluencer, selectedForwardedInfluencer, showToast, setInfluencers]);
 
 
 
@@ -1442,57 +986,33 @@ const AdminDashboard = ({ config }) => {
   
 
 
+  // Skeleton loader — shows nav immediately, skeletons in content area
   if (loading) {
-
     return (
-
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: getThemeColor('background') }}>
-
-        <div className="text-center">
-
-          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-
-          <p className="font-medium" style={{ color: getThemeColor('text') }}>Loading Admin Dashboard...</p>
-
+      <div className="min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
+        <ToastContainer />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton h-32 rounded-2xl" />
+            ))}
+          </div>
+          <div className="skeleton h-48 rounded-2xl mb-8" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="skeleton h-64 rounded-2xl" />
+            <div className="skeleton h-64 rounded-2xl" />
+          </div>
         </div>
-
       </div>
-
     );
-
   }
-
-
-
-  if (error) {
-
-    return (
-
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: getThemeColor('background') }}>
-
-        <div className="text-center">
-
-          <div className="text-6xl mb-4">⚠️</div>
-
-          <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Dashboard</h2>
-
-          <p style={{ color: getThemeColor('secondary') }}>{error}</p>
-
-        </div>
-
-      </div>
-
-    );
-
-  }
-
-
 
   // Add top padding to prevent overlap with fixed navbar (assume navbar height ~80px)
 
   return (
 
     <div className="min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
+      <ToastContainer />
 
       {/* Theme-Consistent Header */}
 
@@ -1805,7 +1325,7 @@ const AdminDashboard = ({ config }) => {
             setFilterRole={setFilterRole}
             filterStatus={filterStatus}
             setFilterStatus={setFilterStatus}
-            searchTerm={searchTerm}
+            searchTerm={debouncedSearchTerm}
             setSearchTerm={setSearchTerm}
             userCurrentPage={userCurrentPage}
             setUserCurrentPage={setUserCurrentPage}
@@ -1818,21 +1338,14 @@ const AdminDashboard = ({ config }) => {
             handleUpdateUserStatus={handleUpdateUserStatus}
             handleDeleteUser={handleDeleteUser}
             getCategoryColors={getCategoryColors}
-            successMessage={successMessage}
-            setSuccessMessage={setSuccessMessage}
           />
         )}
 
         {activeTab === 'influencers' && (
-
           <AdminInfluencersManagement
-
             influencers={influencers}
-
-            onRefreshInfluencers={() => fetchDashboardData(true)}
-
+            onRefreshInfluencers={() => refreshTab('influencers')}
           />
-
         )}
 
         {activeTab === 'featured' && (
@@ -3015,7 +2528,7 @@ const AdminDashboard = ({ config }) => {
 
                   </h3>
 
-                  <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                  <p className="font-medium text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
 
                     {selectedInquiry.requirements || 'No specific requirements mentioned'}
 
@@ -3335,7 +2848,7 @@ const AdminDashboard = ({ config }) => {
 
                                 <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border-l-2 border-gray-400">
 
-                                  <p className="text-xs text-gray-700">
+                                  <p className="text-xs text-gray-700 whitespace-pre-wrap">
 
                                     <span className="font-semibold">Response:</span> {forward.response}
 
@@ -3372,7 +2885,7 @@ const AdminDashboard = ({ config }) => {
                                 onClick={() => {
                                   const influencerIdToUse = influencerData._id || influencerData.id || forward.userId?._id || forward.userId;
                                   if (!influencerIdToUse) {
-                                    alert('Error: Cannot get influencer ID. Please refresh and try again.');
+                                    showToast('Cannot get influencer ID. Please refresh and try again.', 'error');
                                     return;
                                   }
                                   handleAssignToInfluencer(selectedInquiry._id, String(influencerIdToUse));
@@ -3933,20 +3446,7 @@ const AdminDashboard = ({ config }) => {
         </div>
       )}
 
-      
-      {/* Success Message Notification */}
-      {successMessage && (
-        <div className="fixed bottom-8 right-8 z-[100] animate-bounce-in">
-          <div className="bg-green-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3">
-            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <p className="font-bold">{successMessage}</p>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 

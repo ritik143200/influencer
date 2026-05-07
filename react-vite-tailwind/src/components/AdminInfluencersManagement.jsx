@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../hooks/useToast';
 
 const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
+  const { showToast, ToastContainer } = useToast();
   const [selectedInfluencer, setSelectedInfluencer] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
@@ -172,7 +174,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        alert(err.message || 'Failed to filter available influencers');
+        showToast(err.message || 'Failed to filter available influencers', 'error');
         return;
       }
 
@@ -181,7 +183,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       setAvailableIds(ids);
     } catch (error) {
       console.error('Error fetching available influencers:', error);
-      alert('Network error while filtering available influencers');
+      showToast('Network error while filtering available influencers', 'error');
     } finally {
       setLoadingAvailable(false);
     }
@@ -241,11 +243,11 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         onRefreshInfluencers(); // Refresh influencers list from parent
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Failed to update influencer status');
+        showToast(errorData.message || 'Failed to update influencer status', 'error');
       }
     } catch (error) {
       console.error('Error updating influencer status:', error);
-      alert('Network error while updating influencer status');
+      showToast('Network error while updating influencer status', 'error');
     }
   };
 
@@ -412,6 +414,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
   return (
     <div className="space-y-6">
+      <ToastContainer />
       <div className="flex flex-col items-center gap-6">
         <div className="w-full max-w-7xl bg-gradient-to-r from-white via-orange-50/30 to-white rounded-2xl border border-orange-100/50 p-6 shadow-lg">
           {/* Search and Filters Header */}
