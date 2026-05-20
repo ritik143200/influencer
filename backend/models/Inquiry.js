@@ -32,6 +32,18 @@ const inquirySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    mainCategories: [{
+        type: String,
+        trim: true
+    }],
+    microCategories: [{
+        type: String,
+        trim: true
+    }],
+    categorySelections: [{
+        mainCategorySlug: { type: String, trim: true },
+        microCategorySlug: { type: String, trim: true, default: null }
+    }],
     location: {
         type: String,
         required: true,

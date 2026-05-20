@@ -1,16 +1,12 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowLeft, BriefcaseBusiness, Sparkles, UserRound } from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 import AuthPage from './AuthPage';
 import InfluencerRegistrationPage from './InfluencerRegistrationPage';
 
 const RegistrationPage = ({ config }) => {
   const { navigate, params } = useRouter();
-  const initialType = useMemo(() => {
-    const t = params?.type;
-    if (t === 'influencer') return 'influencer';
-    return 'user';
-  }, [params]);
-
+  const initialType = useMemo(() => (params?.type === 'influencer' ? 'influencer' : 'user'), [params]);
   const [selected, setSelected] = useState(initialType);
 
   useEffect(() => {
@@ -18,68 +14,83 @@ const RegistrationPage = ({ config }) => {
   }, [initialType]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 relative overflow-hidden">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-20 w-32 h-32 bg-brand-200 rounded-full opacity-10 animate-pulse" />
-        <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-200 rounded-full opacity-10 animate-pulse" />
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-brand-300 rounded-full opacity-10 animate-pulse" />
+    <div className="min-h-screen overflow-hidden bg-transparent text-white">
+      <div className="section-shell relative py-8">
+        <button
+          type="button"
+          onClick={() => navigate('home')}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition hover:text-white"
+        >
+          <ArrowLeft className="h-4 w-4" strokeWidth={2} />
+          Back to home
+        </button>
       </div>
 
-      <div className="relative z-10 min-h-screen flex flex-col">
-        <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <button
-            onClick={() => navigate('home')}
-            className="mb-6 flex items-center text-gray-600 hover:text-brand-500 transition-colors"
-          >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Home
-          </button>
+      <div className="section-shell relative grid gap-8 pb-12 lg:grid-cols-[0.92fr_1.08fr]">
+        <div className="glass-panel rounded-[2rem] p-6 sm:p-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+            <Sparkles className="h-4 w-4 text-cyan-300" strokeWidth={1.8} />
+            Join ViralMantrix
+          </div>
+          <h1 className="mt-6 text-4xl font-black leading-tight text-white sm:text-5xl">
+            Choose your side of the ecosystem.
+          </h1>
+          <p className="mt-4 text-sm leading-8 text-slate-300 sm:text-base">
+            Brands launch high-context briefs. Creators build profiles that match internet culture, communities, and premium collaboration opportunities.
+          </p>
 
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Registration</h1>
-              <p className="text-gray-600 mt-1">Choose your registration type to get started</p>
-            </div>
+          <div className="mt-8 grid gap-4">
+            <button
+              type="button"
+              onClick={() => setSelected('user')}
+              className={`rounded-[1.5rem] border p-5 text-left transition ${
+                selected === 'user'
+                  ? 'border-cyan-300/30 bg-cyan-400/10 shadow-[0_16px_40px_rgba(34,211,238,0.14)]'
+                  : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.07]'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-sky-500 text-white">
+                  <BriefcaseBusiness className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-white">Brand / Campaign Team</div>
+                  <div className="mt-2 text-sm leading-7 text-slate-300">
+                    Create your brand account, submit campaign briefs, and track collaboration progress from one place.
+                  </div>
+                </div>
+              </div>
+            </button>
 
-            <div className="relative inline-flex bg-gray-100 rounded-[20px] p-1.5 border border-gray-200 shadow-inner overflow-hidden">
-              {/* Sliding Background Pill */}
-              <div
-                className="absolute inset-y-1.5 rounded-2xl bg-orange-500 shadow-lg shadow-orange-200/50 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) z-0"
-                style={{
-                  left: selected === 'user' ? '6px' : 'calc(50% + 3px)',
-                  width: 'calc(50% - 9px)'
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() => setSelected('user')}
-                className={`relative z-10 px-8 py-3 rounded-2xl font-bold text-base transition-colors duration-500 ${selected === 'user'
-                  ? 'text-white scale-105'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Brand
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelected('influencer')}
-                className={`relative z-10 px-8 py-3 rounded-2xl font-bold text-base transition-colors duration-500 ${selected === 'influencer'
-                  ? 'text-white scale-105'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Influencer
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setSelected('influencer')}
+              className={`rounded-[1.5rem] border p-5 text-left transition ${
+                selected === 'influencer'
+                  ? 'border-violet-300/30 bg-violet-400/10 shadow-[0_16px_40px_rgba(139,92,246,0.16)]'
+                  : 'border-white/10 bg-white/[0.04] hover:bg-white/[0.07]'
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white">
+                  <UserRound className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-white">Creator / Influencer</div>
+                  <div className="mt-2 text-sm leading-7 text-slate-300">
+                    Build a premium creator profile with dynamic categories, social links, and creator-fit metadata.
+                  </div>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
 
-        <div className="flex-1">
+        <div className="glass-panel rounded-[2rem] p-2 sm:p-3">
           {selected === 'user' ? (
-            <AuthPage initialTab="register" embedded />
+            <div className="rounded-[1.6rem] bg-[#071023] p-2 sm:p-4">
+              <AuthPage initialTab="register" embedded />
+            </div>
           ) : (
             <InfluencerRegistrationPage config={config} embedded />
           )}

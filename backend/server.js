@@ -23,6 +23,7 @@ const activityRoutes = require('./routes/activityRoutes');
 const contactRoutes = require('./routes/contactRoutes');
 const cityRoutes = require('./routes/cityRoutes');
 const featuredProfileRoutes = require('./routes/featuredProfileRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
 
 // Connect to database
 const connectDB = require('./config/db');
@@ -116,6 +117,7 @@ app.use('/api/activity', activityRoutes);
 app.use('/api/contacts', contactRoutes);
 app.use('/api/cities', cityRoutes);
 app.use('/api/featured-profiles', featuredProfileRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

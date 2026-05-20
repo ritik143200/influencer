@@ -53,14 +53,14 @@ export const heroSlides = [
 ];
 
 export const defaultConfig = {
-  platform_name: 'InfluencerHub',
-  hero_title: 'Connect brands with The right Influencers',
-  hero_subtitle: 'we connect brands with influencers for successful campaigns and help creators get real brand deals.',
-  cta_button_text: 'Explore Influencers',
-  background_color: '#f9fafb',
-  surface_color: '#ffffff',
-  text_color: '#1f2937',
-  primary_action: '#ee7711',
-  secondary_action: '#6b7280',
+  platform_name: 'ViralMantrix',
+  hero_title: 'The Operating System For Internet Creators',
+  hero_subtitle: 'Connect brands with creators, meme pages, city communities, and high-energy digital culture networks.',
+  cta_button_text: 'Launch a Campaign',
+  background_color: '#050816',
+  surface_color: '#0b1125',
+  text_color: '#f8fafc',
+  primary_action: '#8b5cf6',
+  secondary_action: '#22d3ee',
   font_family: 'Outfit'
 }; 

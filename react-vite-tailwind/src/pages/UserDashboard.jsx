@@ -155,9 +155,9 @@ const UserDashboard = ({ config }) => {
 
   const renderUser = () => (
     <div className="space-y-6">
-      {/* User Profile Section */}
+      {/* Brand Profile Section */}
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-        <h3 className="text-2xl font-bold text-gray-800 mb-6">User Profile</h3>
+        <h3 className="text-2xl font-bold text-gray-800 mb-6">Brand Profile</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Profile Picture */}
@@ -213,7 +213,7 @@ const UserDashboard = ({ config }) => {
         </div>
       </div>
 
-      {/* User Statistics */}
+      {/* Brand Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-4">
@@ -237,8 +237,8 @@ const UserDashboard = ({ config }) => {
             </div>
             <span className="text-2xl font-bold text-gray-800">0</span>
           </div>
-          <h3 className="text-gray-600 text-sm font-medium">Saved Influencers</h3>
-          <p className="text-gray-500 text-xs mt-1">Influencers you've bookmarked</p>
+          <h3 className="text-gray-600 text-sm font-medium">Saved Creator Lists</h3>
+          <p className="text-gray-500 text-xs mt-1">Curated rosters you want to revisit</p>
         </div>
 
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -334,8 +334,8 @@ const UserDashboard = ({ config }) => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <p className="text-white/75 text-sm font-medium mb-1">Welcome back 👋</p>
-            <h2 className="text-2xl font-bold">{userData?.name || 'User'}</h2>
-            <p className="text-white/70 text-sm mt-1">Here's your inquiry activity at a glance</p>
+            <h2 className="text-2xl font-bold">{userData?.name || 'Brand'}</h2>
+            <p className="text-white/70 text-sm mt-1">Here's your campaign and inquiry activity at a glance</p>
           </div>
           <div className="bg-white/15 rounded-xl px-5 py-3 text-center">
             <div className="text-4xl font-black">{successRate}%</div>
@@ -479,7 +479,7 @@ const UserDashboard = ({ config }) => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-xl font-bold text-gray-800">Your Inquiries</h3>
+        <h3 className="text-xl font-bold text-gray-800">Campaign Briefs</h3>
         <div className="text-sm text-gray-500">
           {filteredInquiries.length} of {inquiries.length} total
         </div>
@@ -627,9 +627,9 @@ const UserDashboard = ({ config }) => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">User Dashboard</h1>
-                <p className="text-sm text-gray-600">Welcome back, {userData?.name || 'User'}!</p>
-                <p className="text-xs text-brand-500 mt-1">Indori Influencer Platform</p>
+                <h1 className="text-2xl font-bold text-gray-800">Brand Dashboard</h1>
+                <p className="text-sm text-gray-600">Welcome back, {userData?.name || 'Brand'}!</p>
+                <p className="text-xs text-brand-500 mt-1">ViralMantrix campaign control center</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -649,16 +649,20 @@ const UserDashboard = ({ config }) => {
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="flex space-x-8 px-6">
-            {['overview', 'inquiries', 'user'].map((tab) => (
+            {[
+              { id: 'overview', label: 'Overview' },
+              { id: 'inquiries', label: 'Campaign Briefs' },
+              { id: 'user', label: 'Brand Profile' }
+            ].map((tab) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                   ? 'border-brand-500 text-brand-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
                   }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab.label}
               </button>
             ))}
           </div>

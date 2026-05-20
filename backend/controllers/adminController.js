@@ -3,6 +3,10 @@ const User = require('../models/User');
 const Influencer = require('../models/influencer');
 const Inquiry = require('../models/Inquiry');
 const { logInquiryStatusUpdate, logInfluencerStatusUpdate } = require('../middleware/activityLogger');
+const {
+    ensureCategoryDirectory,
+    collectInfluencerMicroCategoryCounts
+} = require('../utils/categoryHelpers');
 
 const toDayRangeUtc = (dateInput) => {
     const d = new Date(dateInput);
@@ -96,14 +100,34 @@ const getAdminOverview = async (req, res) => {
             }
         ]);
 
-        const [totalUsers, totalInfluencers, statsData] = await Promise.all([
+        const [totalUsers, totalInfluencers, statsData, categoryDirectory, influencerCategoryRows] = await Promise.all([
             User.countDocuments(),
             Influencer.countDocuments({ profileType: 'influencer' }),
-            statsPromise
+            statsPromise,
+            ensureCategoryDirectory(),
+            Influencer.find({ profileType: 'influencer' }).select('mainCategories microCategories categorySelections categories niche').lean()
         ]);
 
         const counts = statsData[0].counts[0] || { total: 0, pending: 0, completed: 0 };
         const topInquirer = statsData[0].topInquirer[0] || null;
+        const { microCounts, mainCounts, index } = collectInfluencerMicroCategoryCounts(influencerCategoryRows, categoryDirectory);
+
+        const topMicroCategories = Object.entries(microCounts)
+            .map(([slug, count]) => ({
+                slug,
+                name: index.microBySlug.get(slug)?.name || slug,
+                count
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
+
+        const mainCategoryBreakdown = Object.entries(mainCounts)
+            .map(([slug, count]) => ({
+                slug,
+                name: index.mainBySlug.get(slug)?.name || slug,
+                count
+            }))
+            .sort((a, b) => b.count - a.count);
 
         const overviewData = {
             totalUsers,
@@ -112,7 +136,9 @@ const getAdminOverview = async (req, res) => {
             pendingInquiries: counts.pending,
             processedInquiries: counts.total - counts.pending,
             completedInquiries: counts.completed,
-            topInquirer
+            topInquirer,
+            topMicroCategories,
+            mainCategoryBreakdown
         };
 
         // Update cache

@@ -13,11 +13,26 @@ const {
   extractCloudinaryPublicIdFromUrl
 } = require('../utils/imageVariants');
 const { sendInfluencerWelcomeMessage } = require('../utils/whatsappService');
+const {
+  ensureCategoryDirectory,
+  normalizeCategoryPayload
+} = require('../utils/categoryHelpers');
 
 const toDayStartUtc = (input) => {
   const d = new Date(input);
   if (Number.isNaN(d.getTime())) return null;
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+};
+
+const applyNormalizedCategoryData = (target, normalizedCategories) => {
+  target.mainCategories = normalizedCategories.mainCategories;
+  target.microCategories = normalizedCategories.microCategories;
+  target.categorySelections = normalizedCategories.categorySelections;
+  target.categories = normalizedCategories.microCategoryLabels;
+  target.niche = normalizedCategories.microCategoryLabels;
+  target.subcategories = normalizedCategories.microCategoryLabels;
+  target.category = normalizedCategories.microCategoryLabels[0] || normalizedCategories.mainCategoryLabels[0] || '';
+  target.subcategory = normalizedCategories.mainCategoryLabels[0] || '';
 };
 
 // Upload and set influencer profile image (optimized + thumbnail)
@@ -108,6 +123,7 @@ const updateMyProfile = async (req, res) => {
   try {
     const allowedFields = [
       'email', 'phone', 'location', 'categories',
+      'mainCategories', 'microCategories', 'categorySelections',
       'socialLinks', 'profileImage', 'fullName', 'username',
       'bio', 'experience', 'niche', 'category',
       'previousCollaborations', 'pricing',
@@ -129,6 +145,20 @@ const updateMyProfile = async (req, res) => {
     // Handle password change
     if (req.body.password && req.body.password.length >= 6) {
       updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const hasCategoryPayload = [
+      'categories',
+      'mainCategories',
+      'microCategories',
+      'categorySelections',
+      'niche'
+    ].some((field) => req.body[field] !== undefined);
+
+    if (hasCategoryPayload) {
+      const categoryDirectory = await ensureCategoryDirectory();
+      const normalizedCategories = normalizeCategoryPayload(req.body, categoryDirectory);
+      applyNormalizedCategoryData(updateData, normalizedCategories);
     }
 
     const influencer = await Influencer.findByIdAndUpdate(
@@ -267,13 +297,25 @@ const registerInfluencer = async (req, res) => {
       password,
       location,
       categories,
+      mainCategories,
+      microCategories,
+      categorySelections,
       niche,
       socialLinks,
       termsAccepted
     } = req.body;
 
+    const categoryDirectory = await ensureCategoryDirectory();
+    const normalizedCategories = normalizeCategoryPayload({
+      categories,
+      mainCategories,
+      microCategories,
+      categorySelections,
+      niche
+    }, categoryDirectory);
+
     // Validation
-    if (!email || !phone || !password || !categories || !termsAccepted) {
+    if (!email || !phone || !password || normalizedCategories.microCategories.length === 0 || !termsAccepted) {
       return res.status(400).json({
         success: false,
         message: 'Please fill all required fields'
@@ -334,11 +376,11 @@ const registerInfluencer = async (req, res) => {
       password: hashedPassword,
       profileType: 'influencer',
       location: location || '',
-      categories: Array.isArray(categories) ? categories : [categories],
-      niche: Array.isArray(niche) ? niche : (niche ? [niche] : []),
       socialLinks: parsedSocialLinks,
       termsAccepted: termsAccepted === true || termsAccepted === 'true'
     });
+
+    applyNormalizedCategoryData(newInfluencer, normalizedCategories);
 
     await newInfluencer.save();
 
@@ -382,6 +424,9 @@ const registerInfluencer = async (req, res) => {
         profileType: newInfluencer.profileType,
         verificationStatus: newInfluencer.verificationStatus,
         categories: newInfluencer.categories,
+        mainCategories: newInfluencer.mainCategories,
+        microCategories: newInfluencer.microCategories,
+        categorySelections: newInfluencer.categorySelections,
         niche: newInfluencer.niche,
         location: newInfluencer.location,
         socialLinks: newInfluencer.socialLinks
@@ -482,6 +527,7 @@ const updateInfluencer = async (req, res) => {
 
     const allowedFields = [
       'email', 'phone', 'location', 'categories',
+      'mainCategories', 'microCategories', 'categorySelections',
       'socialLinks', 'profileImage', 'verificationStatus', 'isActive'
     ];
 
@@ -493,6 +539,20 @@ const updateInfluencer = async (req, res) => {
     // Handle password change
     if (req.body.password && req.body.password.length >= 6) {
       updateData.password = await bcrypt.hash(req.body.password, 10);
+    }
+
+    const hasCategoryPayload = [
+      'categories',
+      'mainCategories',
+      'microCategories',
+      'categorySelections',
+      'niche'
+    ].some((field) => req.body[field] !== undefined);
+
+    if (hasCategoryPayload) {
+      const categoryDirectory = await ensureCategoryDirectory();
+      const normalizedCategories = normalizeCategoryPayload(req.body, categoryDirectory);
+      applyNormalizedCategoryData(updateData, normalizedCategories);
     }
 
     const updatedInfluencer = await Influencer.findByIdAndUpdate(
@@ -553,7 +613,9 @@ const deleteInfluencer = async (req, res) => {
 const searchInfluencers = async (req, res) => {
   try {
     const { query, category, location } = req.query;
-    
+    const categoryDirectory = await ensureCategoryDirectory();
+    const normalizedCategory = normalizeCategoryPayload({ categories: [category], mainCategories: [category] }, categoryDirectory);
+
     // Build search filter
     let filter = { profileType: 'influencer' };
     
@@ -564,7 +626,24 @@ const searchInfluencers = async (req, res) => {
     }
     
     if (category) {
-      filter.categories = { $in: [category] };
+      filter.$and = filter.$and || [];
+      const categoryOr = [];
+
+      if (normalizedCategory.mainCategories.length > 0) {
+        categoryOr.push({ mainCategories: { $in: normalizedCategory.mainCategories } });
+      }
+
+      if (normalizedCategory.microCategories.length > 0) {
+        categoryOr.push({ microCategories: { $in: normalizedCategory.microCategories } });
+        categoryOr.push({ categories: { $in: normalizedCategory.microCategoryLabels } });
+        categoryOr.push({ niche: { $in: normalizedCategory.microCategoryLabels } });
+      }
+
+      if (categoryOr.length === 0) {
+        categoryOr.push({ categories: { $regex: category, $options: 'i' } });
+      }
+
+      filter.$and.push({ $or: categoryOr });
     }
     
     if (location) {

@@ -1,119 +1,86 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  Eye,
+  EyeOff,
+  MapPinned,
+  Sparkles,
+  Instagram,
+  Youtube,
+  UserRound,
+  ShieldCheck
+} from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
 import { API_BASE_URL } from '../data/config';
+import { useCategoryDirectory } from '../hooks/useCategoryDirectory';
+import {
+  getCategorySelectionPayload,
+  getGroupedMicroCategories,
+  getMicroCategoryNames
+} from '../utils/categoryDirectory';
 
-/**
- * Influencer Registration Page Component
- * This component handles registration for influencers only.
- * Previously handled both artists and influencers, but has been optimized for influencer-only use.
- */
-const InfluencerRegistrationPage = ({ config, embedded = false }) => {
+const inputClassName = 'w-full rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3.5 text-sm text-white placeholder:text-white/35 outline-none transition focus:border-violet-300/40 focus:bg-white/[0.06]';
+
+const InfluencerRegistrationPage = ({ embedded = false }) => {
   const { navigate } = useRouter();
   const { login, updateUser } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
+  const { directory, loading: categoryLoading } = useCategoryDirectory();
 
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     phone: '',
     password: '',
-    profileType: 'influencer',
     location: '',
-    categories: [],
     socialLinks: {
-      youtube: '',
-      instagram: ''
+      instagram: '',
+      youtube: ''
     },
     termsAccepted: false
   });
-
+  const [selectedMainCategories, setSelectedMainCategories] = useState(['creator-influencer']);
+  const [selectedMicroCategories, setSelectedMicroCategories] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
-  const [showCategoryPopup, setShowCategoryPopup] = useState(false);
-  const [categorySearchQuery, setCategorySearchQuery] = useState('');
-  const [fetchingLocation, setFetchingLocation] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [citySuggestions, setCitySuggestions] = useState([]);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [cityLoading, setCityLoading] = useState(false);
-  
   const cityInputRef = useRef(null);
   const cityDropdownRef = useRef(null);
   const cityFetchTimer = useRef(null);
 
+  const activeCategoryGroups = useMemo(
+    () => getGroupedMicroCategories(directory, selectedMainCategories),
+    [directory, selectedMainCategories]
+  );
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      const specialtiesContainer = event.target.closest('[data-specialties-container="true"]');
-      if (!specialtiesContainer) {
-        setShowCategoryPopup(false);
-      }
+  const selectedMicroNames = useMemo(
+    () => getMicroCategoryNames(directory, selectedMicroCategories),
+    [directory, selectedMicroCategories]
+  );
 
-      if (
-        cityInputRef.current &&
-        !cityInputRef.current.contains(event.target) &&
-        cityDropdownRef.current &&
-        !cityDropdownRef.current.contains(event.target)
-      ) {
-        setShowCityDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  // Helper: Reverse geocode lat/lon to city using OpenStreetMap Nominatim
-  const reverseGeocode = async (lat, lon) => {
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-      const data = await response.json();
-      // Try to get city only
-      const city = data.address.city || data.address.town || data.address.village || data.address.hamlet || '';
-      return city;
-    } catch (e) {
-      return '';
+  const handleInputChange = (field, value) => {
+    if (field.includes('.')) {
+      const [parent, child] = field.split('.');
+      setFormData((prev) => ({
+        ...prev,
+        [parent]: { ...prev[parent], [child]: value }
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
     }
-  };
-
-  // Handler: Fetch user location
-  const handleFetchLocation = async () => {
-    if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser.');
-      return;
-    }
-    setFetchingLocation(true);
     setError('');
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        const locString = await reverseGeocode(latitude, longitude);
-        if (locString) {
-          handleInputChange('location', locString);
-        } else {
-          handleInputChange('location', `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
-        }
-        setFetchingLocation(false);
-      },
-      (err) => {
-        setError('Unable to fetch location.');
-        setFetchingLocation(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
   };
 
-  // ── Dynamic city autocomplete ─────────────────────────────────────────────
-  const handleLocationChange = useCallback((e) => {
-    const value = e.target.value;
+  const handleLocationChange = useCallback((event) => {
+    const value = event.target.value;
     handleInputChange('location', value);
 
-    // Clear any pending fetch
     if (cityFetchTimer.current) clearTimeout(cityFetchTimer.current);
 
-    if (value.trim().length === 0) {
+    if (!value.trim()) {
       setCitySuggestions([]);
       setShowCityDropdown(false);
       setCityLoading(false);
@@ -123,12 +90,10 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
     setCityLoading(true);
     cityFetchTimer.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/cities?q=${encodeURIComponent(value.trim())}`
-        );
-        const data = await res.json();
+        const response = await fetch(`${API_BASE_URL}/api/cities?q=${encodeURIComponent(value.trim())}`);
+        const data = await response.json();
         if (data.success) {
-          const names = data.data.map((c) => c.name);
+          const names = data.data.map((item) => item.name);
           setCitySuggestions(names);
           setShowCityDropdown(names.length > 0);
         }
@@ -139,152 +104,72 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         setCityLoading(false);
       }
     }, 250);
-  }, [API_BASE_URL]);
-
-  const handleCitySelect = useCallback((city) => {
-    handleInputChange('location', city);
-    setCitySuggestions([]);
-    setShowCityDropdown(false);
   }, []);
 
-  const influencerCategories = [
-    { id: 'lifestyle', name: 'Lifestyle', icon: '✨' },
-    { id: 'travel', name: 'Travel', icon: '✈️' },
-    { id: 'fitness_health', name: 'Fitness & Health', icon: '💪' },
-    { id: 'food', name: 'Food (Cooking + Street Food)', icon: '🍔' },
-    { id: 'technology', name: 'Technology (Unboxing / App Review / Gadgets)', icon: '💻' },
-    { id: 'finance_investment', name: 'Finance & Investment (Stock Market)', icon: '💰' },
-    { id: 'gaming', name: 'Gaming', icon: '🎮' },
-    { id: 'education', name: 'Education (Study / Career / Kids Learning)', icon: '📚' },
-    { id: 'motivation_growth', name: 'Motivation & Self Growth (Personal Branding)', icon: '🔥' },
-    { id: 'spiritual_astrology', name: 'Spiritual & Astrology', icon: '🧘' },
-    { id: 'fashion', name: 'Fashion', icon: '👗' },
-    { id: 'comedy_entertainment', name: 'Comedy & Entertainment (Roasting)', icon: '😂' },
-    { id: 'historical', name: 'Historical', icon: '📜' },
-    { id: 'art_craft', name: 'Art & Craft', icon: '🎨' },
-    { id: 'ai', name: 'AI', icon: '🤖' },
-    { id: 'vlogs', name: 'Vlogs', icon: '📹' },
-    { id: 'street_interviews', name: 'Street Interviews', icon: '🎤' },
-    { id: 'ugc_creator', name: 'UGC Creator', icon: '📱' },
-    { id: 'influencer', name: 'Influencer', icon: '⭐' },
-    { id: 'actor', name: 'Actor', icon: '🎬' },
-    { id: 'model', name: 'Model', icon: '💃' },
-    { id: 'filmmaker', name: 'Filmmaker', icon: '🎥' },
-    { id: 'celebrity', name: 'Celebrity', icon: '🌟' },
-    { id: 'food_pages', name: 'Food Pages', icon: '🍕' },
-    { id: 'local_city_pages', name: 'Local City Pages', icon: '🏙️' },
-    { id: 'state_pages', name: 'State Pages', icon: '🗺️' },
-    { id: 'meme_pages', name: 'Meme Pages', icon: '😂' },
-    { id: 'music_pages', name: 'Music Pages', icon: '🎵' },
-    { id: 'celebrity_pages', name: 'Celebrity Pages', icon: '👑' },
-    { id: 'motivation_pages', name: 'Motivation Pages', icon: '💪' },
-    { id: 'devotional_pages', name: 'Devotional Pages', icon: '🙏' },
-    { id: 'media_pages', name: 'Media Pages', icon: '📺' },
-    { id: 'political_pages', name: 'Political Pages', icon: '🏛️' },
-    { id: 'other', name: 'Other', icon: '📌' }
-  ];
-
-  const handleInputChange = (field, value) => {
-    if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: { ...prev[parent], [child]: value }
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-    }
-    setError('');
+  const handleCitySelect = (city) => {
+    handleInputChange('location', city);
+    setShowCityDropdown(false);
+    setCitySuggestions([]);
   };
 
-  const toggleCategory = (categoryId) => {
-    console.log('Toggling category:', categoryId);
-    setFormData(prev => {
-      const currentCategories = prev.categories || [];
-      const newCategories = currentCategories.includes(categoryId)
-        ? currentCategories.filter(id => id !== categoryId)
-        : [...currentCategories, categoryId];
-      console.log('Categories before:', currentCategories);
-      console.log('Categories after:', newCategories);
-      return { ...prev, categories: newCategories };
+  const toggleMainCategory = (mainCategorySlug) => {
+    setSelectedMainCategories((previous) => {
+      const next = previous.includes(mainCategorySlug)
+        ? previous.filter((slug) => slug !== mainCategorySlug)
+        : [...previous, mainCategorySlug];
+
+      setSelectedMicroCategories((currentMicroCategories) =>
+        currentMicroCategories.filter((microSlug) =>
+          next.some((selectedMainSlug) =>
+            directory.find((category) => category.slug === selectedMainSlug)?.microCategories?.some((microCategory) => microCategory.slug === microSlug)
+          )
+        )
+      );
+
+      return next;
     });
-    setError('');
+  };
+
+  const toggleMicroCategory = (microCategorySlug) => {
+    setSelectedMicroCategories((previous) =>
+      previous.includes(microCategorySlug)
+        ? previous.filter((slug) => slug !== microCategorySlug)
+        : [...previous, microCategorySlug]
+    );
+  };
+
+  const formatPhoneNumber = (phone) => {
+    const cleaned = phone.replace(/\D/g, '');
+    if (phone.startsWith('+')) return cleaned.startsWith('91') ? phone : `+91${cleaned}`;
+    return cleaned.length === 10 ? `+91${cleaned}` : `+${cleaned}`;
   };
 
   const validateForm = () => {
-    setError('');
-    
-    // Name validation
-    if (!formData.fullName) {
-      setError('Please enter your full name');
-      return false;
-    }
-    
-    // Common validations for both artists and influencers
-    if (!formData.email || !formData.phone || !formData.password) {
-      setError('Please fill all required fields');
-      return false;
-    }
-    
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return false;
-    }
-    
-    // Common validation for categories
-    if (!formData.categories || formData.categories.length === 0) {
-      setError('Please select at least one category');
-      return false;
-    }
-    
-    // Terms acceptance validation
-    if (!formData.termsAccepted) {
-      setError('Please accept the terms and conditions');
-      return false;
-    }
-    
-    return true;
+    if (!formData.fullName.trim()) return 'Please enter your full name.';
+    if (!formData.email.trim() || !formData.phone.trim() || !formData.password.trim()) return 'Please fill all required fields.';
+    if (formData.password.length < 6) return 'Password must be at least 6 characters.';
+    if (!selectedMainCategories.length) return 'Select at least one main category.';
+    if (!selectedMicroCategories.length) return 'Select at least one micro category.';
+    if (!formData.termsAccepted) return 'Please accept the terms and conditions.';
+    return null;
   };
 
-  /**
-   * Helper to format phone number to E.164 (e.g., +91XXXXXX)
-   */
-  const formatPhoneNumber = (phone) => {
-    let cleaned = phone.replace(/\D/g, '');
-    
-    // If phone already starts with +, just clean and return
-    if (phone.startsWith('+')) {
-      return cleaned.startsWith('91') ? cleaned : `+91${cleaned}`;
+  const handleSubmit = async () => {
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
     }
-    
-    // If phone is 10 digits (Indian number), add +91
-    if (cleaned.length === 10) {
-      return `+91${cleaned}`;
-    }
-    
-    // Otherwise, add +91
-    if (!phone.startsWith('+')) {
-      return `+91${cleaned}`;
-    }
-    
-    return phone;
-  };
 
-
-  /**
-   * Final registration submission
-   */
-  const registerInfluencer = async () => {
     setLoading(true);
     setError('');
 
     try {
-      const mappedNiches = (formData.categories || [])
-        .map(id => (influencerCategories.find(c => c.id === id) || {}).name)
-        .filter(Boolean);
+      const categoryPayload = getCategorySelectionPayload(
+        directory,
+        selectedMainCategories,
+        selectedMicroCategories
+      );
 
       const payload = {
         fullName: formData.fullName,
@@ -292,575 +177,298 @@ const InfluencerRegistrationPage = ({ config, embedded = false }) => {
         phone: formatPhoneNumber(formData.phone),
         password: formData.password,
         location: formData.location,
-        categories: formData.categories,
-        niche: mappedNiches,
         socialLinks: formData.socialLinks,
-        platforms: {
-          instagram: { hasAccount: !!formData.socialLinks.instagram, url: formData.socialLinks.instagram || '' },
-          youtube: { hasAccount: !!formData.socialLinks.youtube, url: formData.socialLinks.youtube || '' }
-        },
         profileType: 'influencer',
-        termsAccepted: formData.termsAccepted
+        termsAccepted: formData.termsAccepted,
+        ...categoryPayload
       };
 
       const response = await fetch(`${API_BASE_URL}/api/influencer/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
 
       const data = await response.json();
 
-      console.log('Registration response:', data);
-
-      if (data.success) {
-        setSuccess('Registration successful! Your application is under review.');
-
-        // Check if token is provided
-        if (!data.token) {
-          console.error('No token received from server');
-          setError('Registration successful but login failed. Please login manually.');
-          return;
-        }
-
-        console.log('Token received:', data.token.substring(0, 20) + '...');
-
-        // Build local user object (prefer server-returned user when available)
-        const serverUser = data.data || null;
-        const userData = serverUser
-          ? { ...serverUser, niche: serverUser.niche || mappedNiches, location: serverUser.location || formData.location, socialLinks: serverUser.socialLinks || formData.socialLinks, fullName: serverUser.fullName || formData.fullName, phone: serverUser.phone || formatPhoneNumber(formData.phone) }
-          : {
-              email: formData.email,
-              fullName: formData.fullName,
-              phone: formatPhoneNumber(formData.phone),
-              role: 'influencer',
-              verificationStatus: 'pending',
-              niche: mappedNiches,
-              location: formData.location,
-              socialLinks: formData.socialLinks
-            };
-
-        console.log('User data for login:', userData);
-
-        // Store token first
-        localStorage.setItem('userToken', data.token);
-
-        // Update auth context and local cache so profile reads the chosen specialties
-        login(userData);
-        try { updateUser(userData); } catch (e) { /* ignore if not available */ }
-        // Ensure persistent storage uses the same key as AuthContext expects
-        try { localStorage.setItem('loggedInUser', JSON.stringify(userData)); } catch (e) { /* ignore if not available */ }
-
-        // Also keep a lightweight stored copy for other flows
-        localStorage.setItem('userData', JSON.stringify(userData));
-
-        console.log('Token stored, redirecting to dashboard...');
-
-        setTimeout(() => {
-          navigate('influencer-dashboard');
-        }, 2000);
-      } else {
-        setError(data.message || 'Registration failed');
+      if (!response.ok || !data.success) {
+        setError(data.message || 'Registration failed.');
+        return;
       }
-    } catch (error) {
+
+      const serverUser = data.data || {};
+      const mergedUser = {
+        ...serverUser,
+        fullName: serverUser.fullName || formData.fullName,
+        email: serverUser.email || formData.email,
+        phone: serverUser.phone || formatPhoneNumber(formData.phone),
+        location: serverUser.location || formData.location,
+        socialLinks: serverUser.socialLinks || formData.socialLinks,
+        role: serverUser.role || 'influencer'
+      };
+
+      if (data.token) {
+        localStorage.setItem('userToken', data.token);
+      }
+      localStorage.setItem('userData', JSON.stringify(mergedUser));
+      localStorage.setItem('loggedInUser', JSON.stringify(mergedUser));
+      login(mergedUser);
+      updateUser(mergedUser);
+
+      setSuccess('Creator profile created. Redirecting to your dashboard...');
+      setTimeout(() => navigate('influencer-dashboard'), 1200);
+    } catch (submitError) {
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-    await registerInfluencer();
-  };
-
-
   return (
-    <div className={embedded ? 'py-6' : 'min-h-screen bg-gradient-to-br from-brand-50 via-white to-brand-50 relative overflow-hidden'}>
-      {!embedded && (
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-20 w-32 h-32 bg-brand-200 rounded-full opacity-10 animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-48 h-48 bg-orange-200 rounded-full opacity-10 animate-pulse" />
-          <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-brand-300 rounded-full opacity-10 animate-pulse" />
+    <div className={embedded ? 'rounded-[1.7rem] bg-[#071023] p-4 sm:p-5' : 'section-shell pb-12'}>
+      <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="glass-panel rounded-[1.8rem] p-6 sm:p-7">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+            <Sparkles className="h-4 w-4 text-cyan-300" strokeWidth={1.8} />
+            Creator onboarding
+          </div>
+
+          <h2 className="mt-5 text-3xl font-black text-white sm:text-4xl">
+            Turn your influence into a premium creator profile.
+          </h2>
+          <p className="mt-4 text-sm leading-8 text-slate-300">
+            Choose the category clusters you belong to, tag your micro categories, and make your profile instantly understandable to brands and admins.
+          </p>
+
+          <div className="mt-8 space-y-4">
+            {[
+              { title: 'Dynamic categories', description: 'Main categories and micro categories sync with backend taxonomy.' },
+              { title: 'Better discovery', description: 'Brands can filter by creator type, niche, and community energy.' },
+              { title: 'Scalable admin flow', description: 'Every submission lands with structured metadata for moderation and analytics.' }
+            ].map((item) => (
+              <div key={item.title} className="rounded-[1.3rem] border border-white/10 bg-white/[0.04] p-4">
+                <div className="text-sm font-bold text-white">{item.title}</div>
+                <div className="mt-1 text-sm leading-7 text-slate-300">{item.description}</div>
+              </div>
+            ))}
+          </div>
         </div>
-      )}
 
-      <div className={embedded ? "relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" : "relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"}>
-        <div className={embedded ? "flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12" : "flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12 min-h-[calc(100vh-8rem)]"}>
+        <div className="glass-panel rounded-[1.8rem] p-6 sm:p-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Create your creator account</div>
+              <h3 className="mt-2 text-2xl font-black text-white">Creator / Influencer registration</h3>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+              <UserRound className="h-5 w-5" strokeWidth={2} />
+            </div>
+          </div>
 
-          {/* Left Side: Brand Content (Visible only on Desktop) */}
-          <div className="hidden lg:flex lg:w-1/2 flex-col justify-center items-center text-center -mt-8">
-            <div className="max-w-lg mb-6">
-              <div className="mb-6">
-                <h1 className="text-4xl font-medium text-orange-500 mb-4 tracking-tight drop-shadow-sm">Viralमंत्रX</h1>
-                <h2 className="text-2xl text-gray-800 font-medium leading-tight">
-                  Turn Your <span className="bg-gradient-to-r from-orange-500 to-brand-500 bg-clip-text text-transparent opacity-90">Influence</span> into real income
-                </h2>
-              </div>
-              <p className="text-lg text-gray-600 leading-relaxed mb-4">
-                get paid collaboration with top brands
-              </p>
-              
-              {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur rounded-full border border-white/40 shadow-sm mb-8 scale-105 transition-transform hover:scale-110">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map(i => <div key={i} className="w-6 h-6 rounded-full bg-orange-100 border-2 border-white" />)}
-                </div>
-                <span className="text-sm font-medium text-gray-800">Join 500+ Creators earning today</span>
-              </div>
+          {error && (
+            <div className="mt-5 rounded-[1.2rem] border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="mt-5 rounded-[1.2rem] border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              {success}
+            </div>
+          )}
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <input
+              type="text"
+              placeholder="Full name"
+              value={formData.fullName}
+              onChange={(event) => handleInputChange('fullName', event.target.value)}
+              className={`${inputClassName} sm:col-span-2`}
+            />
+            <input
+              type="email"
+              placeholder="Email address"
+              value={formData.email}
+              onChange={(event) => handleInputChange('email', event.target.value)}
+              className={inputClassName}
+            />
+            <input
+              type="tel"
+              placeholder="Phone number"
+              value={formData.phone}
+              onChange={(event) => handleInputChange('phone', event.target.value)}
+              className={inputClassName}
+            />
+
+            <div className="relative sm:col-span-2">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                value={formData.password}
+                onChange={(event) => handleInputChange('password', event.target.value)}
+                className={`${inputClassName} pr-12`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/45 transition hover:text-white"
+              >
+                {showPassword ? <EyeOff className="h-5 w-5" strokeWidth={1.8} /> : <Eye className="h-5 w-5" strokeWidth={1.8} />}
+              </button>
             </div>
 
-            <div className="w-full max-w-md bg-white/40 backdrop-blur-md rounded-[32px] p-8 border border-white/60 shadow-xl space-y-8">
-              {[
-                { title: 'work with Top Brands', subtitle: 'Collaborate with leading brands and high-growth businesses in India', icon: '🤝' },
-                { title: 'Monetize Your Content', subtitle: 'Get paid for your creativity, reach, and influence', icon: '💰' },
-                { title: 'Grow Your Audience', subtitle: 'Access tools and support to scale your audience and engagement', icon: '📈' }
-              ].map((item, idx) => (
-                <div key={idx} className="flex items-center space-x-4 group cursor-default">
-                  <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
-                    <span className="text-2xl">{item.icon}</span>
-                  </div>
-                  <div className="text-left">
-                    <h3 className="text-lg font-medium text-gray-900 leading-none mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm">{item.subtitle}</p>
+            <div className="relative sm:col-span-2">
+              <MapPinned className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" strokeWidth={1.8} />
+              <input
+                ref={cityInputRef}
+                type="text"
+                placeholder="City or location"
+                value={formData.location}
+                onChange={handleLocationChange}
+                onFocus={() => {
+                  if (formData.location.trim() && citySuggestions.length) setShowCityDropdown(true);
+                }}
+                className={`${inputClassName} pl-12`}
+              />
+
+              {(cityLoading || (showCityDropdown && citySuggestions.length > 0)) && (
+                <div ref={cityDropdownRef} className="absolute z-20 mt-2 w-full rounded-[1.2rem] border border-white/10 bg-[#0a1122] p-2 shadow-2xl">
+                  {cityLoading ? (
+                    <div className="px-3 py-2 text-sm text-white/55">Searching cities...</div>
+                  ) : (
+                    citySuggestions.map((city) => (
+                      <button
+                        key={city}
+                        type="button"
+                        onClick={() => handleCitySelect(city)}
+                        className="block w-full rounded-xl px-3 py-2 text-left text-sm text-white/75 transition hover:bg-white/[0.06]"
+                      >
+                        {city}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Main categories</div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {directory.map((category) => {
+                const isActive = selectedMainCategories.includes(category.slug);
+                return (
+                  <button
+                    key={category.slug}
+                    type="button"
+                    onClick={() => toggleMainCategory(category.slug)}
+                    className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
+                      isActive
+                        ? 'border-violet-300/30 bg-violet-400/12 text-white'
+                        : 'border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.07]'
+                    }`}
+                  >
+                    {category.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="flex items-center justify-between gap-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Micro categories</div>
+              {categoryLoading && <div className="text-xs text-white/40">Loading taxonomy...</div>}
+            </div>
+
+            <div className="mt-4 space-y-5">
+              {activeCategoryGroups.map((category) => (
+                <div key={category.slug} className="rounded-[1.3rem] border border-white/10 bg-white/[0.04] p-4">
+                  <div className="text-sm font-bold text-white">{category.name}</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(category.microCategories || []).map((microCategory) => {
+                      const isSelected = selectedMicroCategories.includes(microCategory.slug);
+                      return (
+                        <button
+                          key={microCategory.slug}
+                          type="button"
+                          onClick={() => toggleMicroCategory(microCategory.slug)}
+                          className={`rounded-full border px-3 py-2 text-sm font-medium transition ${
+                            isSelected
+                              ? 'border-cyan-300/30 bg-cyan-400/12 text-white'
+                              : 'border-white/10 bg-white/[0.04] text-white/70 hover:bg-white/[0.07]'
+                          }`}
+                        >
+                          {microCategory.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               ))}
             </div>
+
+            {selectedMicroNames.length > 0 && (
+              <div className="mt-4 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+                <span className="font-semibold text-white">Selected:</span> {selectedMicroNames.join(', ')}
+              </div>
+            )}
           </div>
 
-          {/* Right Side: Registration Card */}
-          <div className="w-full lg:w-1/2 max-w-2xl">
-            <div className="bg-white/90 backdrop-blur-lg rounded-3xl shadow-2xl p-6 sm:p-10 border border-white/20">
-              
-              <div className="mb-8">
-                <h2 className="text-3xl font-medium text-gray-800 mb-2">I am an Influencer</h2>
-                <p className="text-gray-600">Join as an influencer, showcase your content, and get brand deals.</p>
-              </div>
-
-              {/* Status Messages */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl text-red-700 text-sm font-medium animate-in fade-in duration-300">
-                  {error}
-                </div>
-              )}
-              {success && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-100 rounded-2xl text-green-700 text-sm font-medium animate-in fade-in duration-300">
-                  {success}
-                </div>
-              )}
-
-              {/* Form Fields */}
-              <div className="space-y-6">
-                {/* Full Name Field */}
-                <div className="space-y-2">
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 ml-1">Full Name</label>
-                  <div className="relative group">
-                    <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </span>
-                    <input
-                      id="fullName"
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={formData.fullName}
-                      onChange={(e) => handleInputChange('fullName', e.target.value)}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {/* Email */}
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 ml-1">Email Address</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </span>
-                      <input
-                        id="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Phone */}
-                  <div className="space-y-2">
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 ml-1">Phone Number</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                        </svg>
-                      </span>
-                      <input
-                        id="phone"
-                        type="tel"
-                        placeholder="+91 00000 00000"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  {/* Password */}
-                  <div className="space-y-2">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 ml-1">Password</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                      </span>
-                      <input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors"
-                      >
-                        {showPassword ? (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" /></svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 relative" data-city-container="true">
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 ml-1">Location</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors z-10">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </span>
-                      <input
-                        id="location"
-                        ref={cityInputRef}
-                        type="text"
-                        placeholder="Enter City"
-                        value={formData.location}
-                        onChange={handleLocationChange}
-                        onFocus={() => {
-                          if (formData.location.trim().length > 0 && citySuggestions.length > 0) {
-                            setShowCityDropdown(true);
-                          }
-                        }}
-                        className="w-full pl-12 pr-12 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                        autoComplete="off"
-                      />
-                      <button
-                        type="button"
-                        title="Detect my location"
-                        onClick={handleFetchLocation}
-                        disabled={fetchingLocation}
-                        className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50 z-10"
-                        style={{ outline: 'none', border: 'none', background: 'none', cursor: fetchingLocation ? 'not-allowed' : 'pointer' }}
-                      >
-                        {fetchingLocation ? (
-                          <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth="4" className="opacity-25" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m8.66-8.66l-.71.71M4.05 19.07l-.71-.71M21 12h-1M4 12H3m16.66-4.66l-.71-.71M4.05 4.93l-.71.71" /><circle cx="12" cy="12" r="5" strokeWidth="2" /></svg>
-                        )}
-                      </button>
-                    </div>
-
-                    {/* City Suggestions Dropdown */}
-                    {(cityLoading || (showCityDropdown && citySuggestions.length > 0)) && (
-                      <div
-                        ref={cityDropdownRef}
-                        className="absolute z-[9999] w-full mt-1 bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto"
-                      >
-                        {cityLoading ? (
-                          <div className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-gray-400">
-                            <svg className="w-4 h-4 animate-spin text-orange-400" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                            </svg>
-                            Searching cities…
-                          </div>
-                        ) : (
-                          citySuggestions.map((city) => (
-                            <button
-                              key={city}
-                              type="button"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => handleCitySelect(city)}
-                              className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-orange-50 transition-colors first:rounded-t-xl last:rounded-b-xl group"
-                            >
-                              <svg className="w-4 h-4 text-orange-400 flex-shrink-0 group-hover:text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                              </svg>
-                              <span className="text-sm font-medium text-gray-700 group-hover:text-orange-600">
-                                {city.slice(0, formData.location.length)}
-                                <span className="font-normal text-gray-400">{city.slice(formData.location.length)}</span>
-                              </span>
-                            </button>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Categories */}
-                <div className="space-y-2 relative" data-specialties-container="true">
-                  <label className="block text-sm font-medium text-gray-700 ml-1">Specialties (Select up to 3)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h12M3 17h18" />
-                      </svg>
-                    </div>
-                    <div 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCategoryPopup(!showCategoryPopup);
-                      }}
-                      className="w-full min-h-[56px] pl-10 pr-10 py-3 rounded-xl border border-gray-200 bg-gray-50/30 shadow-sm focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white appearance-none cursor-pointer transition-all duration-200 font-medium text-gray-800"
-                    >
-                      {!formData.categories || formData.categories.length === 0 ? (
-                        <span className="text-gray-400">Select Specialties</span>
-                      ) : (
-                        <div className="flex flex-wrap items-center gap-2">
-                          {formData.categories.map(catId => {
-                            const category = influencerCategories.find(c => c.id === catId);
-                            return (
-                              <span key={catId} className="px-3 py-1 bg-orange-100 text-orange-700 rounded-xl text-sm font-bold flex items-center gap-1 border border-orange-200">
-                                {category?.icon} {category?.name}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 group-hover:text-gray-600 transition-colors">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                    
-                    {/* Dropdown positioned exactly below input */}
-                    {showCategoryPopup && (
-                      <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-orange-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-                        <div className="p-4">
-                          <div className="text-sm font-medium text-gray-700 mb-3">Select up to 3 specialties</div>
-                          
-                          {/* Search Bar */}
-                          <div className="relative mb-3">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                              </svg>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="Search specialties..."
-                              value={categorySearchQuery}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                setCategorySearchQuery(e.target.value);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm text-gray-700 placeholder-gray-400"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            {influencerCategories
-                              .filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase()))
-                              .map(category => {
-                                const isSelected = formData.categories?.includes(category.id);
-                                const canSelect = !formData.categories || formData.categories.length < 3;
-                                return (
-                                  <label
-                                    key={category.id}
-                                    className={`
-                                      flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all duration-200
-                                      ${isSelected 
-                                        ? 'bg-orange-50 border border-orange-200' 
-                                        : canSelect 
-                                          ? 'hover:bg-gray-50 border border-transparent' 
-                                          : 'opacity-50 cursor-not-allowed'
-                                      }
-                                    `}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      disabled={!canSelect && !isSelected}
-                                      onChange={(e) => {
-                                        e.stopPropagation();
-                                        toggleCategory(category.id);
-                                      }}
-                                      className="w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                                    />
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <span className="text-lg">{category.icon}</span>
-                                      <span className="text-sm font-medium text-gray-700">{category.name}</span>
-                                    </div>
-                                    {isSelected && (
-                                      <svg className="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                    )}
-                                  </label>
-                                );
-                              })}
-                            {influencerCategories.filter(cat => cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())).length === 0 && (
-                              <div className="text-center py-4 text-gray-500 text-sm">
-                                <svg className="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                                <p>No specialties found matching "{categorySearchQuery}"</p>
-                              </div>
-                            )}
-                          </div>
-                          <div className="mt-4 pt-3 border-t border-gray-200">
-                            <div className="flex items-center justify-between">
-                              <div className="text-xs text-gray-500">
-                                {formData.categories?.length || 0} / 3 selected
-                              </div>
-                              <button
-                                onClick={() => setShowCategoryPopup(false)}
-                                className="text-sm font-medium text-orange-600 hover:text-orange-700"
-                              >
-                                Done
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="instagram" className="block text-sm font-medium text-gray-700 ml-1">Instagram Link</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" strokeWidth="2" /><path strokeWidth="2" d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01" />
-                        </svg>
-                      </span>
-                      <input
-                        id="instagram"
-                        type="url"
-                        placeholder="Instagram Link"
-                        value={formData.socialLinks.instagram}
-                        onChange={(e) => handleInputChange('socialLinks.instagram', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="youtube" className="block text-sm font-medium text-gray-700 ml-1">YouTube Link</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                        </svg>
-                      </span>
-                      <input
-                        id="youtube"
-                        type="url"
-                        placeholder="YouTube Link"
-                        value={formData.socialLinks.youtube}
-                        onChange={(e) => handleInputChange('socialLinks.youtube', e.target.value)}
-                        className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-orange-500 transition-all text-gray-900 shadow-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Terms */}
-                <div className="flex items-start gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    id="termsAccepted"
-                    checked={formData.termsAccepted}
-                    onChange={(e) => handleInputChange('termsAccepted', e.target.checked)}
-                    className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <label htmlFor="termsAccepted" className="text-sm text-gray-600 leading-relaxed">
-                    I agree to the <a href="#" className="text-orange-500 hover:underline font-medium">Terms and Conditions</a> and <a href="#" className="text-orange-500 hover:underline font-medium">Privacy Policy</a>
-                  </label>
-                </div>
-
-                {/* Submit */}
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="w-full py-4 bg-[#e65c00] text-white rounded-[20px] font-medium text-lg shadow-xl shadow-orange-200/50 hover:bg-[#d45500] hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-50 disabled:translate-y-0"
-                >
-                  {loading ? 'Creating Account...' : 'Join as a Creator →'}
-                </button>
-
-                <div className="text-center mt-4">
-                  <p className="text-gray-500 font-medium">
-                    Already have an account?{' '}
-                    <button
-                      type="button"
-                      onClick={() => navigate('auth')}
-                      className="text-orange-500 hover:text-orange-600 font-medium transition-colors hover:underline"
-                    >
-                      Sign In
-                    </button>
-                  </p>
-                </div>
-
-                {/* Divider & Socials */}
-                <div className="relative py-2">
-                  <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-                  {/* <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div> */}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  {/* <button type="button" className="flex items-center justify-center py-3 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors font-medium text-gray-700 gap-2">
-                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" /><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" /><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" /><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" /></svg>
-                    Google
-                  </button> */}
-                  {/* <button type="button" className="flex items-center justify-center py-3 border border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors font-medium text-gray-700 gap-2">
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
-                    Facebook
-                  </button> */}
-                </div>
-              </div>
-
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            <div className="relative">
+              <Instagram className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" strokeWidth={1.8} />
+              <input
+                type="url"
+                placeholder="Instagram link"
+                value={formData.socialLinks.instagram}
+                onChange={(event) => handleInputChange('socialLinks.instagram', event.target.value)}
+                className={`${inputClassName} pl-12`}
+              />
             </div>
+            <div className="relative">
+              <Youtube className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/35" strokeWidth={1.8} />
+              <input
+                type="url"
+                placeholder="YouTube link"
+                value={formData.socialLinks.youtube}
+                onChange={(event) => handleInputChange('socialLinks.youtube', event.target.value)}
+                className={`${inputClassName} pl-12`}
+              />
+            </div>
+          </div>
+
+          <label className="mt-6 flex items-start gap-3 rounded-[1.2rem] border border-white/10 bg-white/[0.04] p-4 text-sm text-slate-300">
+            <input
+              type="checkbox"
+              checked={formData.termsAccepted}
+              onChange={(event) => handleInputChange('termsAccepted', event.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent text-violet-500"
+            />
+            <span>
+              I agree to the terms, privacy policy, and verification process for creator applications on ViralMantrix.
+            </span>
+          </label>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="magnetic-button mt-6 inline-flex w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-6 py-3.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+            {loading ? 'Creating creator account...' : 'Join the creator network'}
+          </button>
+
+          <div className="mt-4 text-center text-sm text-white/55">
+            Already have an account?{' '}
+            <button type="button" onClick={() => navigate('auth')} className="font-semibold text-cyan-300 transition hover:text-cyan-200">
+              Sign in
+            </button>
           </div>
         </div>
       </div>
-
-            
     </div>
-    
   );
 };
 

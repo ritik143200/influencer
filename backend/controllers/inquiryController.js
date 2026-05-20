@@ -1,6 +1,10 @@
 const Inquiry = require('../models/Inquiry');
 const Notification = require('../models/Notification');
 const { logInquirySubmission } = require('../middleware/activityLogger');
+const {
+    ensureCategoryDirectory,
+    normalizeCategoryPayload
+} = require('../utils/categoryHelpers');
 
 exports.createInquiry = async (req, res) => {
     try {
@@ -10,26 +14,41 @@ exports.createInquiry = async (req, res) => {
             phone,
             hiringFor,
             category,
+            mainCategories,
+            microCategories,
+            categorySelections,
             location,
             eventDate,
             budget,
             requirements
         } = req.body;
 
-        console.log('Creating inquiry with data:', { name, email, phone, hiringFor, category, location, eventDate, budget });
+        console.log('Creating inquiry with data:', { name, email, phone, hiringFor, category, mainCategories, microCategories, location, eventDate, budget });
 
         if (!req.user || !req.user._id) {
             console.error('Unauthorized inquiry attempt - no user in request');
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
+        const categoryDirectory = await ensureCategoryDirectory();
+        const normalizedCategories = normalizeCategoryPayload({
+            hiringFor,
+            category,
+            mainCategories,
+            microCategories,
+            categorySelections
+        }, categoryDirectory);
+
+        const resolvedHiringFor = normalizedCategories.primaryLegacyHiringValue || hiringFor;
+        const resolvedCategoryLabel = normalizedCategories.microCategoryLabels.join(', ') || category;
+
         // Validate required fields
         const missingFields = [];
         if (!name) missingFields.push('name');
         if (!email) missingFields.push('email');
         if (!phone) missingFields.push('phone');
-        if (!hiringFor) missingFields.push('hiringFor');
-        if (!category) missingFields.push('category');
+        if (!resolvedHiringFor) missingFields.push('hiringFor');
+        if (!resolvedCategoryLabel) missingFields.push('category');
         if (!location) missingFields.push('location');
         if (budget === undefined || budget === null || budget === '') missingFields.push('budget');
 
@@ -42,7 +61,7 @@ exports.createInquiry = async (req, res) => {
         }
 
         // Validate hiringFor enum
-        if (!['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'].includes(hiringFor)) {
+        if (!['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'].includes(resolvedHiringFor)) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'hiringFor must be "artist", "influencer", "creator", "celebrity", "city page", or "meme page"' 
@@ -73,8 +92,11 @@ exports.createInquiry = async (req, res) => {
             name,
             email,
             phone,
-            hiringFor,
-            category,
+            hiringFor: resolvedHiringFor,
+            category: resolvedCategoryLabel,
+            mainCategories: normalizedCategories.mainCategories,
+            microCategories: normalizedCategories.microCategories,
+            categorySelections: normalizedCategories.categorySelections,
             location,
             eventDate: eventDate ? new Date(eventDate) : new Date(),
             budget: budgetNum,
@@ -97,7 +119,7 @@ exports.createInquiry = async (req, res) => {
         try {
             await Notification.create({
                 type: 'inquiry',
-                message: `New hiring inquiry from ${name} (${hiringFor})`,
+                message: `New hiring inquiry from ${name} (${resolvedHiringFor})`,
                 relatedId: inquiry._id
             });
             console.log('Admin notification created for inquiry:', inquiry._id);

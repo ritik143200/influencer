@@ -38,6 +38,18 @@ const influencerSchema = new mongoose.Schema({
     type: String,
     required: false
   }],
+  mainCategories: [{
+    type: String,
+    trim: true
+  }],
+  microCategories: [{
+    type: String,
+    trim: true
+  }],
+  categorySelections: [{
+    mainCategorySlug: { type: String, trim: true },
+    microCategorySlug: { type: String, trim: true, default: null }
+  }],
   category: { type: String },
   subcategory: { type: String },
   subcategories: [{ type: String }],
@@ -135,6 +147,8 @@ const influencerSchema = new mongoose.Schema({
 // Index for better search performance
 influencerSchema.index({ email: 1 });
 influencerSchema.index({ categories: 1 });
+influencerSchema.index({ mainCategories: 1 });
+influencerSchema.index({ microCategories: 1 });
 influencerSchema.index({ location: 1 });
 influencerSchema.index({ verificationStatus: 1 });
 influencerSchema.index({ profileType: 1 });
