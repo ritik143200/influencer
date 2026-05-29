@@ -114,6 +114,12 @@ export const adminApi = {
       apiFetch(`/api/admin/inquiries?${qs}`).then(d => d.data ?? d));
   },
 
+  getInquiryMatches: (id, params = {}) => {
+    const qs = new URLSearchParams({ limit: 50, minScore: 1, ...params }).toString();
+    return dedupedFetch(`inquiry-matches:${id}:${qs}`, () =>
+      apiFetch(`/api/admin/inquiries/${id}/matches?${qs}`));
+  },
+
   // Influencers
   getInfluencers: () =>
     dedupedFetch('influencers', () =>

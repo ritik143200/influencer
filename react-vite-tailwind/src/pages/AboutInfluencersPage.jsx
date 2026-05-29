@@ -1,160 +1,193 @@
 import React from 'react';
+import {
+  BadgeIndianRupee,
+  BarChart3,
+  BriefcaseBusiness,
+  Compass,
+  LayoutGrid,
+  ShieldCheck,
+  Sparkles,
+  Users
+} from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 
-const AboutInfluencersPage = ({ config }) => {
+const offerCards = [
+  {
+    icon: Users,
+    title: 'Curated creator discovery',
+    description: 'Find creators, meme pages, city communities, and celebrity-facing profiles through cleaner category logic and better filtering.'
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Verified collaboration flow',
+    description: 'Creators submit structured profiles and brands send clear briefs that route into the admin layer with review-ready metadata.'
+  },
+  {
+    icon: BarChart3,
+    title: 'Performance-led decision making',
+    description: 'Campaigns, creator surfaces, and category segments are prepared for deeper analytics and reporting.'
+  },
+  {
+    icon: BriefcaseBusiness,
+    title: 'Brand partnership pipeline',
+    description: 'From discovery to inquiry to confirmation, the platform is designed to shorten the collaboration cycle.'
+  },
+  {
+    icon: BadgeIndianRupee,
+    title: 'Monetization-ready operations',
+    description: 'Profiles, briefs, and admin tracking are being shaped for future payout and commercial workflow expansion.'
+  },
+  {
+    icon: Compass,
+    title: 'Premium creator positioning',
+    description: 'Every creator-facing touchpoint is moving away from generic forms toward a stronger premium network experience.'
+  }
+];
+
+const categoryHighlights = [
+  'Creator / Influencer',
+  'City Pages',
+  'Meme Pages',
+  'Celebrity',
+  'Lifestyle',
+  'UGC Creator',
+  'Fashion',
+  'Fitness & Health',
+  'Travel',
+  'Food',
+  'Technology',
+  'Finance & Investment'
+];
+
+const AboutInfluencersPage = () => {
   const { navigate } = useRouter();
 
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
-            About ArtistHub - Influencers
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Connect brands  with influencers
+    <div className="min-h-screen bg-transparent pb-16 pt-28 text-white">
+      <div className="section-shell">
+        <div className="glass-panel rounded-[2.2rem] p-8 sm:p-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+            <Sparkles className="h-4 w-4 text-cyan-300" strokeWidth={1.8} />
+            Creator ecosystem overview
+          </div>
+
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+            <div>
+              <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
+                What ViralMantrix offers creators and brands.
+              </h1>
+              <p className="mt-4 max-w-3xl text-sm leading-8 text-slate-300 sm:text-base">
+                ViralMantrix is being rebuilt as a premium creator economy platform where creators, influencers, meme pages,
+                city communities, celebrities, and brands can connect through structured discovery, better category logic,
+                and collaboration-first workflows.
+              </p>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: 'Discovery', value: 'Multi-layer', sub: 'Creators, communities, and culture pages' },
+                  { label: 'Collaboration', value: 'Structured', sub: 'Brand briefs and creator metadata' },
+                  { label: 'Scalability', value: 'Backend-ready', sub: 'Dynamic category architecture' }
+                ].map((item) => (
+                  <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
+                    <div className="text-lg font-black text-white">{item.value}</div>
+                    <div className="mt-1 text-sm font-semibold text-white/80">{item.label}</div>
+                    <div className="mt-2 text-xs leading-6 text-slate-400">{item.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[1.8rem] border border-white/10 bg-[#0a1226] p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                  <LayoutGrid className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Current product options</div>
+                  <div className="mt-1 text-xl font-black text-white">Platform surfaces</div>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {[
+                  'Premium landing page for discovery and conversion',
+                  'Creator registration with dynamic categories',
+                  'Brand brief submission flow',
+                  'Brand dashboard for inquiry tracking',
+                  'Influencer dashboard for response workflow',
+                  'Admin-facing category-ready data pipeline'
+                ].map((item) => (
+                  <div key={item} className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {offerCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.title} className="glass-panel rounded-[1.8rem] p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <h2 className="mt-5 text-xl font-bold text-white">{card.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-300">{card.description}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 glass-panel rounded-[2rem] p-8">
+          <h2 className="text-2xl font-black text-white">Category preview</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
+            The website is being aligned around dynamic main categories and micro categories so creators and brands use the same
+            structured language throughout onboarding, discovery, and admin review.
           </p>
-        </div>
-
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          {/* Mission */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-3xl mb-6">
-              📱
-            </div>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: config.text_color }}>
-              Our Mission for Influencers
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              InfluencerHub is dedicated to creating a seamless platform where talented influencers can showcase their content, 
-              connect with brands, and grow their digital presence. We believe in empowering influencers and providing 
-              them with the tools they need to succeed in the social media age.
-            </p>
-          </div>
-
-          {/* Vision */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-3xl mb-6">
-              🚀
-            </div>
-            <h2 className="text-2xl font-bold mb-4" style={{ color: config.text_color }}>
-              Our Vision for Influencers
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              To become the world's leading platform for influencer talent, where every influencer can find 
-              their perfect brand partnerships and every company can discover their ideal creative collaborator. We envision 
-              a world where influence and creativity drive meaningful connections.
-            </p>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8" style={{ color: config.text_color }}>
-            What We Offer Influencers
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '🌟',
-                title: 'Diverse Influencer Pool',
-                description: 'Access to thousands of talented influencers across 20+ niches and specializations.'
-              },
-              {
-                icon: '🔍',
-                title: 'Smart Discovery',
-                description: 'Advanced search functionality to find the perfect influencer for your brand campaigns.'
-              },
-              {
-                icon: '✅',
-                title: 'Verified Influencers',
-                description: 'All influencers are verified to ensure authenticity and engagement quality.'
-              },
-              {
-                icon: '💬',
-                title: 'Direct Collaboration',
-                description: 'Connect directly with influencers without intermediaries or hidden fees.'
-              },
-              {
-                icon: '📈',
-                title: 'Campaign Management',
-                description: 'Simple and secure campaign process with transparent analytics and reporting.'
-              },
-              {
-                icon: '🎯',
-                title: 'Audience Insights',
-                description: 'Detailed audience demographics and engagement metrics for informed decisions.'
-              }
-            ].map((feature, index) => (
-              <div 
-                key={index}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-              >
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-semibold mb-2" style={{ color: config.text_color }}>
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {categoryHighlights.map((item) => (
+              <div key={item} className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white/80">
+                {item}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Influencer Categories Preview */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8" style={{ color: config.text_color }}>
-            Discover Influencer Categories
-          </h2>
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {[
-                '👗 Fashion', '🌟 Lifestyle', '💄 Beauty', '💪 Fitness',
-                '✈️ Travel', '🍕 Food', '💻 Technology', '🎮 Gaming',
-                '🎬 Entertainment', '📚 Education', '🏃 Sports', '🏠 Home',
-                '🐾 Pets', '🚗 Automotive', '💰 Finance', '🎯 Business',
-                '🎨 Art & Design', '🎵 Music', '📖 Books',
-                '🌿 Wellness', '👶 Parenting', '💑 Relationships', '🎪 Comedy'
-              ].map((category, index) => (
-                <div 
-                  key={index}
-                  className="text-center p-3 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors"
-                >
-                  <div className="text-2xl mb-1">{category.split(' ')[0]}</div>
-                  <div className="text-xs text-gray-600">{category.split(' ')[1]}</div>
-                </div>
-              ))}
+        <div className="mt-8 glass-panel rounded-[2rem] p-8">
+          <h2 className="text-2xl font-black text-white">Preview summary</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-5">
+              <h3 className="text-lg font-bold text-white">For brands</h3>
+              <p className="mt-2 text-sm leading-7 text-slate-300">
+                Launch campaign briefs, choose creator surfaces, set budget and location, and send structured inquiries that land directly in admin workflows.
+              </p>
+            </div>
+            <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-5">
+              <h3 className="text-lg font-bold text-white">For creators</h3>
+              <p className="mt-2 text-sm leading-7 text-slate-300">
+                Build a profile with category metadata, social links, and creator identity details so discovery and matching feel more premium and accurate.
+              </p>
             </div>
           </div>
-        </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 text-white">
-            <h2 className="text-2xl font-bold mb-4">
-              Ready to Join Our Influencer Community?
-            </h2>
-            <p className="text-lg mb-6 opacity-90">
-              Whether you're an influencer looking for brand partnerships or a company seeking creative talent, 
-              InfluencerHub is your perfect platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => navigate('auth')}
-                className="px-8 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                Join as Influencer
-              </button>
-              <button 
-                onClick={() => navigate('home')}
-                className="px-8 py-3 bg-brand-700 text-white font-semibold rounded-xl hover:bg-brand-800 transition-colors"
-              >
-                Browse Influencers
-              </button>
-            </div>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => navigate('registration')}
+              className="rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-6 py-3 text-sm font-bold text-white"
+            >
+              Preview creator signup
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('inquiry')}
+              className="rounded-full border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white/85"
+            >
+              Preview brand brief flow
+            </button>
           </div>
         </div>
       </div>

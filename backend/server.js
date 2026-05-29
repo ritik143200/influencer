@@ -26,35 +26,49 @@ const featuredProfileRoutes = require('./routes/featuredProfileRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 
 // Connect to database
-const connectDB = require('./config/db');
+const { connectDB, getDBStatus } = require('./config/db');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Middleware
 const allowedOrigins = [
-  "https://viralmantrix.com",
-  "https://www.viralmantrix.com",
-  "https://api.viralmantrix.com",
-  "http://localhost:5174",
-  "http://localhost:5173"
-];
+  'https://viralmantrix.com',
+  'https://www.viralmantrix.com',
+  'https://api.viralmantrix.com',
+  'http://127.0.0.1:4173',
+  'http://127.0.0.1:4174',
+  'http://localhost:4173',
+  'http://localhost:4174',
+  'http://localhost:5174',
+  'http://localhost:5173'
+].concat((process.env.FRONTEND_URL || '').split(',').map(origin => origin.trim()).filter(Boolean));
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn('CORS blocked origin:', origin);
-      callback(null, false);
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(
+  cors({
+    origin(origin, callback) {
+      const isLocalPreviewTunnel =
+        process.env.NODE_ENV !== 'production' &&
+        (
+          /^https:\/\/[a-z0-9-]+\.lhr\.life$/i.test(origin || '') ||
+          /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i.test(origin || '')
+        );
+
+      if (!origin || allowedOrigins.includes(origin) || isLocalPreviewTunnel) {
+        callback(null, true);
+      } else {
+        console.warn('CORS blocked origin:', origin);
+        callback(null, false);
+      }
+    },
+    credentials: true,
+    optionsSuccessStatus: 200
+  })
+);
 
 // Rate limiter (basic)
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
+  windowMs: 1 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100
 });
 app.use(limiter);
@@ -77,7 +91,7 @@ const sessionOptions = {
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    maxAge: 24 * 60 * 60 * 1000
   }
 };
 
@@ -106,11 +120,8 @@ const idProofsDir = path.join(uploadsDir, 'id-proofs');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-
 app.use('/api/influencer', influencerRoutes);
-// Removed /api/artists route - artist browsing functionality removed
 app.use('/api/auth', authRoutes);
-// Booking routes usage removed
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/activity', activityRoutes);
@@ -121,7 +132,12 @@ app.use('/api/categories', categoryRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'ArtistHub API is running' });
+  const db = getDBStatus();
+  res.json({
+    status: db.status === 'connected' ? 'OK' : 'DEGRADED',
+    message: 'ViralMantrix API is running',
+    db
+  });
 });
 
 // Error handling middleware
@@ -142,21 +158,23 @@ app.use('*', (req, res) => {
   });
 });
 
-
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5002;
+const REQUIRE_DATABASE = process.env.REQUIRE_DATABASE === 'true' || process.env.NODE_ENV === 'production';
 
 const startServer = async () => {
   try {
-    // Try to connect to DB but don't exit the process if it fails —
-    // keep the HTTP server running so we can inspect logs on Render.
+    // Keep local preview running without Mongo, but fail production loudly.
     await connectDB().catch(err => {
       console.error('Database connection failed at startup:', err);
+      if (REQUIRE_DATABASE) {
+        throw err;
+      }
     });
 
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-      console.log(`📁 Uploads directory: ${uploadsDir}`);
-      console.log(`🔗 API Health: http://localhost:${PORT}/api/health`);
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Uploads directory: ${uploadsDir}`);
+      console.log(`API Health: http://localhost:${PORT}/api/health`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);

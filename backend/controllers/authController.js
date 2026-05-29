@@ -19,7 +19,12 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, role } = req.body;
+    const accountRole = role === 'user' ? 'user' : 'brand';
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
 
     // Check if this email is already registered as a user
     const userExists = await User.findOne({ email });
@@ -39,6 +44,7 @@ const registerUser = async (req, res) => {
       email,
       password,
       phone,
+      role: accountRole,
     });
 
     if (user) {
@@ -76,6 +82,16 @@ const registerUser = async (req, res) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
+
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors || {})[0];
+      return res.status(400).json({ message: firstError?.message || 'Invalid registration details' });
+    }
+
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'This email is already registered' });
+    }
+
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
@@ -157,7 +173,7 @@ const loginUser = async (req, res) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.role || 'user',
+      role: user.role || 'brand',
       token,
       message: 'Login successful'
     });

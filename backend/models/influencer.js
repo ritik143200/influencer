@@ -90,7 +90,16 @@ const influencerSchema = new mongoose.Schema({
   // Pricing
   pricing: {
     collaborationCharges: { type: Number },
-    pricingModel: { type: String, default: 'fixed' }
+    pricingModel: { type: String, default: 'fixed' },
+    reel: { type: mongoose.Schema.Types.Mixed },
+    story: { type: mongoose.Schema.Types.Mixed },
+    collab: { type: mongoose.Schema.Types.Mixed },
+    staticPost: { type: mongoose.Schema.Types.Mixed },
+    other: { type: mongoose.Schema.Types.Mixed },
+    custom: [{
+      label: { type: String, trim: true },
+      amount: { type: mongoose.Schema.Types.Mixed }
+    }]
   },
   budget: { type: Number, default: 0 },
   budgetMin: { type: Number },
@@ -161,28 +170,63 @@ influencerSchema.virtual('displayName').get(function () {
 
 // Virtual for profile completion percentage
 influencerSchema.virtual('profileCompletion').get(function () {
-  let completedFields = 0;
-  let totalFields = 0;
+  const hasValue = (value) => {
+    if (Array.isArray(value)) return value.some(hasValue);
+    if (value && typeof value === 'object') return Object.values(value).some(hasValue);
+    return String(value || '').trim().length > 0;
+  };
 
-  // Required fields (always counted)
-  totalFields += 4; // email, phone, password, profileType
-  completedFields += 4; // These are always present due to schema requirements
+  const hasLocation = (location) => {
+    if (!location) return false;
+    if (typeof location === 'string') return Boolean(location.trim());
+    return Boolean(String(location.city || location.state || location.country || '').trim());
+  };
 
-  // Optional but important fields
-  const optionalFields = [
-    this.location && (typeof this.location === 'string' ? this.location.length > 0 : Object.keys(this.location).length > 0),
-    this.categories && this.categories.length > 0,
-    this.profileImage && this.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg',
-    this.socialLinks && this.socialLinks.instagram && this.socialLinks.instagram.length > 0,
-    this.socialLinks && this.socialLinks.youtube && this.socialLinks.youtube.length > 0,
-    this.bio && this.bio.trim().length > 0,
-    this.experience && this.experience.trim().length > 0
+  const hasCategory = Boolean(
+    (Array.isArray(this.mainCategories) && this.mainCategories.length > 0) ||
+    (Array.isArray(this.microCategories) && this.microCategories.length > 0) ||
+    (Array.isArray(this.categories) && this.categories.length > 0)
+  );
+
+  const hasFollowers = Boolean(
+    hasValue(this.followers) ||
+    hasValue(this.platforms?.instagram?.followers) ||
+    hasValue(this.platforms?.youtube?.followers) ||
+    hasValue(this.platforms?.facebook?.followers)
+  );
+
+  const hasPricing = Boolean(
+    hasValue(this.pricing?.reel) ||
+    hasValue(this.pricing?.story) ||
+    hasValue(this.pricing?.collab) ||
+    hasValue(this.pricing?.staticPost) ||
+    hasValue(this.pricing?.other) ||
+    hasValue(this.pricing?.custom) ||
+    hasValue(this.budgetMin) ||
+    hasValue(this.budgetMax) ||
+    hasValue(this.budget)
+  );
+
+  const hasPortfolio = Array.isArray(this.portfolio) && this.portfolio.some((item) => {
+    if (typeof item === 'string') return Boolean(item.trim());
+    return Boolean(String(item?.title || item?.url || '').trim());
+  });
+
+  const profileSteps = [
+    { done: hasValue(this.bio || this.description), weight: 12 },
+    { done: hasValue(this.experience), weight: 8 },
+    { done: hasValue(this.gender), weight: 5 },
+    { done: hasFollowers, weight: 15 },
+    { done: hasPricing, weight: 18 },
+    { done: hasPortfolio, weight: 12 },
+    {
+      done: hasValue(this.socialLinks?.instagram || this.instagram || this.platforms?.instagram?.url) && hasLocation(this.location) && hasCategory,
+      weight: 5
+    }
   ];
 
-  totalFields += optionalFields.length;
-  completedFields += optionalFields.filter(Boolean).length;
-
-  return Math.round((completedFields / totalFields) * 100);
+  const completedProfile = profileSteps.reduce((sum, item) => sum + (item.done ? item.weight : 0), 0);
+  return Math.min(100, Math.max(25, 25 + completedProfile));
 });
 
 // Virtual for profile completion status text

@@ -1,9 +1,9 @@
 export const defaultConfig = {
-  background_color: '#050816',
-  text_color: '#f8fafc',
+  background_color: '#000000',
+  text_color: '#FFFFFF',
   font_family: 'Outfit',
-  primary_action: '#8b5cf6',
-  secondary_action: '#22d3ee'
+  primary_action: '#DF7AFE',
+  secondary_action: '#0099FF'
 };
 
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5002').replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://api.viralmantrix.com').replace(/\/$/, '');

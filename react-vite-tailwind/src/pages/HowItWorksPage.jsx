@@ -1,330 +1,234 @@
 import React from 'react';
+import {
+  ArrowRight,
+  BarChart3,
+  BriefcaseBusiness,
+  Building2,
+  LayoutPanelTop,
+  MessageSquareText,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  UserRoundPlus,
+  Users
+} from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 
-const HowItWorksPage = ({ config }) => {
+const coreSteps = [
+  {
+    step: '01',
+    title: 'Choose your entry point',
+    description: 'Creators and brands enter through dedicated flows so onboarding feels purposeful from the first screen.'
+  },
+  {
+    step: '02',
+    title: 'Submit structured information',
+    description: 'Profiles and brand briefs use category-aware fields, collaboration intent, and reusable metadata instead of flat generic forms.'
+  },
+  {
+    step: '03',
+    title: 'Move into campaign workflow',
+    description: 'Inquiries, creator responses, and admin review all connect into a system that is easier to scale and easier to manage.'
+  }
+];
+
+const creatorFlow = [
+  'Create a creator account',
+  'Select main and micro categories',
+  'Add creator identity and socials',
+  'Enter the collaboration pipeline'
+];
+
+const brandFlow = [
+  'Create a brand account',
+  'Submit a campaign brief',
+  'Target creator categories',
+  'Track inquiry progression'
+];
+
+const platformCapabilities = [
+  { icon: ShieldCheck, title: 'Secure data flow', description: 'Structured submissions that are easier to review and moderate.' },
+  { icon: Search, title: 'Better discovery logic', description: 'Category-led creator matching and more relevant campaign targeting.' },
+  { icon: MessageSquareText, title: 'Clear collaboration handoff', description: 'Brand intent and creator data move through shared system logic.' },
+  { icon: BarChart3, title: 'Analytics-ready architecture', description: 'The product is being shaped for deeper reporting and filtering.' }
+];
+
+const HowItWorksPage = () => {
   const { navigate } = useRouter();
 
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
-            How It Works
-          </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
-            connect brands with  influencers and creators
-          </p>
-        </div>
-
-        <div className="mb-20">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: config.text_color }}>
-              Watch How It Works
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Quick walkthrough of the platform experience for brands and creators.
-            </p>
+    <div className="min-h-screen bg-transparent pb-16 pt-28 text-white">
+      <div className="section-shell">
+        <div className="glass-panel rounded-[2.2rem] p-8 sm:p-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+            <Sparkles className="h-4 w-4 text-cyan-300" strokeWidth={1.8} />
+            Product flow
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden">
-              <div className="relative w-full aspect-video bg-black">
-                <video
-                  className="w-full h-full"
-                  controls
-                  preload="metadata"
-                  src="https://www.w3schools.com/html/mov_bbb.mp4"
-                />
-              </div>
-              <div className="p-6 sm:p-8">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <div className="text-sm font-semibold text-gray-500">Sample Video</div>
-                    <div className="text-lg font-bold" style={{ color: config.text_color }}>
-                      Platform Overview
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => navigate('registration', { type: 'user' })}
-                    className="px-6 py-3 rounded-2xl font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    style={{ backgroundColor: config.primary_action }}
-                  >
-                    Get Started
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Timeline Design */}
-        <div className="relative mb-20">
-          {/* Main Timeline Line - Hidden on mobile */}
-          <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-to-b from-brand-500 to-purple-500 rounded-full"></div>
-          
-          {/* Step 1 - Left Side */}
-          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
-            <div className="w-full sm:w-1/2 pr-0 sm:pr-8 text-center sm:text-right mb-6 sm:mb-0">
-              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
-                <div className="flex sm:items-center justify-center sm:justify-end mb-4">
-                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center sm:mr-3">
-                    <span className="text-2xl">👤</span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-right" style={{ color: config.text_color }}>
-                    Create Account
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Sign up in seconds with your email or social account. Choose whether you are a brand or influencer to get started.
-                </p>
-                <div className="flex justify-center sm:justify-end space-x-2">
-                  <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
-                    Quick Registration
-                  </span>
-                  <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
-                    User Types
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Center Circle */}
-            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
-              1
-            </div>
-            {/* Mobile Circle */}
-            <div className="flex sm:hidden w-12 h-12 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
-              1
-            </div>
-            
-            <div className="w-1/2 pl-0 sm:pl-8"></div>
-          </div>
-
-          {/* Step 2 - Right Side */}
-          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
-            <div className="w-1/2 pr-0 sm:pr-8 mb-6 sm:mb-0"></div>
-            
-            {/* Center Circle */}
-            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-purple-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
-              2
-            </div>
-            {/* Mobile Circle */}
-            <div className="flex sm:hidden w-12 h-12 bg-purple-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
-              2
-            </div>
-            
-            <div className="w-full sm:w-1/2 pl-0 sm:pl-8">
-              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
-                <div className="flex items-center justify-center sm:justify-start mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center sm:mr-3">
-                    <span className="text-2xl">📝</span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-left" style={{ color: config.text_color }}>
-                    Complete Profile
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Build your comprehensive profile with photos, skills, and preferences. The more complete your profile, the better your matches.
-                </p>
-                <div className="flex justify-center sm:justify-start space-x-2">
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                    Portfolio
-                  </span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                    Skills
-                  </span>
-                  <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                    Availability
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 3 - Left Side */}
-          <div className="relative flex flex-col sm:flex-row items-center mb-12 sm:mb-16">
-            <div className="w-full sm:w-1/2 pr-0 sm:pr-8 text-center sm:text-right mb-6 sm:mb-0">
-              <div className="inline-block bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 max-w-md mx-auto sm:mx-0">
-                <div className="flex sm:items-center justify-center sm:justify-end mb-4">
-                  <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center sm:mr-3">
-                    <span className="text-2xl">🔍</span>
-                  </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-center sm:text-right" style={{ color: config.text_color }}>
-                    Connect & Collaborate
-                  </h3>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  Search for talent or opportunities, connect directly, and start collaborating. Manage everything through your dashboard.
-                </p>
-                <div className="flex justify-center sm:justify-end space-x-2">
-                  <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
-                    Search
-                  </span>
-                  <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
-                    Message
-                  </span>
-                  <span className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
-                    Book
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Center Circle */}
-            <div className="hidden sm:flex absolute left-1/2 transform -translate-x-1/2 w-12 h-12 sm:w-16 sm:h-16 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg z-10">
-              3
-            </div>
-            {/* Mobile Circle */}
-            <div className="flex sm:hidden w-12 h-12 bg-brand-500 rounded-full items-center justify-center text-white font-bold text-lg shadow-lg z-10 mb-6">
-              3
-            </div>
-            
-            <div className="w-1/2 pl-0 sm:pl-8"></div>
-          </div>
-        </div>
-
-        {/* User Type Workflows - Hexagon Design */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: config.text_color }}>
-            Choose Your Path
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-            {/* Influencers Path */}
-            <div className="relative">
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <span className="text-3xl">📱</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
-                  For Influencers & Creators
-                </h3>
-                <p className="text-gray-600">Showcase your content and get brand deals</p>
-              </div>
-              
-              {/* Hexagon Flow */}
-              <div className="relative flex justify-center items-center">
-                <div className="flex flex-wrap justify-center gap-3 sm:gap-4 max-w-md">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-xl sm:text-2xl mb-1">📝</span>
-                    <span className="text-xs font-medium text-center">Register</span>
-                  </div>
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-xl sm:text-2xl mb-1">🎨</span>
-                    <span className="text-xs font-medium text-center">Showcase</span>
-                  </div>
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-xl sm:text-2xl mb-1">📅</span>
-                    <span className="text-xs font-medium text-center">Get Booked</span>
-                  </div>
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-brand-100 rounded-2xl flex flex-col items-center justify-center hover:bg-brand-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">💰</span>
-                    <span className="text-xs font-medium text-center">Earn</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Clients/Brands Path */}
-            <div className="relative">
-              <div className="text-center mb-8">
-                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <span className="text-3xl">🏢</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-2" style={{ color: config.text_color }}>
-                  For Clients & Brands
-                </h3>
-                <p className="text-gray-600">find the right influencers,run campaigns, and grow your brand </p>
-              </div>
-              
-              {/* Hexagon Flow */}
-              <div className="relative flex justify-center items-center">
-                <div className="flex flex-wrap justify-center gap-4 max-w-md">
-                  <div className="w-24 h-24 bg-purple-100 rounded-2xl flex flex-col items-center justify-center hover:bg-purple-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">👤</span>
-                    <span className="text-xs font-medium text-center">Sign Up</span>
-                  </div>
-                  <div className="w-24 h-24 bg-purple-100 rounded-2xl flex flex-col items-center justify-center hover:bg-purple-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">🔍</span>
-                    <span className="text-xs font-medium text-center">Search</span>
-                  </div>
-                  <div className="w-24 h-24 bg-purple-100 rounded-2xl flex flex-col items-center justify-center hover:bg-purple-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">💬</span>
-                    <span className="text-xs font-medium text-center">Connect</span>
-                  </div>
-                  <div className="w-24 h-24 bg-purple-100 rounded-2xl flex flex-col items-center justify-center hover:bg-purple-200 transition-colors cursor-pointer">
-                    <span className="text-2xl mb-1">🎉</span>
-                    <span className="text-xs font-medium text-center">Hire</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Feature Pills - Horizontal Scroll */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-center mb-12" style={{ color: config.text_color }}>
-            Platform Features
-          </h2>
-          
-          <div className="flex flex-wrap justify-center gap-4">
-            {[
-              { icon: '🔒', label: 'Secure Platform', color: 'brand' },
-              { icon: '📱', label: 'Mobile Friendly', color: 'purple' },
-              { icon: '💬', label: 'Direct Messaging', color: 'purple' },
-              { icon: '📊', label: 'Analytics Dashboard', color: 'brand' },
-              { icon: '🌍', label: 'Global Reach', color: 'purple' },
-              { icon: '🎯', label: 'Smart Matching', color: 'brand' },
-              { icon: '💳', label: 'Safe Payments', color: 'purple' }
-            ].map((feature, index) => (
-              <div 
-                key={index}
-                className={`group relative overflow-hidden rounded-full px-6 py-4 bg-gradient-to-r from-${feature.color}-50 to-${feature.color}-100 border-2 border-${feature.color}-200 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-105`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{feature.icon}</span>
-                  <span className="font-medium text-gray-800">{feature.label}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA - Wave Design */}
-        <div className="relative">
-          <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-3xl p-12 text-white relative overflow-hidden">
-            {/* Decorative Waves */}
-            <div className="absolute top-0 left-0 w-full h-full opacity-10">
-              <svg className="w-full h-full" viewBox="0 0 1200 300" preserveAspectRatio="none">
-                <path d="M0,150 C300,100 600,200 1200,150 L1200,300 L0,300 Z" fill="white"/>
-                <path d="M0,200 C300,150 600,250 1200,200 L1200,300 L0,300 Z" fill="white" opacity="0.5"/>
-              </svg>
-            </div>
-            
-            <div className="relative z-10 text-center">
-              <h2 className="text-3xl font-bold mb-4">
-                Ready to Get Started?
-              </h2>
-              <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-                Join thousands of users already connecting through InfluencerHub. Your journey is just a few clicks away.
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
+                How ViralMantrix is designed to work.
+              </h1>
+              <p className="mt-4 max-w-3xl text-sm leading-8 text-slate-300 sm:text-base">
+                The platform is being rebuilt so discovery, onboarding, campaign briefs, and admin control feel like parts
+                of one modern creator operating system instead of disconnected pages.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button 
-                  onClick={() => navigate('influencer-registration')}
-                  className="px-8 py-4 bg-white text-brand-600 font-semibold rounded-2xl hover:bg-gray-100 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  Create Account
-                </button>
-                <button 
-                  onClick={() => navigate('home')}
-                  className="px-8 py-4 bg-brand-700 text-white font-semibold rounded-2xl hover:bg-brand-800 transition-all duration-300 transform hover:scale-105 shadow-lg"
-                >
-                  Browse Talent
-                </button>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: 'Flow', value: 'Structured', sub: 'Purposeful user journeys' },
+                  { label: 'Matching', value: 'Category-aware', sub: 'Shared creator and brand language' },
+                  { label: 'Ops', value: 'Scalable', sub: 'Ready for filtering and moderation' }
+                ].map((item) => (
+                  <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
+                    <div className="text-lg font-black text-white">{item.value}</div>
+                    <div className="mt-1 text-sm font-semibold text-white/80">{item.label}</div>
+                    <div className="mt-2 text-xs leading-6 text-slate-400">{item.sub}</div>
+                  </div>
+                ))}
               </div>
             </div>
+
+            <div className="rounded-[1.8rem] border border-white/10 bg-[#0a1226] p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                  <LayoutPanelTop className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Preview summary</div>
+                  <div className="mt-1 text-xl font-black text-white">Current user paths</div>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {[
+                  'Homepage introduces the creator ecosystem and category logic',
+                  'Creators onboard through a structured registration experience',
+                  'Brands submit campaign briefs through a dedicated flow',
+                  'Dashboards provide collaboration and inquiry visibility',
+                  'Admin receives structured data for review and filtering'
+                ].map((item) => (
+                  <div key={item} className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 grid gap-4 lg:grid-cols-3">
+          {coreSteps.map((step) => (
+            <div key={step.step} className="glass-panel rounded-[1.8rem] p-6">
+              <div className="text-sm font-black tracking-[0.28em] text-cyan-300">{step.step}</div>
+              <h2 className="mt-4 text-xl font-bold text-white">{step.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-300">{step.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="glass-panel rounded-[2rem] p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                <Users className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Creator flow</div>
+                <div className="mt-1 text-2xl font-black text-white">For creators and influencers</div>
+              </div>
+            </div>
+            <div className="mt-6 space-y-3">
+              {creatorFlow.map((item, index) => (
+                <div key={item} className="flex items-center gap-4 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-black text-cyan-300">
+                    0{index + 1}
+                  </div>
+                  <div className="text-sm font-semibold text-white/85">{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="glass-panel rounded-[2rem] p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                <Building2 className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Brand flow</div>
+                <div className="mt-1 text-2xl font-black text-white">For brands and campaign teams</div>
+              </div>
+            </div>
+            <div className="mt-6 space-y-3">
+              {brandFlow.map((item, index) => (
+                <div key={item} className="flex items-center gap-4 rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-black text-cyan-300">
+                    0{index + 1}
+                  </div>
+                  <div className="text-sm font-semibold text-white/85">{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 glass-panel rounded-[2rem] p-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+              <BriefcaseBusiness className="h-5 w-5" strokeWidth={2} />
+            </div>
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">System capabilities</div>
+              <div className="mt-1 text-2xl font-black text-white">What supports the flow underneath</div>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            {platformCapabilities.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="rounded-[1.4rem] border border-white/10 bg-white/[0.04] p-5">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-300">
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                  </div>
+                  <h3 className="mt-4 text-lg font-bold text-white">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-300">{item.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-8 glass-panel rounded-[2rem] p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-black text-white sm:text-3xl">Open the strongest preview routes from here.</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                If you want to understand the experience quickly, go from homepage to creator-side offering, then creator signup, then brand brief flow.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate('home')}
+                className="rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-6 py-3 text-sm font-bold text-white"
+              >
+                View homepage
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('influencer-registration')}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white/85"
+              >
+                Preview creator signup
+              </button>
+            </div>
+          </div>
+          <div className="mt-6 flex items-center gap-3 text-sm text-slate-300">
+            <UserRoundPlus className="h-4 w-4 text-cyan-300" strokeWidth={2} />
+            <span>Onboarding, discovery, and brand brief submission are the clearest live product stories right now.</span>
+            <ArrowRight className="hidden h-4 w-4 text-cyan-300 sm:block" strokeWidth={2} />
           </div>
         </div>
       </div>

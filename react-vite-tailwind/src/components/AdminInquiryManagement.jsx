@@ -45,11 +45,22 @@ const AdminInquiryManagement = ({
       matchesStatus = hasInfluencerAcceptance;
     }
     
-    const matchesSearch = searchTermInquiry === '' ||
-      (inquiry.hiringFor?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-        inquiry.name?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-        inquiry.email?.toLowerCase().includes(searchTermInquiry.toLowerCase()) ||
-        (inquiry.userId && typeof inquiry.userId === 'object' && inquiry.userId.name?.toLowerCase().includes(searchTermInquiry.toLowerCase())));
+    const searchValue = searchTermInquiry.trim().toLowerCase();
+    const matchesSearch = searchValue === '' ||
+      [
+        inquiry.campaignName,
+        inquiry.hiringFor,
+        inquiry.category,
+        inquiry.requirements,
+        inquiry.location,
+        inquiry.name,
+        inquiry.email,
+        inquiry.phone,
+        inquiry.userId && typeof inquiry.userId === 'object' ? inquiry.userId.name : ''
+      ].some((value) => String(value || '').toLowerCase().includes(searchValue));
+
+    const matchesDate = !filterDate ||
+      (inquiry.createdAt && new Date(inquiry.createdAt).toISOString().slice(0, 10) === filterDate);
 
     // Debug log for influencer filtering
     if (filterStatusInquiry === 'artist_rejected') {
@@ -74,7 +85,7 @@ const AdminInquiryManagement = ({
       });
     }
 
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesSearch && matchesDate;
   });
 
   // Debug log for filtered results
@@ -334,7 +345,8 @@ const AdminInquiryManagement = ({
                       <div>
                         <h4 className="font-semibold text-gray-900 text-sm mb-1">Project Details</h4>
                         <div className="text-sm text-gray-600">
-                          <div className="font-medium truncate">{inquiry.hiringFor}</div>
+                          <div className="font-medium truncate">{inquiry.campaignName || inquiry.hiringFor}</div>
+                          <div className="text-xs text-gray-500 mt-1">{inquiry.category || inquiry.hiringFor}</div>
                           <div className="text-xs text-gray-500 mt-1">
                             Budget: {inquiry.budget ? `Rs. ${inquiry.budget.toLocaleString()}` : 'Not specified'}
                           </div>

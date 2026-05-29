@@ -24,3 +24,16 @@ npm-debug.log*
 dist/
 dist-ssr/
 build/
+
+# Local preview / tunnel artifacts
+.tools/
+edge-shot*/
+preview-*.png
+cloudflared*.log
+*_frames/
+page1_reference_frames/
+prototype_frames/
+recording_2026_05_29_frames/
+reference_stunning_frames/
+wa_reference_frames/
+xtract-page.html

@@ -27,6 +27,201 @@ const clearOverviewCache = () => {
     lastCacheUpdate = 0;
 };
 
+const escapeRegex = (value = '') => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const toComparableList = (...values) => {
+    const tokens = [];
+
+    values.flat(Infinity).forEach((value) => {
+        if (value === undefined || value === null) return;
+        if (typeof value === 'object') {
+            Object.values(value).forEach((nested) => tokens.push(nested));
+            return;
+        }
+        String(value)
+            .split(',')
+            .map((item) => item.trim().toLowerCase())
+            .filter(Boolean)
+            .forEach((item) => tokens.push(item));
+    });
+
+    return [...new Set(tokens)];
+};
+
+const intersect = (left = [], right = []) => {
+    const rightSet = new Set(right);
+    return left.filter((item) => rightSet.has(item));
+};
+
+const getLocationText = (location) => {
+    if (!location) return '';
+    if (typeof location === 'string') return location.toLowerCase();
+    return [location.city, location.state, location.country, location.address]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+};
+
+const toNumber = (value) => {
+    if (value === undefined || value === null || value === '') return null;
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value === 'object') {
+        const nestedValues = Object.values(value)
+            .map(toNumber)
+            .filter((nested) => nested !== null);
+        return nestedValues.length > 0 ? Math.max(...nestedValues) : null;
+    }
+    const cleaned = String(value).replace(/[^\d.]/g, '');
+    if (!cleaned) return null;
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getInfluencerBudgetRange = (influencer = {}) => {
+    const pricing = influencer.pricing || {};
+    const knownValues = [
+        influencer.budgetMin,
+        influencer.budgetMax,
+        influencer.budget,
+        pricing.collaborationCharges,
+        pricing.reel,
+        pricing.story,
+        pricing.collab,
+        pricing.staticPost,
+        pricing.other,
+        ...(Array.isArray(pricing.custom) ? pricing.custom.map((item) => item.amount) : [])
+    ]
+        .map(toNumber)
+        .filter((value) => value !== null && value >= 0);
+
+    if (knownValues.length === 0) {
+        return { min: null, max: null };
+    }
+
+    return {
+        min: toNumber(influencer.budgetMin) ?? Math.min(...knownValues),
+        max: toNumber(influencer.budgetMax) ?? Math.max(...knownValues)
+    };
+};
+
+const calculateProfileCompleteness = (influencer = {}) => {
+    const checks = [
+        influencer.fullName || influencer.firstName,
+        influencer.email,
+        influencer.phone,
+        getLocationText(influencer.location),
+        influencer.bio,
+        toComparableList(influencer.mainCategories, influencer.microCategories, influencer.categories, influencer.niche).length > 0,
+        influencer.socialLinks?.instagram || influencer.platforms?.instagram?.url,
+        influencer.socialLinks?.youtube || influencer.platforms?.youtube?.url,
+        influencer.profileImage && !String(influencer.profileImage).includes('picsum.photos'),
+        Array.isArray(influencer.portfolio) && influencer.portfolio.length > 0
+    ];
+
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+};
+
+const getFollowerSignal = (influencer = {}) => {
+    const platformValues = Object.values(influencer.platforms || {})
+        .flatMap((platform) => [platform?.followers, platform?.subscribers])
+        .map(toNumber)
+        .filter((value) => value !== null);
+
+    if (platformValues.length === 0) return 0;
+    const highest = Math.max(...platformValues);
+    if (highest >= 1000000) return 10;
+    if (highest >= 100000) return 8;
+    if (highest >= 10000) return 6;
+    if (highest >= 1000) return 4;
+    return 2;
+};
+
+const scoreInfluencerForInquiry = (inquiry, influencer) => {
+    const inquiryMain = toComparableList(inquiry.mainCategories, inquiry.hiringFor);
+    const inquiryMicro = toComparableList(inquiry.microCategories, inquiry.category);
+    const influencerMain = toComparableList(
+        influencer.mainCategories,
+        influencer.subcategory,
+        influencer.categorySelections?.map((item) => item.mainCategorySlug)
+    );
+    const influencerMicro = toComparableList(
+        influencer.microCategories,
+        influencer.categories,
+        influencer.niche,
+        influencer.subcategories,
+        influencer.category,
+        influencer.categorySelections?.map((item) => item.microCategorySlug)
+    );
+
+    const mainMatches = intersect(inquiryMain, influencerMain);
+    const microMatches = intersect(inquiryMicro, influencerMicro);
+    const reasons = [];
+    let score = 0;
+
+    if (microMatches.length > 0) {
+        score += Math.min(55, 38 + microMatches.length * 6);
+        reasons.push(`Micro category match: ${microMatches.slice(0, 3).join(', ')}`);
+    }
+
+    if (mainMatches.length > 0) {
+        score += Math.min(25, 18 + mainMatches.length * 4);
+        reasons.push(`Main category match: ${mainMatches.slice(0, 2).join(', ')}`);
+    }
+
+    const inquiryLocation = getLocationText(inquiry.location);
+    const influencerLocation = getLocationText(influencer.location);
+    if (inquiryLocation && influencerLocation) {
+        const locationTokens = inquiryLocation.split(/\s+/).filter((token) => token.length > 2);
+        const hasLocationMatch = locationTokens.some((token) => influencerLocation.includes(token));
+        if (hasLocationMatch || influencerLocation.includes(inquiryLocation) || inquiryLocation.includes(influencerLocation)) {
+            score += 15;
+            reasons.push('Location fit');
+        }
+    }
+
+    const inquiryBudget = toNumber(inquiry.budget);
+    const budgetRange = getInfluencerBudgetRange(influencer);
+    if (inquiryBudget !== null) {
+        if (budgetRange.min === null && budgetRange.max === null) {
+            score += 4;
+            reasons.push('Budget open for review');
+        } else if (
+            (budgetRange.min === null || inquiryBudget >= budgetRange.min) &&
+            (budgetRange.max === null || inquiryBudget >= budgetRange.max || inquiryBudget <= budgetRange.max * 1.25)
+        ) {
+            score += 12;
+            reasons.push('Budget fit');
+        } else if (budgetRange.min !== null && inquiryBudget >= budgetRange.min * 0.75) {
+            score += 6;
+            reasons.push('Near budget fit');
+        }
+    }
+
+    const completeness = calculateProfileCompleteness(influencer);
+    score += Math.round((completeness / 100) * 8);
+    if (completeness >= 70) reasons.push(`Profile ${completeness}% complete`);
+
+    if (influencer.verificationStatus === 'verified') {
+        score += 5;
+        reasons.push('Verified creator');
+    }
+
+    const followerSignal = getFollowerSignal(influencer);
+    if (followerSignal > 0) {
+        score += followerSignal;
+        reasons.push('Audience data available');
+    }
+
+    return {
+        score: Math.min(100, Math.round(score)),
+        reasons,
+        mainMatches,
+        microMatches,
+        profileCompletion: completeness,
+        budgetRange
+    };
+};
+
 // @desc    Get admin overview analytics (counts + top inquirer)
 // @route   GET /api/admin/overview
 // @access  Private/Admin
@@ -264,18 +459,167 @@ const deleteUser = async (req, res) => {
 // @access  Private/Admin
 const getAllInquiries = async (req, res) => {
     try {
-        const inquiries = await Inquiry.find()
+        const {
+            status,
+            adminStatus,
+            artistStatus,
+            hiringFor,
+            category,
+            mainCategory,
+            microCategory,
+            search,
+            from,
+            to,
+            minBudget,
+            maxBudget,
+            page = 1,
+            limit = 100
+        } = req.query;
+
+        const filter = {};
+
+        if (status && status !== 'all') filter.status = status;
+        if (adminStatus && adminStatus !== 'all') filter.adminStatus = adminStatus;
+        if (artistStatus && artistStatus !== 'all') filter.artistStatus = artistStatus;
+        if (hiringFor && hiringFor !== 'all') filter.hiringFor = hiringFor;
+        if (mainCategory && mainCategory !== 'all') filter.mainCategories = mainCategory;
+        if (microCategory && microCategory !== 'all') filter.microCategories = microCategory;
+
+        if (category && category !== 'all') {
+            const categoryRegex = new RegExp(escapeRegex(category), 'i');
+            filter.$or = [
+                { category: categoryRegex },
+                { mainCategories: categoryRegex },
+                { microCategories: categoryRegex }
+            ];
+        }
+
+        if (search && search.trim()) {
+            const searchRegex = new RegExp(escapeRegex(search.trim()), 'i');
+            const searchOr = [
+                { name: searchRegex },
+                { email: searchRegex },
+                { phone: searchRegex },
+                { campaignName: searchRegex },
+                { requirements: searchRegex },
+                { location: searchRegex },
+                { category: searchRegex },
+                { hiringFor: searchRegex }
+            ];
+            filter.$and = filter.$and || [];
+            filter.$and.push({ $or: searchOr });
+        }
+
+        if (from || to) {
+            filter.createdAt = {};
+            if (from) filter.createdAt.$gte = new Date(from);
+            if (to) {
+                const end = new Date(to);
+                end.setHours(23, 59, 59, 999);
+                filter.createdAt.$lte = end;
+            }
+        }
+
+        if (minBudget || maxBudget) {
+            filter.budget = {};
+            if (minBudget) filter.budget.$gte = Number(minBudget);
+            if (maxBudget) filter.budget.$lte = Number(maxBudget);
+        }
+
+        const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 250);
+        const safePage = Math.max(Number(page) || 1, 1);
+        const skip = (safePage - 1) * safeLimit;
+
+        const [inquiries, total] = await Promise.all([
+            Inquiry.find(filter)
             .populate('userId', 'name email phone')
             .populate('assignedInfluencer.userId', 'firstName lastName email name profileType fullName')
             .populate('forwardedTo.userId', 'firstName lastName email name profileType fullName')
-            .sort({ createdAt: -1 });
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(safeLimit),
+            Inquiry.countDocuments(filter)
+        ]);
 
-        res.status(200).json({ success: true, count: inquiries.length, data: inquiries });
+        res.status(200).json({
+            success: true,
+            count: inquiries.length,
+            total,
+            page: safePage,
+            pages: Math.ceil(total / safeLimit),
+            data: inquiries
+        });
     } catch (error) {
         console.error('Error fetching all inquiries:', error);
         res.status(500).json({
             success: false,
             message: 'Server error while fetching all inquiries',
+            error: error.message
+        });
+    }
+};
+
+// @desc    Get best influencer matches for one brand inquiry
+// @route   GET /api/admin/inquiries/:id/matches
+// @access  Private/Admin
+const getInquiryMatches = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const safeLimit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+        const minScore = Math.max(Number(req.query.minScore) || 1, 0);
+
+        const inquiry = await Inquiry.findById(id).lean();
+        if (!inquiry) {
+            return res.status(404).json({ success: false, message: 'Inquiry not found' });
+        }
+
+        const influencers = await Influencer.find({
+            profileType: 'influencer',
+            isActive: true
+        })
+            .select('-password -resetPasswordToken -resetPasswordExpires')
+            .lean();
+
+        const matches = influencers
+            .map((influencer) => {
+                const match = scoreInfluencerForInquiry(inquiry, influencer);
+                return {
+                    influencer,
+                    matchScore: match.score,
+                    reasons: match.reasons,
+                    mainMatches: match.mainMatches,
+                    microMatches: match.microMatches,
+                    profileCompletion: match.profileCompletion,
+                    budgetRange: match.budgetRange
+                };
+            })
+            .filter((item) => item.matchScore >= minScore)
+            .sort((a, b) => {
+                if (b.matchScore !== a.matchScore) return b.matchScore - a.matchScore;
+                return new Date(b.influencer.registrationDate || b.influencer.createdAt || 0) -
+                    new Date(a.influencer.registrationDate || a.influencer.createdAt || 0);
+            })
+            .slice(0, safeLimit);
+
+        return res.status(200).json({
+            success: true,
+            count: matches.length,
+            data: matches,
+            meta: {
+                inquiryId: inquiry._id,
+                campaignName: inquiry.campaignName,
+                mainCategories: inquiry.mainCategories || [],
+                microCategories: inquiry.microCategories || [],
+                location: inquiry.location,
+                budget: inquiry.budget,
+                algorithm: 'rule-based-v1'
+            }
+        });
+    } catch (error) {
+        console.error('Error matching influencers for inquiry:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Server error while matching influencers',
             error: error.message
         });
     }
@@ -662,6 +1006,7 @@ const updateFeaturedInfluencers = async (req, res) => {
 
 module.exports = {
     getAllInquiries,
+    getInquiryMatches,
     updateInquiryStatus,
     getAllUsers,
     updateUserAction,

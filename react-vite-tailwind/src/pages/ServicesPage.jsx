@@ -1,164 +1,188 @@
 import React from 'react';
+import {
+  BadgeIndianRupee,
+  BarChart3,
+  BriefcaseBusiness,
+  LayoutPanelTop,
+  MessageSquareText,
+  ShieldCheck,
+  Sparkles,
+  Users
+} from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 
-const ServicesPage = ({ config }) => {
+const serviceCards = [
+  {
+    icon: BriefcaseBusiness,
+    title: 'Brand campaign launch',
+    description: 'Brands can submit structured briefs with creator type, category direction, budget intent, and collaboration notes.',
+    points: ['Brand brief submission flow', 'Category-aware campaign targeting', 'Cleaner handoff into admin review']
+  },
+  {
+    icon: Users,
+    title: 'Creator network discovery',
+    description: 'The platform is being redesigned to help brands discover creators, meme pages, city communities, and celebrity-facing profiles more intentionally.',
+    points: ['Main categories plus micro categories', 'Better creator segmentation', 'Premium discovery positioning']
+  },
+  {
+    icon: BarChart3,
+    title: 'Performance-ready data layer',
+    description: 'The frontend and backend are moving toward reusable data structures that support filtering, moderation, analytics, and future campaign systems.',
+    points: ['Dynamic category directory', 'Scalable admin filtering', 'Reporting-ready architecture']
+  },
+  {
+    icon: BadgeIndianRupee,
+    title: 'Commercial workflow readiness',
+    description: 'Creator details, inquiry metadata, and collaboration states are being shaped for future monetization and payout operations.',
+    points: ['Brief-to-collaboration tracking', 'Structured creator details', 'Future finance system compatibility']
+  }
+];
+
+const platformOptions = [
+  'Premium creator-tech landing page',
+  'Brand registration and login flow',
+  'Creator onboarding with dynamic categories',
+  'Brand brief submission experience',
+  'Brand dashboard for inquiry tracking',
+  'Influencer dashboard for collaboration response',
+  'Admin-ready data architecture'
+];
+
+const ServicesPage = () => {
   const { navigate } = useRouter();
 
   return (
-    <div className="pt-24 pb-16 min-h-full" style={{ backgroundColor: config.background_color }}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: config.text_color }}>
-            Our Services
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Comprehensive platform solutions designed for influencers to showcase their talent 
-            and grow their careers
-          </p>
-        </div>
+    <div className="min-h-screen bg-transparent pb-16 pt-28 text-white">
+      <div className="section-shell">
+        <div className="glass-panel rounded-[2.2rem] p-8 sm:p-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+            <Sparkles className="h-4 w-4 text-cyan-300" strokeWidth={1.8} />
+            Platform services
+          </div>
 
-        {/* Platform Overview (independent section) */}
-        <section className="mb-12">
-          <div className="bg-white rounded-2xl p-8 shadow-lg">
-            <h2 className="text-3xl font-bold text-center mb-4" style={{ color: config.text_color }}>
-              Platform Overview
-            </h2>
-            <p className="text-center max-w-3xl mx-auto text-gray-600 mb-6">
-              Our platform brings together creators and brands with a modern, secure, and data-driven experience. From campaign management to payment reconciliation,
-              we provide an end-to-end toolkit that helps influencers grow sustainably while keeping operations simple and transparent.
-            </p>
-            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-              {[
-                { title: 'Campaigns', desc: 'Create, manage, and measure brand collaborations with intuitive workflows.' },
-                { title: 'Payments', desc: 'Fast, reliable payouts with clear transaction records and protections.' },
-                { title: 'Insights', desc: 'Actionable analytics to optimize content performance and audience growth.' }
-              ].map((item, idx) => (
-                <div key={idx} className="p-6">
-                  <h3 className="font-semibold text-lg mb-2" style={{ color: config.text_color }}>{item.title}</h3>
-                  <p className="text-sm text-gray-600">{item.desc}</p>
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+            <div>
+              <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
+                What the ViralMantrix platform is built to offer.
+              </h1>
+              <p className="mt-4 max-w-3xl text-sm leading-8 text-slate-300 sm:text-base">
+                ViralMantrix is not being positioned as a generic listing site. The product is moving toward a premium creator
+                ecosystem where brand campaigns, creator discovery, category intelligence, and admin control work together.
+              </p>
+
+              <div className="mt-8 grid gap-4 sm:grid-cols-3">
+                {[
+                  { label: 'Experience', value: 'Motion-first', sub: 'Premium public-facing product feel' },
+                  { label: 'System', value: 'Category-led', sub: 'Dynamic creator and campaign structure' },
+                  { label: 'Operations', value: 'Admin-ready', sub: 'Filtering, tracking, and moderation support' }
+                ].map((item) => (
+                  <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">
+                    <div className="text-lg font-black text-white">{item.value}</div>
+                    <div className="mt-1 text-sm font-semibold text-white/80">{item.label}</div>
+                    <div className="mt-2 text-xs leading-6 text-slate-400">{item.sub}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[1.8rem] border border-white/10 bg-[#0a1226] p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                  <LayoutPanelTop className="h-5 w-5" strokeWidth={2} />
                 </div>
-              ))}
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Current product options</div>
+                  <div className="mt-1 text-xl font-black text-white">Available surfaces</div>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {platformOptions.map((item) => (
+                  <div key={item} className="rounded-[1.2rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-slate-300">
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
-        {/* Service Categories - Influencer focused */}
-        <div className="mb-12">
-          <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-10 text-white hover:shadow-xl transition-all duration-300">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 mb-6">
-              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-                <span className="text-4xl">📱</span>
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {serviceCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div key={card.title} className="glass-panel rounded-[1.8rem] p-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                  <Icon className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <h2 className="mt-5 text-xl font-bold text-white">{card.title}</h2>
+                <p className="mt-3 text-sm leading-7 text-slate-300">{card.description}</p>
+                <div className="mt-5 space-y-2">
+                  {card.points.map((point) => (
+                    <div key={point} className="rounded-[1rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white/75">
+                      {point}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="glass-panel rounded-[2rem] p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                <MessageSquareText className="h-5 w-5" strokeWidth={2} />
               </div>
               <div>
-                <h2 className="text-3xl lg:text-4xl font-bold">Influencer Services</h2>
-                <p className="text-white/90 mt-2 max-w-3xl">Tailored tools for creators to scale their content business: find brand deals, track performance, manage campaigns, and receive secure payouts — all in one place.</p>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Brand-side outcome</div>
+                <div className="mt-1 text-xl font-black text-white">What brands get</div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { icon: '🤝', title: 'Brand Partnerships', desc: 'Match with vetted brands and streamlined campaign workflows.' },
-                { icon: '📈', title: 'Audience Analytics', desc: 'Deep insights into follower growth, reach, and engagement.' },
-                { icon: '💰', title: 'Monetization Tools', desc: 'Multiple revenue options and fast, transparent payouts.' },
-                { icon: '📱', title: 'Content Tools', desc: 'Scheduling, collaboration, and creative resources.' }
-              ].map((svc, idx) => (
-                <div key={idx} className="bg-white/10 rounded-xl p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="text-3xl">{svc.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{svc.title}</h3>
-                      <p className="text-white/90 text-sm mt-1">{svc.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-8 text-center">
-              <button onClick={() => navigate('services-influencers')} className="px-8 py-3 bg-white text-purple-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors">
-                Explore Influencer Services
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Platform Features */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8" style={{ color: config.text_color }}>
-            Platform Features
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: '🔒',
-                title: 'Secure Platform',
-                description: 'Advanced security measures to protect your data and ensure safe transactions.'
-              },
-              {
-                icon: '📱',
-                title: 'Mobile Optimized',
-                description: 'Access all features on the go with our responsive mobile experience.'
-              },
-              {
-                icon: '🎯',
-                title: 'Smart Matching',
-                description: 'AI-powered matching to connect you with the right opportunities.'
-              },
-              {
-                icon: '💬',
-                title: 'Direct Communication',
-                description: 'Connect directly with clients and brands without intermediaries.'
-              },
-              {
-                icon: '📊',
-                title: 'Analytics Dashboard',
-                description: 'Comprehensive insights to track your growth and performance.'
-              },
-              {
-                icon: '🌍',
-                title: 'Global Reach',
-                description: 'Connect with opportunities and talent from around the world.'
-              }
-            ].map((feature, index) => (
-              <div 
-                key={index}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className="text-3xl mb-4">{feature.icon}</div>
-                <h3 className="text-lg font-semibold mb-2" style={{ color: config.text_color }}>
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center">
-          <div className="bg-gradient-to-r from-brand-500 to-brand-600 rounded-2xl p-8 text-white">
-            <h2 className="text-2xl font-bold mb-4">
-              Choose Your Path to Success
-            </h2>
-            <p className="text-lg mb-6 opacity-90">
-              Whether you're an influencer looking to amplify your reach or a content creator ready to 
-              showcase your talent, we have the right tools and services for you.
+            <p className="mt-4 text-sm leading-7 text-slate-300">
+              Brands get a cleaner campaign launch experience, more structured creator targeting, and a more scalable path from discovery to inquiry.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                onClick={() => navigate('influencer-registration')}
-                className="px-8 py-3 bg-white text-brand-600 font-semibold rounded-xl hover:bg-gray-100 transition-colors"
+          </div>
+
+          <div className="glass-panel rounded-[2rem] p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-cyan-400 text-white">
+                <ShieldCheck className="h-5 w-5" strokeWidth={2} />
+              </div>
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/45">Creator-side outcome</div>
+                <div className="mt-1 text-xl font-black text-white">What creators get</div>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-7 text-slate-300">
+              Creators get stronger profile onboarding, better category-based discoverability, and a more premium network identity than simple form-led portals.
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-8 glass-panel rounded-[2rem] p-8">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl font-black text-white sm:text-3xl">Preview the strongest live flows in this redesign branch.</h2>
+              <p className="mt-3 text-sm leading-7 text-slate-300">
+                The most meaningful preview pages right now are the cinematic homepage, creator-side offering view, dynamic onboarding flows, and brand inquiry experience.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate('about-influencers')}
+                className="rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 px-6 py-3 text-sm font-bold text-white"
               >
-                Get Started
+                View creator-side offering
               </button>
-              <button 
-                onClick={() => navigate('home')}
-                className="px-8 py-3 bg-brand-700 text-white font-semibold rounded-xl hover:bg-brand-800 transition-colors"
+              <button
+                type="button"
+                onClick={() => navigate('inquiry')}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white/85"
               >
-                Browse Talent
+                View brand brief flow
               </button>
             </div>
           </div>

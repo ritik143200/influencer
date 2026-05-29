@@ -12,6 +12,7 @@ exports.createInquiry = async (req, res) => {
             name,
             email,
             phone,
+            campaignName,
             hiringFor,
             category,
             mainCategories,
@@ -23,11 +24,18 @@ exports.createInquiry = async (req, res) => {
             requirements
         } = req.body;
 
-        console.log('Creating inquiry with data:', { name, email, phone, hiringFor, category, mainCategories, microCategories, location, eventDate, budget });
+        console.log('Creating inquiry with data:', { name, email, phone, campaignName, hiringFor, category, mainCategories, microCategories, location, eventDate, budget });
 
         if (!req.user || !req.user._id) {
             console.error('Unauthorized inquiry attempt - no user in request');
             return res.status(401).json({ success: false, message: 'Not authorized' });
+        }
+
+        if (req.user.role === 'influencer') {
+            return res.status(403).json({
+                success: false,
+                message: 'Influencer accounts cannot create brand inquiries'
+            });
         }
 
         const categoryDirectory = await ensureCategoryDirectory();
@@ -92,6 +100,7 @@ exports.createInquiry = async (req, res) => {
             name,
             email,
             phone,
+            campaignName: campaignName || '',
             hiringFor: resolvedHiringFor,
             category: resolvedCategoryLabel,
             mainCategories: normalizedCategories.mainCategories,
@@ -177,17 +186,137 @@ exports.getUserInquiries = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
-        // Return inquiries the user created OR inquiries forwarded to this user (for artists)
-        const inquiries = await Inquiry.find({
-            $or: [
-                { userId: req.user._id },
-                { 'forwardedTo.userId': req.user._id }
-            ]
-        }).sort({ createdAt: -1 });
+        const isInfluencerAccount = req.user.role === 'influencer' || req.user.profileType === 'influencer';
+        const filter = isInfluencerAccount
+            ? { 'forwardedTo.userId': req.user._id }
+            : { userId: req.user._id };
+
+        const inquiries = await Inquiry.find(filter)
+            .populate('userId', 'name email phone role')
+            .populate('assignedInfluencer.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories')
+            .populate('forwardedTo.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories')
+            .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: inquiries.length, data: inquiries });
     } catch (error) {
         console.error('Error fetching user inquiries:', error);
         res.status(500).json({ success: false, message: 'Server error while fetching inquiries' });
+    }
+};
+
+// @desc    Update a brand inquiry owned by the logged-in brand/user
+// @route   PUT /api/inquiries/:id
+exports.updateInquiry = async (req, res) => {
+    try {
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ success: false, message: 'Not authorized' });
+        }
+
+        if (req.user.role === 'influencer') {
+            return res.status(403).json({
+                success: false,
+                message: 'Influencer accounts cannot edit brand inquiries'
+            });
+        }
+
+        const inquiry = await Inquiry.findOne({ _id: req.params.id, userId: req.user._id });
+        if (!inquiry) {
+            return res.status(404).json({ success: false, message: 'Inquiry not found for this brand account' });
+        }
+
+        if (['completed', 'artist_accepted'].includes(inquiry.status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'This campaign can no longer be edited after influencer acceptance or completion'
+            });
+        }
+
+        const {
+            name,
+            email,
+            phone,
+            campaignName,
+            hiringFor,
+            category,
+            mainCategories,
+            microCategories,
+            categorySelections,
+            location,
+            eventDate,
+            budget,
+            requirements
+        } = req.body;
+
+        const categoryDirectory = await ensureCategoryDirectory();
+        const normalizedCategories = normalizeCategoryPayload({
+            hiringFor,
+            category,
+            mainCategories,
+            microCategories,
+            categorySelections
+        }, categoryDirectory);
+
+        const resolvedHiringFor = normalizedCategories.primaryLegacyHiringValue || hiringFor || inquiry.hiringFor;
+        const resolvedCategoryLabel = normalizedCategories.microCategoryLabels.join(', ') || category || inquiry.category;
+
+        if (resolvedHiringFor && !['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'].includes(resolvedHiringFor)) {
+            return res.status(400).json({
+                success: false,
+                message: 'hiringFor must be "artist", "influencer", "creator", "celebrity", "city page", or "meme page"'
+            });
+        }
+
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return res.status(400).json({ success: false, message: 'Please provide a valid email address' });
+        }
+
+        if (budget !== undefined && budget !== null && budget !== '') {
+            const budgetNum = Number(budget);
+            if (isNaN(budgetNum) || budgetNum <= 0) {
+                return res.status(400).json({ success: false, message: 'Budget must be a positive number' });
+            }
+            inquiry.budget = budgetNum;
+        }
+
+        if (name !== undefined) inquiry.name = name;
+        if (email !== undefined) inquiry.email = email;
+        if (phone !== undefined) inquiry.phone = phone;
+        if (campaignName !== undefined) inquiry.campaignName = campaignName;
+        if (resolvedHiringFor) inquiry.hiringFor = resolvedHiringFor;
+        if (resolvedCategoryLabel) inquiry.category = resolvedCategoryLabel;
+        if (normalizedCategories.mainCategories.length > 0) inquiry.mainCategories = normalizedCategories.mainCategories;
+        if (normalizedCategories.microCategories.length > 0) inquiry.microCategories = normalizedCategories.microCategories;
+        if (normalizedCategories.categorySelections.length > 0) inquiry.categorySelections = normalizedCategories.categorySelections;
+        if (location !== undefined) inquiry.location = location;
+        if (eventDate !== undefined) inquiry.eventDate = eventDate ? new Date(eventDate) : inquiry.eventDate;
+        if (requirements !== undefined) inquiry.requirements = requirements;
+
+        inquiry.workflowHistory.push({
+            stage: 'brand_edit',
+            status: inquiry.status,
+            updatedBy: req.user._id,
+            notes: 'Campaign details updated by brand',
+            updatedAt: new Date()
+        });
+
+        await inquiry.save();
+
+        const populated = await Inquiry.findById(inquiry._id)
+            .populate('userId', 'name email phone role')
+            .populate('assignedInfluencer.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories')
+            .populate('forwardedTo.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories');
+
+        res.status(200).json({
+            success: true,
+            message: 'Campaign updated successfully',
+            data: populated
+        });
+    } catch (error) {
+        console.error('Error updating inquiry:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while updating inquiry',
+            error: error.message
+        });
     }
 };

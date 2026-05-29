@@ -1,301 +1,160 @@
-# 🎭 ArtistHub - Complete Artist Booking Platform
+# ViralMantrix
 
-## 🌟 Overview
-ArtistHub is a comprehensive role-based artist booking platform that connects users with talented artists for various events and occasions. The platform features three distinct dashboards tailored for different user types.
+ViralMantrix is a creator campaign platform that helps brands collaborate with influencers, celebrities, city pages, meme pages, and digital communities. The website is built around one core workflow: a brand submits a campaign inquiry, the backend team matches that requirement with the right creator surfaces, and the collaboration moves forward from there.
 
-## 🎯 Key Features
+## Product Overview
 
-### 🎨 **Role-Based System**
-- **User Dashboard** - Book and manage artists for events
-- **Artist Dashboard** - Manage profile, bookings, and portfolio
-- **Admin Dashboard** - Complete platform management
+The public website introduces four main creator surfaces:
 
-### 🚀 **Core Functionality**
-- **Multi-Step Artist Registration** with portfolio upload
-- **Secure Authentication** with role-based routing
-- **Interactive UI** with modern design
-- **Real-time Booking Management**
-- **Portfolio Management** for artists
-- **Comprehensive Admin Controls**
+- Creator / Influencer
+- City Pages
+- Meme Pages
+- Celebrity
 
-## 🛠️ Technology Stack
+Brands can land on the homepage, understand what the platform offers, review featured creator profiles, and submit a hiring inquiry. Creators can register, complete onboarding, connect their social links, and manage incoming collaboration activity. Admins manage approvals, filtering, submissions, featured profiles, and platform operations from the backend.
+
+## Core Experiences
+
+### Homepage
+
+- Hero messaging focused on brand-to-creator campaign execution
+- Featured profile carousel
+- About section explaining the backend-managed connection flow
+- Category overview for main and micro-category discovery
+- Navigation for Home, Services, How It Works, Sign Up, and Hire Influencer
+
+### Brand Inquiry Flow
+
+- Name, phone, email, and password capture for new brand accounts
+- One or multiple main category selections
+- Dynamic micro-category selections based on chosen main categories
+- Location, budget, timing, and requirement capture
+- Backend-managed connection between brand and creator after submission
+
+### Creator Onboarding
+
+- Account creation flow
+- Personal and professional details
+- Dynamic category and micro-category selection
+- Social media link collection
+- Dashboard access after onboarding
+
+### Dashboards
+
+- Brand dashboard for campaign-side activity
+- Creator dashboard for profile, inquiry, and collaboration management
+- Admin dashboard for moderation, analytics, filtering, and operations
+
+## Category System
+
+The platform supports dynamic main categories and micro categories rather than fixed one-off form options.
+
+Current main categories:
+
+1. Creator / Influencer
+2. City Pages
+3. Meme Pages
+4. Celebrity
+
+The backend category directory is designed to support:
+
+- multiple main-category selections
+- dynamic micro-category rendering
+- form reuse across creator onboarding and brand inquiry
+- future admin-side filtering and analytics
+
+## Technology Stack
 
 ### Frontend
-- **React 18** with modern hooks
-- **Vite** for fast development
-- **Tailwind CSS** for styling
-- **React Router** for navigation
-- **Axios** for API calls
+
+- React
+- Vite
+- Tailwind CSS
+- Context-based routing and auth flows
+- Lucide React icons
 
 ### Backend
-- **Node.js** with Express
-- **MongoDB** with Mongoose
-- **JWT** for authentication
-- **Multer** for file uploads
-- **bcryptjs** for password hashing
 
-## 🌐 Access Points
+- Node.js
+- Express
+- MongoDB with Mongoose
+- JWT authentication
+- Multer and Cloudinary-based media handling
 
-### Development Environment
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5001
-- **Database**: MongoDB (localhost:27017)
+## Local Development
 
-### Production URLs (when deployed)
-- **Frontend**: [Your Domain]
-- **Backend API**: [Your API Domain]
+### Frontend
 
-## 📋 Installation & Setup
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
-- Git
-
-### Backend Setup
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Update .env with your credentials
-npm run dev
-```
-
-### Frontend Setup
 ```bash
 cd react-vite-tailwind
 npm install
 npm run dev
 ```
 
-## 🎨 Design System
+Default dev URL:
 
-### Brand Colors
-- **Primary**: #ee7711 (Brand Orange)
-- **Secondary**: Various gradient combinations
-- **Neutral**: Gray scale for text and backgrounds
-
-### Typography
-- **Font Family**: Inter, system-ui, sans-serif
-- **Headings**: Bold weights
-- **Body**: Regular weights
-
-### Components
-- **Buttons**: Rounded corners with hover effects
-- **Cards**: Shadow-based elevation
-- **Forms**: Modern input styling
-- **Navigation**: Tab-based dashboard navigation
-
-## 👥 User Roles & Permissions
-
-### 🔵 **Users**
-- Browse and search artists
-- Book artists for events
-- Manage favorite artists
-- View booking history
-- Edit profile information
-
-### 🎭 **Artists**
-- Complete multi-step registration
-- Upload portfolio (videos/images)
-- Manage booking requests
-- Track earnings
-- Update professional profile
-- Set availability and pricing
-
-### 👑 **Admins**
-- User management (CRUD operations)
-- Artist verification and approval
-- Booking oversight
-- Revenue analytics
-- System configuration
-- Content moderation
-
-## 🔄 User Flows
-
-### Artist Registration Flow
-1. **Step 1**: Personal Information + Password
-2. **Step 2**: Professional Details + Categories
-3. **Step 3**: Portfolio Upload + ID Verification
-4. **Review**: Submit for admin approval
-5. **Login**: Access Artist Dashboard
-
-### Booking Flow
-1. **Browse**: Search and filter artists
-2. **Select**: View artist profiles and portfolios
-3. **Book**: Submit booking request with details
-4. **Confirm**: Artist accepts or modifies request
-5. **Payment**: Secure payment processing
-6. **Complete**: Event execution and feedback
-
-## 📊 Dashboard Features
-
-### User Dashboard
-- **Overview Cards**: Bookings, favorites, events
-- **Booking Management**: History and status tracking
-- **Artist Discovery**: Browse and favorite artists
-- **Profile Settings**: Personal information management
-
-### Artist Dashboard
-- **Earnings Overview**: Total, monthly, pending payments
-- **Booking Management**: Accept/reject/modify requests
-- **Portfolio Gallery**: Upload and manage media
-- **Profile Settings**: Professional information
-- **Analytics**: Performance metrics and insights
-
-### Admin Dashboard
-- **System Overview**: Revenue, users, artists statistics
-- **User Management**: Complete user administration
-- **Artist Verification**: Approve new artist applications
-- **Booking Oversight**: Monitor all platform bookings
-- **System Settings**: Configure platform preferences
-
-## 🔐 Security Features
-
-### Authentication
-- **JWT Tokens** for secure sessions
-- **Role-Based Access Control** (RBAC)
-- **Password Hashing** with bcrypt
-- **Session Management** with expiration
-
-### Data Protection
-- **Input Validation** on all forms
-- **File Upload Security** with type restrictions
-- **API Rate Limiting** (if implemented)
-- **CORS Configuration** for frontend-backend
-
-## 📱 Responsive Design
-
-### Breakpoints
-- **Mobile**: 320px - 768px
-- **Tablet**: 768px - 1024px
-- **Desktop**: 1024px+
-
-### Mobile Optimizations
-- **Touch-Friendly** interface elements
-- **Collapsible Navigation** menus
-- **Optimized Forms** for mobile input
-- **Responsive Grids** and layouts
-
-## 🧪 Testing
-
-### Manual Testing
-- Complete user registration and login flows
-- Artist registration with all steps
-- Dashboard functionality verification
-- Responsive design testing
-- Cross-browser compatibility
-
-### Automated Testing (Future)
-- Unit tests for components
-- Integration tests for API endpoints
-- E2E tests for user flows
-- Performance testing
-
-## 🚀 Deployment
-
-### Frontend Deployment
-```bash
-npm run build
-# Deploy dist/ folder to your hosting service
+```text
+http://localhost:5173
 ```
-
-### Backend Deployment
-```bash
-# Set production environment variables
-npm start
-# Deploy to your cloud provider
-```
-
-### Environment Variables
-```
-MONGODB_URI=mongodb://localhost:27017/artisthub
-JWT_SECRET=your_jwt_secret_key
-PORT=5001
-NODE_ENV=production
-```
-
-## 📈 Performance Optimization
-
-### Frontend
-- **Code Splitting** for faster loading
-- **Image Optimization** with lazy loading
-- **Bundle Size** optimization
-- **Caching Strategy** implementation
 
 ### Backend
-- **Database Indexing** for faster queries
-- **API Caching** with Redis (optional)
-- **Compression** for API responses
-- **Load Balancing** (production)
 
-## 🤝 Contributing
-
-### Development Guidelines
-- Follow existing code style
-- Write meaningful commit messages
-- Test all new features
-- Update documentation
-
-### Code Structure
+```bash
+cd backend
+npm install
+npm run dev
 ```
-src/
-├── components/     # Reusable UI components
-├── pages/         # Page components
-├── contexts/      # React contexts
-├── data/          # Mock data and constants
-└── utils/         # Helper functions
+
+Default API URL:
+
+```text
+http://localhost:5001
+```
+
+## Environment Variables
+
+Typical backend variables include:
+
+```text
+MONGODB_URI=mongodb://localhost:27017/viralmantrix
+JWT_SECRET=your_jwt_secret
+PORT=5001
+NODE_ENV=development
+SESSION_SECRET=your_session_secret
+```
+
+## Repository Structure
+
+```text
+react-vite-tailwind/
+  src/
+    components/
+    contexts/
+    data/
+    hooks/
+    pages/
+    utils/
 
 backend/
-├── controllers/   # API controllers
-├── models/        # Database models
-├── routes/        # API routes
-├── middleware/    # Custom middleware
-└── config/        # Configuration files
+  config/
+  controllers/
+  data/
+  middleware/
+  models/
+  routes/
+  utils/
 ```
 
-## 📞 Support
+## Current Direction
 
-### Common Issues
-- **Port Conflicts**: Change ports in .env files
-- **Database Connection**: Check MongoDB status
-- **CORS Errors**: Verify frontend-backend URLs
-- **Authentication**: Clear browser cookies/localStorage
+The old artist-booking positioning is being transformed into a premium creator-economy product. The current redesign effort is focused on:
 
-### Getting Help
-- Check the TESTING_GUIDE.md for detailed testing steps
-- Review console logs for error messages
-- Verify all environment variables are set
-- Ensure all services are running
+- aligning the public website with the provided prototype videos
+- replacing old ArtistHub messaging with ViralMantrix language
+- making the homepage and inquiry journey feel brand-first and creator-native
+- keeping the architecture scalable for future campaign systems
 
-## 🎯 Future Enhancements
+## Notes
 
-### Phase 2 Features
-- **Payment Integration** with Stripe/PayPal
-
-- **Advanced Search** with filters and sorting
-- **Rating & Review System** for artists
-- **Mobile App** (React Native)
-
-### Phase 3 Features
-- **Video Streaming** for live performances
-- **AI Recommendations** for artist matching
-- **Multi-language Support** (i18n)
-- **Advanced Analytics** dashboard
-- **API Documentation** with Swagger
-
----
-
-## 🎉 Ready to Launch!
-
-ArtistHub is now a complete, production-ready platform with:
-- ✅ **Three Role-Based Dashboards**
-- ✅ **Secure Authentication System**
-- ✅ **Modern UI/UX Design**
-- ✅ **Complete Artist Registration**
-- ✅ **Booking Management System**
-- ✅ **Admin Controls**
-- ✅ **Responsive Design**
-- ✅ **Theme Consistency**
-
-**Start your artist booking platform today!** 🚀
+- The original codebase backup is preserved separately before the redesign continues.
+- Local preview approval happens before any push, merge, or live deployment step.

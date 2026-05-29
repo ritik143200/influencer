@@ -79,6 +79,9 @@ const AdminDashboard = ({ config }) => {
   const [forwardInquiryId, setForwardInquiryId] = useState(null);
   const [forwardRecipients, setForwardRecipients] = useState(new Set());
   const [isFilteringInfluencers, setIsFilteringInfluencers] = useState(false);
+  const [smartMatches, setSmartMatches] = useState([]);
+  const [loadingSmartMatches, setLoadingSmartMatches] = useState(false);
+  const [smartMatchInquiryId, setSmartMatchInquiryId] = useState(null);
 
   // Pagination
   const [inquiryCurrentPage, setInquiryCurrentPage] = useState(1);
@@ -132,12 +135,33 @@ const AdminDashboard = ({ config }) => {
   }, [activeTab, loadTab]);
 
   // Memoised filtered influencers for forward modal (only recomputes when deps change)
+  const smartMatchedInfluencers = useMemo(() => (
+    Array.isArray(smartMatches)
+      ? smartMatches.map((item) => ({
+        ...(item.influencer || {}),
+        matchScore: item.matchScore,
+        matchReasons: item.reasons || [],
+        matchProfileCompletion: item.profileCompletion,
+        matchBudgetRange: item.budgetRange
+      })).filter((item) => item && (item._id || item.id))
+      : []
+  ), [smartMatches]);
+
   const filteredInfluencersForForward = useMemo(() => {
     const list = Array.isArray(influencers) ? influencers : [];
+    const baseList = smartMatchInquiryId === forwardInquiryId && smartMatchedInfluencers.length > 0
+      ? smartMatchedInfluencers
+      : list;
     const catQ = debouncedForwardSearchCategory.trim().toLowerCase();
     const locQ = debouncedForwardFilterLocation.trim().toLowerCase();
-    return list.filter(i => {
-      const cats = (i.categories || (i.category ? [i.category] : [])).map(c => String(c).toLowerCase());
+    return baseList.filter(i => {
+      const cats = [
+        ...(i.categories || []),
+        ...(i.microCategories || []),
+        ...(i.mainCategories || []),
+        ...(i.niche || []),
+        i.category
+      ].filter(Boolean).map(c => String(c).toLowerCase());
       const matchesCategory = !catQ || cats.some(c => c.includes(catQ));
       const locStr = typeof i.location === 'string' ? i.location
         : (i.location ? `${i.location.city || ''} ${i.location.country || ''}` : '');
@@ -153,15 +177,43 @@ const AdminDashboard = ({ config }) => {
       return matchesCategory && matchesLocation && matchesBudget;
     });
   }, [influencers, debouncedForwardSearchCategory, debouncedForwardFilterLocation,
-      forwardFilterBudgetMin, forwardFilterBudgetMax]);
+      forwardFilterBudgetMin, forwardFilterBudgetMax, smartMatchedInfluencers,
+      smartMatchInquiryId, forwardInquiryId]);
 
   const handleLogout = useCallback(() => { logout(); navigate('home'); }, [logout, navigate]);
 
-  const handleOpenForwardModal = useCallback((inquiryId) => {
+  const handleOpenForwardModal = useCallback(async (inquiryId) => {
     setForwardInquiryId(inquiryId);
     setForwardRecipients(new Set());
+    setSmartMatches([]);
+    setSmartMatchInquiryId(inquiryId);
     setShowForwardModal(true);
-  }, []);
+    setLoadingSmartMatches(true);
+
+    try {
+      const payload = await adminApi.getInquiryMatches(inquiryId, { limit: 60, minScore: 1 });
+      const matches = Array.isArray(payload?.data) ? payload.data : [];
+      setSmartMatches(matches);
+
+      const recommendedIds = matches
+        .filter((item) => Number(item.matchScore || 0) >= 45)
+        .slice(0, 5)
+        .map((item) => item.influencer?._id || item.influencer?.id)
+        .filter(Boolean);
+
+      if (recommendedIds.length > 0) {
+        setForwardRecipients(new Set(recommendedIds));
+      }
+
+      if (matches.length === 0) {
+        showToast('No automatic matches found yet. You can still use manual filters.', 'warning');
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not load automatic matches', 'warning');
+    } finally {
+      setLoadingSmartMatches(false);
+    }
+  }, [showToast]);
 
   const handleViewInquiryDetails = useCallback((inquiry) => {
     setSelectedInquiry(inquiry);
@@ -344,15 +396,15 @@ const AdminDashboard = ({ config }) => {
 
     const colors = {
 
-      primary: config?.primary_action || '#ee7711',
+      primary: config?.primary_action || '#DF7AFE',
 
-      secondary: config?.secondary_action || '#6b7280',
+      secondary: config?.secondary_action || '#A98BC8',
 
-      surface: config?.surface_color || '#ffffff',
+      surface: config?.surface_color || '#0D0D0D',
 
-      background: config?.background_color || '#f9fafb',
+      background: config?.background_color || '#000000',
 
-      text: config?.text_color || '#1f2937'
+      text: config?.text_color || '#FFFFFF'
 
     };
 
@@ -368,21 +420,21 @@ const AdminDashboard = ({ config }) => {
 
     const categoryColors = [
 
-      'from-purple-500 to-indigo-600',
+      'from-[#171321] to-[#DF7AFE]',
 
-      'from-pink-500 to-rose-600',
+      'from-[#3E2A55] to-[#0099FF]',
 
-      'from-blue-500 to-cyan-600',
+      'from-[#000000] to-[#8B4DD8]',
 
-      'from-amber-500 to-orange-600',
+      'from-[#171321] to-[#8B4DD8]',
 
-      'from-emerald-500 to-teal-600',
+      'from-[#3E2A55] to-[#DF7AFE]',
 
-      'from-violet-500 to-purple-600',
+      'from-[#000000] to-[#3E2A55]',
 
-      'from-red-500 to-pink-600',
+      'from-[#8B4DD8] to-[#DF7AFE]',
 
-      'from-yellow-500 to-amber-600'
+      'from-[#171321] to-[#0099FF]'
 
     ];
 
@@ -989,7 +1041,7 @@ const AdminDashboard = ({ config }) => {
   // Skeleton loader — shows nav immediately, skeletons in content area
   if (loading) {
     return (
-      <div className="min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
+      <div className="vm-admin-red min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
         <ToastContainer />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -1011,7 +1063,7 @@ const AdminDashboard = ({ config }) => {
 
   return (
 
-    <div className="min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
+    <div className="vm-admin-red min-h-screen pt-20" style={{ backgroundColor: getThemeColor('background') }}>
       <ToastContainer />
 
       {/* Theme-Consistent Header */}
@@ -2117,7 +2169,14 @@ const AdminDashboard = ({ config }) => {
               }}>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: config.primary_action }}></div>
-                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Filter Influencers</h4>
+                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Auto Match Influencers</h4>
+                </div>
+                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                  {loadingSmartMatches
+                    ? 'Finding best creators from campaign category, micro-category, budget and location...'
+                    : smartMatchInquiryId === forwardInquiryId && smartMatchedInfluencers.length > 0
+                      ? 'Best matches loaded. Top recommended creators are pre-selected for faster forwarding.'
+                      : 'No exact automatic match yet. Use filters below to search manually.'}
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                   <div className="relative">
@@ -2192,7 +2251,7 @@ const AdminDashboard = ({ config }) => {
                     </button>
                     <div className="text-sm text-gray-600 sm:ml-auto flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      Showing influencers matching filters
+                      Showing best-fit creators first
                     </div>
                   </div>
                 </div>
@@ -2206,13 +2265,13 @@ const AdminDashboard = ({ config }) => {
                 <div className="flex items-center justify-between mb-4">
                   <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Available Influencers</h4>
                   <div className="text-sm" style={{ color: config.secondary_action || '#64748b' }}>
-                    {filteredInfluencersForForward.length} of {influencers.length} matching
+                    {filteredInfluencersForForward.length} matching
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
-                  {isFilteringInfluencers ? (
+                  {(isFilteringInfluencers || loadingSmartMatches) ? (
                     // Loading skeleton
                     Array.from({ length: 6 }).map((_, idx) => (
                       <div key={idx} className="flex items-start gap-3 p-4 border rounded-xl animate-pulse">
@@ -2225,8 +2284,8 @@ const AdminDashboard = ({ config }) => {
                     ))
                   ) : (
                     // Check if any filters are applied
-                    (forwardSearchCategory || forwardFilterBudgetMin || forwardFilterBudgetMax || forwardFilterLocation) ? (
-                      // Filters are applied - show filtered results
+                    (forwardSearchCategory || forwardFilterBudgetMin || forwardFilterBudgetMax || forwardFilterLocation || (smartMatchInquiryId === forwardInquiryId && smartMatchedInfluencers.length > 0)) ? (
+                      // Automatic matches or filters are applied - show matching results
                       filteredInfluencersForForward.length === 0 ? (
                         // No influencers match filters
                         <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
@@ -2254,6 +2313,8 @@ const AdminDashboard = ({ config }) => {
                         filteredInfluencersForForward.map(i => {
                           const aid = i._id || i.id;
                           const checked = forwardRecipients.has(aid);
+                          const matchScore = Number(i.matchScore || 0);
+                          const matchReasons = Array.isArray(i.matchReasons) ? i.matchReasons : [];
 
                           return (
                             <label key={aid} className="flex items-start gap-3 p-4 border-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-all hover:shadow-lg" style={{ 
@@ -2266,12 +2327,24 @@ const AdminDashboard = ({ config }) => {
                                 backgroundColor: checked ? config.primary_action : 'white'
                               }} />
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold truncate" style={{ color: checked ? 'white' : config.text_color || '#1f2937' }}>
+                                <div className="font-semibold truncate" style={{ color: checked ? config.primary_action : config.text_color || '#1f2937' }}>
                                   {i.fullName || i.name || `Influencer ${aid?.slice(-6)}`}
                                 </div>
-                                <div className="text-xs mt-1 break-words" style={{ color: checked ? 'white' : config.secondary_action || '#64748b' }}>
+                                <div className="text-xs mt-1 break-words" style={{ color: checked ? config.primary_action : config.secondary_action || '#64748b' }}>
                                   {i.categories?.join(', ') || i.category || 'General'} · {i.email}
                                 </div>
+                                {matchScore > 0 && (
+                                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                                      {matchScore}% match
+                                    </span>
+                                    {matchReasons.slice(0, 2).map((reason) => (
+                                      <span key={reason} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                                        {reason}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </label>
                           );

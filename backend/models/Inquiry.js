@@ -22,6 +22,11 @@ const inquirySchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    campaignName: {
+        type: String,
+        trim: true,
+        default: ''
+    },
     hiringFor: {
         type: String,
         enum: ['artist', 'influencer', 'creator', 'celebrity', 'city page', 'meme page'],
@@ -123,5 +128,14 @@ const inquirySchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+inquirySchema.index({ userId: 1, createdAt: -1 });
+inquirySchema.index({ status: 1, createdAt: -1 });
+inquirySchema.index({ adminStatus: 1, createdAt: -1 });
+inquirySchema.index({ hiringFor: 1, createdAt: -1 });
+inquirySchema.index({ category: 1 });
+inquirySchema.index({ mainCategories: 1 });
+inquirySchema.index({ microCategories: 1 });
+inquirySchema.index({ 'forwardedTo.userId': 1, createdAt: -1 });
 
 module.exports = mongoose.model('Inquiry', inquirySchema);

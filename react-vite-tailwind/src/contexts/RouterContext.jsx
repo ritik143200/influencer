@@ -38,6 +38,16 @@ export const RouterProvider = ({ children }) => {
   const [currentPath, setCurrentPath] = useState(initialInfo.path);
   const [params, setParams] = useState(initialInfo.params);
 
+  const syncFromUrl = () => {
+    const info = getUrlInfo();
+    setCurrentPath((previousPath) => (previousPath === info.path ? previousPath : info.path));
+    setParams((previousParams) => {
+      const previous = JSON.stringify(previousParams);
+      const next = JSON.stringify(info.params);
+      return previous === next ? previousParams : info.params;
+    });
+  };
+
   const navigate = (path, navParams = {}) => {
     setCurrentPath(path);
     setParams(navParams);
@@ -57,13 +67,37 @@ export const RouterProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const onPop = () => {
-      const info = getUrlInfo();
-      setCurrentPath(info.path);
-      setParams(info.params);
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+    const notifyRouteChange = () => window.dispatchEvent(new Event('routechange'));
+
+    window.history.pushState = function pushStateWithRouteEvent(...args) {
+      const result = originalPushState.apply(this, args);
+      notifyRouteChange();
+      return result;
     };
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
+
+    window.history.replaceState = function replaceStateWithRouteEvent(...args) {
+      const result = originalReplaceState.apply(this, args);
+      notifyRouteChange();
+      return result;
+    };
+
+    const intervalId = window.setInterval(syncFromUrl, 500);
+    window.addEventListener('popstate', syncFromUrl);
+    window.addEventListener('hashchange', syncFromUrl);
+    window.addEventListener('routechange', syncFromUrl);
+    window.addEventListener('focus', syncFromUrl);
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.clearInterval(intervalId);
+      window.removeEventListener('popstate', syncFromUrl);
+      window.removeEventListener('hashchange', syncFromUrl);
+      window.removeEventListener('routechange', syncFromUrl);
+      window.removeEventListener('focus', syncFromUrl);
+    };
   }, []);
 
   return (

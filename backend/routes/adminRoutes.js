@@ -4,7 +4,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const {
     getAllBookings, updateBookingStatus,
-    getAllInquiries, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
+    getAllInquiries, getInquiryMatches, updateInquiryStatus, forwardInquiry, assignInquiryToArtist, getInquiryStats,
     getAllUsers, updateUserAction, deleteUser,
     getAvailableInfluencersByDate,
     updateArtistStatus,
@@ -33,6 +33,7 @@ router.use(adminOnly);
 // Inquiries Routing
 router.get('/inquiries', getAllInquiries);
 router.get('/inquiries/stats', getInquiryStats);
+router.get('/inquiries/:id/matches', getInquiryMatches);
 router.patch('/inquiries/:id/:action', updateInquiryStatus);
 router.post('/inquiries/:id/forward', forwardInquiry);
 router.patch('/inquiries/:id/assign/:artistId', assignInquiryToArtist);

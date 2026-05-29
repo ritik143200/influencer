@@ -19,6 +19,7 @@ import InfluencerRegistrationPage from './pages/InfluencerRegistrationPage';
 import RegistrationPage from './pages/RegistrationPage';
 import ExploreInfluencersPage from './pages/ExploreInfluencersPage';
 import InquiryPage from './pages/InquiryPage';
+import BrandCampaignPage from './pages/BrandCampaignPage';
 import UserDashboard from './pages/UserDashboard';
 import InfluencerDashboard from './pages/InfluencerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
@@ -27,7 +28,6 @@ import PrivacyPolicy from './pages/privetPolice';
 import AuthCallback from './pages/AuthCallback';
 import InfluencerDetailPage from './pages/InfluencerDetailPage';
 import { defaultConfig } from './data/mockData';
-
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -38,7 +38,6 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       if (!isAuthenticated) {
         navigate('auth');
       } else if (allowedRoles && !allowedRoles.includes(user?.role)) {
-        // Redirection logic to prevent cross-dashboard access
         if (user?.role === 'admin') navigate('admin-dashboard');
         else if (user?.role === 'influencer' || user?.role === 'artist') navigate('influencer-dashboard');
         else navigate('user-dashboard');
@@ -63,10 +62,31 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 const AppContent = ({ config }) => {
   const { currentPath } = useRouter();
-  const { user } = useAuth();
 
-  // Auth pages don't show navbar
   const isAuthPage = currentPath === 'auth' || currentPath === 'influencer-registration' || currentPath === 'registration';
+  const hideNavbar =
+    currentPath === 'home' ||
+    currentPath === 'user-dashboard' ||
+    currentPath === 'brand-dashboard-preview' ||
+    currentPath === 'brand-dashboard-active-preview' ||
+    currentPath === 'brand-campaign-create' ||
+    currentPath === 'brand-campaign-details' ||
+    currentPath === 'influencer-dashboard' ||
+    currentPath === 'influencer-dashboard-preview' ||
+    currentPath === 'profile' ||
+    currentPath === 'profile-preview';
+  const hideFooter =
+    currentPath === 'home' ||
+    currentPath === 'inquiry' ||
+    currentPath === 'user-dashboard' ||
+    currentPath === 'brand-dashboard-preview' ||
+    currentPath === 'brand-dashboard-active-preview' ||
+    currentPath === 'brand-campaign-create' ||
+    currentPath === 'brand-campaign-details' ||
+    currentPath === 'influencer-dashboard' ||
+    currentPath === 'influencer-dashboard-preview' ||
+    currentPath === 'profile' ||
+    currentPath === 'profile-preview';
 
   return (
     <div
@@ -76,7 +96,7 @@ const AppContent = ({ config }) => {
         fontFamily: `${config.font_family}, sans-serif`
       }}
     >
-      {!isAuthPage && <Navbar config={config} />}
+      {!isAuthPage && !hideNavbar && <Navbar config={config} />}
       <NotificationToast />
       {currentPath === 'auth' && <AuthPage />}
       {currentPath === 'registration' && <RegistrationPage config={config} />}
@@ -88,6 +108,7 @@ const AppContent = ({ config }) => {
       {currentPath === 'how-it-works' && <HowItWorksPage config={config} />}
       {currentPath === 'terms-and-condition' && <TermsAndCondition config={config} />}
       {currentPath === 'privet-policy' && <PrivacyPolicy config={config} />}
+      {currentPath === 'profile-preview' && <ProfilePage config={config} previewMode />}
       {currentPath === 'profile' && (
         <ProtectedRoute>
           <ProfilePage config={config} />
@@ -97,15 +118,20 @@ const AppContent = ({ config }) => {
       {currentPath === 'contact' && <ContactPage config={config} />}
       {currentPath === 'reset-password' && <AuthPage />}
       {currentPath === 'inquiry' && <InquiryPage config={config} />}
+      {currentPath === 'brand-campaign-create' && <BrandCampaignPage mode="create" />}
+      {currentPath === 'brand-campaign-details' && <BrandCampaignPage mode="details" />}
       {currentPath === 'explore-influencers' && <ExploreInfluencersPage config={config} />}
       {currentPath === 'influencer-detail' && <InfluencerDetailPage config={config} />}
       {currentPath === 'auth/callback' && <AuthCallback />}
       {currentPath === 'home' && <HomePage config={config} />}
       {currentPath === 'user-dashboard' && (
-        <ProtectedRoute allowedRoles={['user']}>
+        <ProtectedRoute allowedRoles={['user', 'brand']}>
           <UserDashboard config={config} />
         </ProtectedRoute>
       )}
+      {currentPath === 'brand-dashboard-preview' && <UserDashboard config={config} previewMode="empty" />}
+      {currentPath === 'brand-dashboard-active-preview' && <UserDashboard config={config} previewMode="active" />}
+      {currentPath === 'influencer-dashboard-preview' && <InfluencerDashboard config={config} previewMode />}
       {currentPath === 'influencer-dashboard' && (
         <ProtectedRoute allowedRoles={['influencer', 'artist']}>
           <InfluencerDashboard config={config} />
@@ -116,13 +142,10 @@ const AppContent = ({ config }) => {
           <AdminDashboard config={config} />
         </ProtectedRoute>
       )}
-      {!isAuthPage && <Footer config={config} />}
+      {!isAuthPage && !hideFooter && <Footer config={config} />}
     </div>
   );
 };
-
-
-
 
 function App() {
   const [config, setConfig] = useState(defaultConfig);
@@ -136,10 +159,7 @@ function App() {
     return (
       <div className="h-full flex items-center justify-center bg-[#050816]">
         <div className="text-center">
-          <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">
-            {/* Indori Influencer */}
-            Viralमंत्रX
-          </div>
+          <div className="text-3xl font-bold text-brand-500 mx-auto mb-4 animate-pulse">ViralMantrix</div>
           <p className="text-slate-400">Loading...</p>
         </div>
       </div>
@@ -148,13 +168,11 @@ function App() {
 
   return (
     <AuthProvider>
-
-        <NotificationProvider>
-          <RouterProvider>
-            <AppContent config={config} />
-          </RouterProvider>
-        </NotificationProvider>
-
+      <NotificationProvider>
+        <RouterProvider>
+          <AppContent config={config} />
+        </RouterProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

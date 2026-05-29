@@ -136,6 +136,13 @@ const updateMyProfile = async (req, res) => {
       if (req.body[field] !== undefined) updateData[field] = req.body[field];
     });
 
+    if (req.body.socialLinks !== undefined && !String(req.body.socialLinks?.instagram || '').trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instagram profile link is required'
+      });
+    }
+
     // Flatten location object { city, country } → "City, Country" string
     if (updateData.location && typeof updateData.location === 'object') {
       const { city = '', country = '' } = updateData.location;
@@ -351,6 +358,13 @@ const registerInfluencer = async (req, res) => {
       } catch (e) {
         parsedSocialLinks = { instagram: '', youtube: '' };
       }
+    }
+
+    if (!parsedSocialLinks || !String(parsedSocialLinks.instagram || '').trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Instagram profile link is required'
+      });
     }
 
     // Derive name fields: prefer explicit firstName/lastName, else derive from fullName

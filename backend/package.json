@@ -1,11 +1,12 @@
 {
-  "name": "artisthub-backend",
+  "name": "viralmantrix-backend",
   "version": "1.0.0",
-  "description": "Backend for ArtistHub platform",
+  "description": "Backend for the ViralMantrix creator campaign platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "mongo:check": "node scripts/mongoSmokeTest.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -33,13 +34,15 @@
     "nodemon": "^3.0.1"
   },
   "keywords": [
-    "artist",
-    "booking",
-    "platform",
+    "viralmantrix",
+    "creator",
+    "campaign",
+    "influencer",
+    "brand",
     "node",
     "express",
     "mongodb"
   ],
-  "author": "ArtistHub Team",
+  "author": "ViralMantrix Team",
   "license": "MIT"
 }
