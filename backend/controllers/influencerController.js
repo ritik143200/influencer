@@ -321,11 +321,27 @@ const registerInfluencer = async (req, res) => {
       niche
     }, categoryDirectory);
 
+    const hasAcceptedTerms = termsAccepted === true || termsAccepted === 'true' || termsAccepted === '1' || termsAccepted === 'on';
+
     // Validation
-    if (!email || !phone || !password || normalizedCategories.microCategories.length === 0 || !termsAccepted) {
+    if (!email || !phone || !password) {
       return res.status(400).json({
         success: false,
         message: 'Please fill all required fields'
+      });
+    }
+
+    if (normalizedCategories.microCategories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select at least one micro category'
+      });
+    }
+
+    if (!hasAcceptedTerms) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please accept the terms to continue'
       });
     }
 
@@ -391,7 +407,7 @@ const registerInfluencer = async (req, res) => {
       profileType: 'influencer',
       location: location || '',
       socialLinks: parsedSocialLinks,
-      termsAccepted: termsAccepted === true || termsAccepted === 'true'
+      termsAccepted: hasAcceptedTerms
     });
 
     applyNormalizedCategoryData(newInfluencer, normalizedCategories);

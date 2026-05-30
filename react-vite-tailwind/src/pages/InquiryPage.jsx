@@ -18,6 +18,7 @@ import { getCategorySelectionPayload } from '../utils/categoryDirectory';
 import { API_BASE_URL } from '../data/config';
 import LocationSelectInput from '../components/LocationSelectInput';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { fallbackCategoryDirectory } from '../data/categoryFallback';
 
 const inputClassName =
   'h-12 w-full rounded-xl border border-[#A98BC8]/55 bg-[#FFFFFF] px-4 text-sm text-[#000000] outline-none transition placeholder:text-[#3E2A55]/55 focus:border-[#DF7AFE] focus:ring-4 focus:ring-[#0099FF]/22';
@@ -48,33 +49,6 @@ const featureCards = [
   }
 ];
 
-const fallbackDirectory = [
-  {
-    slug: 'creator-influencer',
-    name: 'Influencer',
-    legacyHiringValue: 'influencer',
-    microCategories: [{ slug: 'ugc-creator', name: 'UGC Creator' }, { slug: 'fashion', name: 'Fashion' }]
-  },
-  {
-    slug: 'celebrity',
-    name: 'Celebrity',
-    legacyHiringValue: 'celebrity',
-    microCategories: [{ slug: 'actor', name: 'Actor' }, { slug: 'model', name: 'Model' }]
-  },
-  {
-    slug: 'city-pages',
-    name: 'City Page',
-    legacyHiringValue: 'city page',
-    microCategories: [{ slug: 'local-city-pages', name: 'Local City Pages' }, { slug: 'food-pages', name: 'Food Pages' }]
-  },
-  {
-    slug: 'meme-pages',
-    name: 'Meme Page',
-    legacyHiringValue: 'meme page',
-    microCategories: [{ slug: 'meme-pages-core', name: 'Meme Pages' }, { slug: 'music-pages', name: 'Music Pages' }]
-  }
-];
-
 const getAccountRole = (account) => account?.role || account?.profileType || '';
 const isInfluencerAccount = (account) => ['influencer', 'artist'].includes(getAccountRole(account));
 const isBrandAccount = (account) => {
@@ -88,7 +62,7 @@ const InquiryPage = () => {
   const { navigate } = useRouter();
   const { directory } = useCategoryDirectory();
 
-  const categoryDirectory = useMemo(() => (directory?.length ? directory : fallbackDirectory), [directory]);
+  const categoryDirectory = useMemo(() => (directory?.length ? directory : fallbackCategoryDirectory), [directory]);
   const isBrandSession = isAuthenticated && isBrandAccount(user);
 
   const [brandForm, setBrandForm] = useState({
@@ -383,7 +357,7 @@ const InquiryPage = () => {
                   ) : null}
                   <div>
                     <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Hiring Of</label>
-                    <div className="relative" ref={microDropdownRef}>
+                    <div className="relative">
                       <select
                         value={selectedMainCategory}
                         onChange={(event) => {
@@ -405,7 +379,7 @@ const InquiryPage = () => {
                   </div>
                   <div>
                     <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Micro Category</label>
-                    <div className="relative">
+                    <div className="relative" ref={microDropdownRef}>
                       <button
                         type="button"
                         onClick={() => setIsMicroDropdownOpen((open) => !open)}

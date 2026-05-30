@@ -7,39 +7,13 @@ import { getCategorySelectionPayload } from '../utils/categoryDirectory';
 import { API_BASE_URL } from '../data/config';
 import LocationSelectInput from '../components/LocationSelectInput';
 import { useClickOutside } from '../hooks/useClickOutside';
+import { fallbackCategoryDirectory } from '../data/categoryFallback';
 
 const inputClassName =
   'h-12 w-full rounded-xl border border-[#A98BC8]/55 bg-[#FFFFFF] px-4 text-sm text-[#000000] outline-none transition placeholder:text-[#3E2A55]/55 focus:border-[#DF7AFE] focus:ring-4 focus:ring-[#0099FF]/22';
 
 const textareaClassName =
   'w-full rounded-xl border border-[#A98BC8]/55 bg-[#FFFFFF] px-4 py-3 text-sm text-[#000000] outline-none transition placeholder:text-[#3E2A55]/55 focus:border-[#DF7AFE] focus:ring-4 focus:ring-[#0099FF]/22';
-
-const fallbackDirectory = [
-  {
-    slug: 'creator-influencer',
-    name: 'Creator / Influencer',
-    legacyHiringValue: 'influencer',
-    microCategories: [{ slug: 'ugc-creator', name: 'UGC Creator' }, { slug: 'fashion', name: 'Fashion' }]
-  },
-  {
-    slug: 'city-pages',
-    name: 'City Pages',
-    legacyHiringValue: 'city page',
-    microCategories: [{ slug: 'local-city-pages', name: 'Local City Pages' }, { slug: 'food-pages', name: 'Food Pages' }]
-  },
-  {
-    slug: 'meme-pages',
-    name: 'Meme Pages',
-    legacyHiringValue: 'meme page',
-    microCategories: [{ slug: 'meme-pages-core', name: 'Meme Pages' }, { slug: 'music-pages', name: 'Music Pages' }]
-  },
-  {
-    slug: 'celebrity',
-    name: 'Celebrity',
-    legacyHiringValue: 'celebrity',
-    microCategories: [{ slug: 'all-types', name: 'All Types' }]
-  }
-];
 
 const emptyDraft = {
   name: '',
@@ -163,7 +137,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
   const { user, isAuthenticated, login } = useAuth();
   const { navigate, params } = useRouter();
   const { directory } = useCategoryDirectory();
-  const categoryDirectory = useMemo(() => (directory?.length ? directory : fallbackDirectory), [directory]);
+  const categoryDirectory = useMemo(() => (directory?.length ? directory : fallbackCategoryDirectory), [directory]);
   const storedBrand = useMemo(() => readStoredBrand(), []);
   const brand = isBrandAccount(user) ? user : isBrandAccount(storedBrand) ? storedBrand : null;
   const isBrandSession = isAuthenticated && isBrandAccount(user);
@@ -497,7 +471,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
               ) : null}
               <div>
                 <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Hiring Of</label>
-                <div className="relative" ref={microDropdownRef}>
+                <div className="relative">
                   <select
                     value={selectedMainCategory}
                     onChange={(event) => {
@@ -519,7 +493,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
               </div>
               <div>
                 <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Micro Category</label>
-                <div className="relative">
+                <div className="relative" ref={microDropdownRef}>
                   <button
                     type="button"
                     onClick={() => setIsMicroDropdownOpen((open) => !open)}

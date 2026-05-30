@@ -25,7 +25,7 @@ const ensureCategoryDirectory = async () => {
     CATEGORY_TREE_SEED.map((category) => ({
       updateOne: {
         filter: { slug: category.slug },
-        update: { $setOnInsert: category },
+        update: { $set: category },
         upsert: true
       }
     }))
@@ -106,7 +106,8 @@ const resolveMicroCategory = (value, index) => {
 };
 
 const normalizeCategoryPayload = (payload = {}, categories = []) => {
-  const index = buildCategoryIndex(categories);
+  const directory = Array.isArray(categories) && categories.length ? categories : CATEGORY_TREE_SEED;
+  const index = buildCategoryIndex(directory);
 
   const mainCategorySet = new Set();
   const microCategorySet = new Set();
