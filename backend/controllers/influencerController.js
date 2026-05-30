@@ -345,18 +345,9 @@ const registerInfluencer = async (req, res) => {
     const parsedCategorySelections = parseJsonField(categorySelections, categorySelections);
     const parsedSocialInput = parseJsonField(socialLinks, socialLinks);
 
-    const categoryDirectory = await ensureCategoryDirectory();
-    const normalizedCategories = normalizeCategoryPayload({
-      categories,
-      mainCategories,
-      microCategories,
-      categorySelections: parsedCategorySelections,
-      niche
-    }, categoryDirectory);
-
     const hasAcceptedTerms = termsAccepted === true || termsAccepted === 'true' || termsAccepted === '1' || termsAccepted === 'on';
 
-    // Validation
+    // Validate basic account fields before any database/category work.
     const missingRequiredFields = [
       !email ? 'email' : '',
       !phone ? 'phone' : '',
@@ -370,17 +361,26 @@ const registerInfluencer = async (req, res) => {
       });
     }
 
-    if (normalizedCategories.microCategories.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please select at least one micro category'
-      });
-    }
-
     if (!hasAcceptedTerms) {
       return res.status(400).json({
         success: false,
         message: 'Please accept the terms to continue'
+      });
+    }
+
+    const categoryDirectory = await ensureCategoryDirectory();
+    const normalizedCategories = normalizeCategoryPayload({
+      categories,
+      mainCategories,
+      microCategories,
+      categorySelections: parsedCategorySelections,
+      niche
+    }, categoryDirectory);
+
+    if (normalizedCategories.microCategories.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select at least one micro category'
       });
     }
 
