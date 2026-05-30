@@ -35,6 +35,25 @@ const applyNormalizedCategoryData = (target, normalizedCategories) => {
   target.subcategory = normalizedCategories.mainCategoryLabels[0] || '';
 };
 
+const pickFirstString = (...values) => {
+  for (const value of values) {
+    if (value === undefined || value === null) continue;
+    const normalized = String(value).trim();
+    if (normalized) return normalized;
+  }
+  return '';
+};
+
+const parseJsonField = (value, fallback) => {
+  if (typeof value !== 'string') return value ?? fallback;
+  if (!value.trim()) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
 // Upload and set influencer profile image (optimized + thumbnail)
 // Route: POST /api/influencer/portfolio/upload
 const uploadProfileImage = async (req, res) => {
@@ -299,35 +318,55 @@ const registerInfluencer = async (req, res) => {
       firstName: reqFirstName,
       lastName: reqLastName,
       fullName: reqFullName,
-      email,
-      phone,
-      password,
-      location,
+      email: reqEmail,
+      emailId,
+      emailID,
+      phone: reqPhone,
+      phoneNumber,
+      mobile,
+      mobileNumber,
+      password: reqPassword,
+      location: reqLocation,
       categories,
       mainCategories,
       microCategories,
       categorySelections,
       niche,
       socialLinks,
+      instagram,
+      youtube,
       termsAccepted
     } = req.body;
+
+    const email = pickFirstString(reqEmail, emailId, emailID);
+    const phone = pickFirstString(reqPhone, phoneNumber, mobile, mobileNumber);
+    const password = pickFirstString(reqPassword);
+    const location = pickFirstString(reqLocation);
+    const parsedCategorySelections = parseJsonField(categorySelections, categorySelections);
+    const parsedSocialInput = parseJsonField(socialLinks, socialLinks);
 
     const categoryDirectory = await ensureCategoryDirectory();
     const normalizedCategories = normalizeCategoryPayload({
       categories,
       mainCategories,
       microCategories,
-      categorySelections,
+      categorySelections: parsedCategorySelections,
       niche
     }, categoryDirectory);
 
     const hasAcceptedTerms = termsAccepted === true || termsAccepted === 'true' || termsAccepted === '1' || termsAccepted === 'on';
 
     // Validation
-    if (!email || !phone || !password) {
+    const missingRequiredFields = [
+      !email ? 'email' : '',
+      !phone ? 'phone' : '',
+      !password ? 'password' : ''
+    ].filter(Boolean);
+
+    if (missingRequiredFields.length) {
       return res.status(400).json({
         success: false,
-        message: 'Please fill all required fields'
+        message: `Please fill required fields: ${missingRequiredFields.join(', ')}`
       });
     }
 
@@ -367,14 +406,20 @@ const registerInfluencer = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Parse social links if it's a string
-    let parsedSocialLinks = socialLinks;
-    if (typeof socialLinks === 'string') {
+    let parsedSocialLinks = parsedSocialInput;
+    if (typeof parsedSocialLinks === 'string') {
       try {
-        parsedSocialLinks = JSON.parse(socialLinks);
+        parsedSocialLinks = JSON.parse(parsedSocialLinks);
       } catch (e) {
         parsedSocialLinks = { instagram: '', youtube: '' };
       }
     }
+
+    parsedSocialLinks = {
+      ...(parsedSocialLinks || {}),
+      instagram: pickFirstString(parsedSocialLinks?.instagram, instagram),
+      youtube: pickFirstString(parsedSocialLinks?.youtube, youtube)
+    };
 
     if (!parsedSocialLinks || !String(parsedSocialLinks.instagram || '').trim()) {
       return res.status(400).json({

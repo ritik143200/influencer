@@ -148,6 +148,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
   };
 
   const toggleMainCategory = (mainCategorySlug) => {
+    setError('');
     setIsMicroDropdownOpen(false);
     setSelectedMainCategories((previous) => {
       const next = previous.includes(mainCategorySlug)
@@ -167,11 +168,25 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
   };
 
   const toggleMicroCategory = (microCategorySlug) => {
+    setError('');
     setSelectedMicroCategories((previous) =>
       previous.includes(microCategorySlug)
         ? previous.filter((slug) => slug !== microCategorySlug)
         : [...previous, microCategorySlug]
     );
+  };
+
+  const goToStep = (nextStep) => {
+    if (nextStep > step && step === 1) {
+      const validationError = validateStepOne();
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
+    setError('');
+    setStep(Math.min(stepMeta.length, Math.max(1, nextStep)));
   };
 
   const formatPhoneNumber = (phone) => {
@@ -207,12 +222,14 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
       setError(validationError);
       return;
     }
+    setError('');
     setStep(2);
   };
 
   const handleSubmit = async () => {
     const validationError = validateForm();
     if (validationError) {
+      if (validateStepOne()) setStep(1);
       setError(validationError);
       return;
     }
@@ -222,13 +239,24 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
 
     try {
       const categoryPayload = getCategorySelectionPayload(directory, selectedMainCategories, selectedMicroCategories);
+      const selectedMicroCategoryNames = getMicroCategoryNames(directory, selectedMicroCategories);
+      const [firstName = '', ...lastNameParts] = formData.fullName.trim().split(/\s+/);
       const payload = {
+        firstName,
+        lastName: lastNameParts.join(' '),
+        name: formData.fullName,
         fullName: formData.fullName,
-        email: formData.email,
+        email: formData.email.trim(),
+        emailId: formData.email.trim(),
         phone: formatPhoneNumber(formData.phone),
+        phoneNumber: formatPhoneNumber(formData.phone),
         password: formData.password,
         location: formData.location,
         socialLinks: formData.socialLinks,
+        instagram: formData.socialLinks.instagram,
+        youtube: formData.socialLinks.youtube,
+        categories: selectedMicroCategoryNames,
+        niche: selectedMicroCategoryNames,
         profileType: 'influencer',
         termsAccepted: formData.termsAccepted,
         ...categoryPayload
@@ -328,7 +356,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
                 <div className="mb-5 grid grid-cols-[2.25rem_1fr_2.25rem] items-center gap-2 sm:mb-6">
                   <button
                     type="button"
-                    onClick={() => setStep((currentStep) => Math.max(1, currentStep - 1))}
+                    onClick={() => goToStep(step - 1)}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-[#171321] text-[#FFFFFF]"
                   >
                     <ChevronLeft className="h-4 w-4" strokeWidth={2} />
@@ -343,7 +371,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
 
                   <button
                     type="button"
-                    onClick={() => setStep((currentStep) => Math.min(stepMeta.length, currentStep + 1))}
+                    onClick={() => goToStep(step + 1)}
                     disabled={step === stepMeta.length}
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-[#171321] text-[#FFFFFF] disabled:opacity-40"
                   >
@@ -510,7 +538,10 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
                               </span>
                               <button
                                 type="button"
-                                onClick={() => setSelectedMicroCategories([])}
+                                onClick={() => {
+                                  setSelectedMicroCategories([]);
+                                  setError('');
+                                }}
                                 className="text-xs font-semibold text-[#DF7AFE]"
                               >
                                 Clear selection
@@ -577,7 +608,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
                     <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={() => setStep(1)}
+                        onClick={() => goToStep(1)}
                         className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-[#3E2A55] bg-[#0D0D0D] px-5 py-3.5 text-sm font-semibold text-[#FFFFFF]"
                       >
                         <ChevronLeft className="h-4 w-4" strokeWidth={2} />
