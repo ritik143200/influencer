@@ -10,7 +10,6 @@ import AdminFeaturedInfluencers from '../components/AdminFeaturedInfluencers';
 import AdminUserManagement from '../components/AdminUserManagement';
 import AdminContactManagement from '../components/AdminContactManagement';
 import AdminInquiryManagement from '../components/AdminInquiryManagement';
-import RecentActivity from '../components/RecentActivity';
 
 import { useAdminData } from '../hooks/useAdminData';
 import { useToast } from '../hooks/useToast';
@@ -798,33 +797,58 @@ const AdminDashboard = ({ config }) => {
 
 
 
-      {/* Recent Activity - Theme Consistent */}
+      {/* Admin Snapshot - no live polling, keeps the admin panel smooth */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-        <div className="rounded-2xl shadow-lg border border-gray-100 overflow-hidden"
-          style={{ backgroundColor: getThemeColor('surface') }}>
-          <div className={`bg-gradient-to-r ${getCategoryColors(4)} p-6`}>
-            <div className="flex justify-between items-center">
-              <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Recent Activity
-              </h3>
-              <div className="text-white/90 text-sm font-medium">
-                Live Updates
-              </div>
+      <div className="rounded-2xl shadow-lg border border-white/10 overflow-hidden"
+        style={{ backgroundColor: getThemeColor('surface') }}>
+        <div className={`bg-gradient-to-r ${getCategoryColors(4)} p-6`}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6a2 2 0 012-2h10M9 17H7a2 2 0 01-2-2V5a2 2 0 012-2h5a2 2 0 012 2v4m-5 8v4m0-4h4" />
+              </svg>
+              Admin Snapshot
+            </h3>
+            <div className="text-white/90 text-sm font-medium">
+              Updated on refresh
             </div>
           </div>
-          <div className="p-6 max-h-96 overflow-y-auto">
-            <RecentActivity getThemeColor={getThemeColor} />
-          </div>
         </div>
-
-
-
+        <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-3">
+          {[
+            {
+              label: 'Pending inquiries',
+              value: analytics.pendingInquiries,
+              note: 'Need admin action',
+            },
+            {
+              label: 'Creator profiles',
+              value: analytics.totalInfluencers,
+              note: 'Available for matching',
+            },
+            {
+              label: 'Brand accounts',
+              value: analytics.totalUsers,
+              note: 'Registered users',
+            },
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="rounded-2xl border border-white/10 bg-black/20 p-5 shadow-sm"
+            >
+              <p className="text-sm font-semibold uppercase tracking-[0.18em]" style={{ color: getThemeColor('accent') }}>
+                {item.label}
+              </p>
+              <p className="mt-3 text-4xl font-bold" style={{ color: getThemeColor('text') }}>
+                {item.value ?? 0}
+              </p>
+              <p className="mt-2 text-sm" style={{ color: getThemeColor('secondary') }}>
+                {item.note}
+              </p>
+            </div>
+          ))}
         </div>
+      </div>
 
     </div>
 
