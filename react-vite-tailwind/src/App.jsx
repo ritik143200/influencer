@@ -29,21 +29,24 @@ import AuthCallback from './pages/AuthCallback';
 import InfluencerDetailPage from './pages/InfluencerDetailPage';
 import { defaultConfig } from './data/mockData';
 
+const getUserRole = (user) => user?.role || user?.profileType || '';
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth();
   const { navigate } = useRouter();
+  const userRole = getUserRole(user);
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
         navigate('auth');
-      } else if (allowedRoles && !allowedRoles.includes(user?.role)) {
-        if (user?.role === 'admin') navigate('admin-dashboard');
-        else if (user?.role === 'influencer' || user?.role === 'artist') navigate('influencer-dashboard');
+      } else if (allowedRoles && !allowedRoles.includes(userRole)) {
+        if (userRole === 'admin') navigate('admin-dashboard');
+        else if (userRole === 'influencer' || userRole === 'artist') navigate('influencer-dashboard');
         else navigate('user-dashboard');
       }
     }
-  }, [isAuthenticated, user, loading, allowedRoles, navigate]);
+  }, [isAuthenticated, userRole, loading, allowedRoles, navigate]);
 
   if (loading) {
     return (
@@ -53,7 +56,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(user?.role))) {
+  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(userRole))) {
     return null;
   }
 

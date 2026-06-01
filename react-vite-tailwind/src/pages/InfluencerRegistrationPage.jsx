@@ -47,7 +47,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
       instagram: '',
       youtube: ''
     },
-    termsAccepted: false
+    termsAccepted: true
   });
   const [selectedMainCategories, setSelectedMainCategories] = useState(['creator-influencer']);
   const [selectedMicroCategories, setSelectedMicroCategories] = useState([]);
@@ -198,6 +198,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
   const validateStepOne = () => {
     if (!formData.fullName.trim()) return 'Please enter your full name.';
     if (!formData.email.trim()) return 'Please enter your email address.';
+    if (!/\S+@\S+\.\S+/.test(formData.email.trim())) return 'Please enter a valid email address.';
     if (!formData.phone.trim()) return 'Please enter your phone number.';
     if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) return 'Please enter a valid 10-digit phone number.';
     if (!formData.password.trim()) return 'Please create a password.';
@@ -212,7 +213,6 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
     const stepOneError = validateStepOne();
     if (stepOneError) return stepOneError;
     if (!formData.socialLinks.instagram.trim()) return 'Please add your Instagram profile link.';
-    if (!formData.termsAccepted) return 'Please accept the terms to continue.';
     return null;
   };
 
@@ -246,19 +246,19 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
         lastName: lastNameParts.join(' '),
         name: formData.fullName,
         fullName: formData.fullName,
-        email: formData.email.trim(),
-        emailId: formData.email.trim(),
+        email: formData.email.trim().toLowerCase(),
+        emailId: formData.email.trim().toLowerCase(),
         phone: formatPhoneNumber(formData.phone),
         phoneNumber: formatPhoneNumber(formData.phone),
         password: formData.password,
-        location: formData.location,
+        location: formData.location.trim(),
         socialLinks: formData.socialLinks,
         instagram: formData.socialLinks.instagram,
         youtube: formData.socialLinks.youtube,
         categories: selectedMicroCategoryNames,
         niche: selectedMicroCategoryNames,
         profileType: 'influencer',
-        termsAccepted: formData.termsAccepted,
+        termsAccepted: true,
         ...categoryPayload
       };
 

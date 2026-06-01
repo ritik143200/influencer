@@ -1,13 +1,44 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from '../contexts/RouterContext';
 import InfluencerCard from './InfluencerCard';
+import { API_BASE_URL } from '../data/config';
+
+const defaultFeaturedProfiles = [
+  {
+    id: 'ayushi-sikarwar',
+    name: 'Ayushi Sikarwar',
+    handle: 'ayushisikarwar',
+    followers: 'Verified',
+    posts: 'Creator',
+    category: 'Influencer',
+    verified: true,
+    instagramLink: '',
+    youtubeLink: '',
+    image: null,
+    bio: '',
+    budget: ''
+  },
+  {
+    id: 'pooja-patel',
+    name: 'Pooja Patel',
+    handle: 'poojapatel',
+    followers: 'Verified',
+    posts: 'Creator',
+    category: 'Influencer',
+    verified: true,
+    instagramLink: '',
+    youtubeLink: '',
+    image: null,
+    bio: '',
+    budget: ''
+  }
+];
 
 const TrendingInfluencers = ({ config }) => {
   const scrollRef = useRef(null);
   const { navigate } = useRouter();
   const [activeIndex, setActiveIndex] = useState(0);
   const [dbFeaturedProfiles, setDbFeaturedProfiles] = useState([]);
-  const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'https://viralmantrix.com').replace(/\/$/, '');
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -24,9 +55,7 @@ const TrendingInfluencers = ({ config }) => {
       }
     };
     fetchFeatured();
-  }, [API_BASE_URL]);
-
-  const defaultFeaturedProfiles = useMemo(() => [], []);
+  }, []);
 
   const featuredProfiles = useMemo(() => {
     if (dbFeaturedProfiles.length > 0) {
@@ -55,7 +84,7 @@ const TrendingInfluencers = ({ config }) => {
       });
     }
     return defaultFeaturedProfiles;
-  }, [dbFeaturedProfiles, defaultFeaturedProfiles]);
+  }, [dbFeaturedProfiles]);
 
   const scrollToIndex = (index) => {
     const el = scrollRef.current;

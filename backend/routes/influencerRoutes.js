@@ -22,7 +22,8 @@ const { protect } = require('../middleware/authMiddleware');
 const multer = require('multer');
 
 const influencerOnly = (req, res, next) => {
-  if (!req.user || req.user.role !== 'influencer') {
+  const role = req.user?.role || req.user?.profileType;
+  if (!req.user || role !== 'influencer') {
     return res.status(403).json({ success: false, message: 'Only influencers can manage availability' });
   }
   return next();

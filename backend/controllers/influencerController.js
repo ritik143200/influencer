@@ -318,6 +318,7 @@ const registerInfluencer = async (req, res) => {
       firstName: reqFirstName,
       lastName: reqLastName,
       fullName: reqFullName,
+      name: reqName,
       email: reqEmail,
       emailId,
       emailID,
@@ -338,20 +339,22 @@ const registerInfluencer = async (req, res) => {
       termsAccepted
     } = req.body;
 
-    const email = pickFirstString(reqEmail, emailId, emailID);
+    const email = pickFirstString(reqEmail, emailId, emailID).toLowerCase();
     const phone = pickFirstString(reqPhone, phoneNumber, mobile, mobileNumber);
     const password = pickFirstString(reqPassword);
     const location = pickFirstString(reqLocation);
     const parsedCategorySelections = parseJsonField(categorySelections, categorySelections);
     const parsedSocialInput = parseJsonField(socialLinks, socialLinks);
 
-    const hasAcceptedTerms = termsAccepted === true || termsAccepted === 'true' || termsAccepted === '1' || termsAccepted === 'on';
+    const hasAcceptedTerms = termsAccepted === undefined || termsAccepted === true || termsAccepted === 'true' || termsAccepted === '1' || termsAccepted === 'on';
 
     // Validate basic account fields before any database/category work.
     const missingRequiredFields = [
+      !pickFirstString(reqFullName, reqName, reqFirstName) ? 'name' : '',
       !email ? 'email' : '',
       !phone ? 'phone' : '',
-      !password ? 'password' : ''
+      !password ? 'password' : '',
+      !location ? 'location' : ''
     ].filter(Boolean);
 
     if (missingRequiredFields.length) {
@@ -429,9 +432,9 @@ const registerInfluencer = async (req, res) => {
     }
 
     // Derive name fields: prefer explicit firstName/lastName, else derive from fullName
-    let finalFirst = reqFirstName || '';
-    let finalLast = reqLastName || '';
-    let finalFull = reqFullName || '';
+    let finalFirst = pickFirstString(reqFirstName);
+    let finalLast = pickFirstString(reqLastName);
+    let finalFull = pickFirstString(reqFullName, reqName);
     if (!finalFirst && !finalLast && finalFull) {
       const parts = finalFull.trim().split(/\s+/);
       finalFirst = parts[0] || '';

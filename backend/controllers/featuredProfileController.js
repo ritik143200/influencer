@@ -5,10 +5,22 @@ const {
   extractCloudinaryPublicIdFromUrl
 } = require('../utils/imageVariants');
 
+const PUBLIC_FEATURED_PROFILE_NAMES = ['ayushi sikarwar', 'pooja patel'];
+const normalizeFeaturedName = (value = '') => String(value).trim().replace(/\s+/g, ' ').toLowerCase();
+
 exports.getFeaturedProfiles = async (req, res) => {
   try {
     const profiles = await FeaturedProfile.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
-    res.status(200).json({ success: true, data: profiles });
+    const publicProfiles = profiles
+      .filter((profile) => PUBLIC_FEATURED_PROFILE_NAMES.includes(normalizeFeaturedName(profile.name)))
+      .sort(
+        (a, b) =>
+          PUBLIC_FEATURED_PROFILE_NAMES.indexOf(normalizeFeaturedName(a.name)) -
+          PUBLIC_FEATURED_PROFILE_NAMES.indexOf(normalizeFeaturedName(b.name))
+      )
+      .slice(0, 2);
+
+    res.status(200).json({ success: true, data: publicProfiles });
   } catch (error) {
     console.error('Error fetching featured profiles:', error);
     res.status(500).json({ success: false, message: 'Server error' });

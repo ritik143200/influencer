@@ -27,6 +27,10 @@ const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'Not authorized, user not found' });
             }
 
+            if (!user.role && user.profileType === 'influencer') {
+                user.role = 'influencer';
+            }
+
             req.user = user;
             next();
         } catch (error) {

@@ -44,6 +44,39 @@ const categoryOptions = {
   ]
 };
 
+const fallbackFeaturedProfiles = [
+  {
+    id: 'ayushi-sikarwar',
+    name: 'Ayushi Sikarwar',
+    image: '',
+    category: 'Influencer',
+    followers: 'Verified',
+    posts: 'Creator',
+    budget: '',
+    bio: '',
+    verified: true,
+    instagramLink: '',
+    youtubeLink: '',
+    isFeatured: true,
+    subCategory: ''
+  },
+  {
+    id: 'pooja-patel',
+    name: 'Pooja Patel',
+    image: '',
+    category: 'Influencer',
+    followers: 'Verified',
+    posts: 'Creator',
+    budget: '',
+    bio: '',
+    verified: true,
+    instagramLink: '',
+    youtubeLink: '',
+    isFeatured: true,
+    subCategory: ''
+  }
+];
+
 const ExploreInfluencersPage = ({ config }) => {
   const { navigate } = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -107,9 +140,10 @@ const ExploreInfluencersPage = ({ config }) => {
           }));
         }
 
-        setDbInfluencers(featured);
+        setDbInfluencers(featured.length ? featured : fallbackFeaturedProfiles);
       } catch (err) {
         console.error('Failed to fetch influencers:', err);
+        setDbInfluencers(fallbackFeaturedProfiles);
       } finally {
         setLoading(false);
       }

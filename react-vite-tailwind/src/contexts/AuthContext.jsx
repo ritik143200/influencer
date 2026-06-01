@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext();
 
@@ -14,29 +14,34 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for logged-in user on mount
+  const normalizeUser = (userData = {}) => ({
+    ...userData,
+    role: userData.role || userData.profileType || 'brand'
+  });
+
+  const persistUser = (userData) => {
+    const normalizedUser = normalizeUser(userData);
+    setUser(normalizedUser);
+    localStorage.setItem('loggedInUser', JSON.stringify(normalizedUser));
+    localStorage.setItem('userData', JSON.stringify(normalizedUser));
+    return normalizedUser;
+  };
+
   useEffect(() => {
-    // Check localStorage for user data
-    const storedUser = localStorage.getItem('loggedInUser');
+    const storedUser = localStorage.getItem('loggedInUser') || localStorage.getItem('userData');
     if (storedUser) {
       try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        console.log('🔑 User loaded from localStorage:', userData);
-      } catch (error) {
-        console.error('❌ Error parsing user data:', error);
+        persistUser(JSON.parse(storedUser));
+      } catch {
         localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userData');
       }
     }
     setLoading(false);
   }, []);
 
-  // Login function
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('loggedInUser', JSON.stringify(userData));
-    console.log('User logged in:', userData);
-    console.log('Token available:', !!localStorage.getItem('userToken'));
+    persistUser(userData);
   };
 
   const logout = () => {
@@ -44,16 +49,14 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('loggedInUser');
     localStorage.removeItem('userToken');
     localStorage.removeItem('userData');
-    console.log('🚪 User logged out');
   };
 
-  // Update user function
   const updateUser = (userData) => {
-    setUser(prevUser => {
-      const merged = { ...prevUser, ...userData };
-      localStorage.setItem('loggedInUser', JSON.stringify(merged));
-      console.log('📝 User updated:', merged);
-      return merged;
+    setUser((prevUser) => {
+      const mergedUser = normalizeUser({ ...prevUser, ...userData });
+      localStorage.setItem('loggedInUser', JSON.stringify(mergedUser));
+      localStorage.setItem('userData', JSON.stringify(mergedUser));
+      return mergedUser;
     });
   };
 

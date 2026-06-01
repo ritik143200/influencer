@@ -7,6 +7,13 @@ const AuthCallback = () => {
   const { navigate } = useRouter();
   const { login } = useAuth();
 
+  const getDashboardRoute = (account = {}) => {
+    const role = account.role || account.profileType || 'brand';
+    if (role === 'admin') return 'admin-dashboard';
+    if (role === 'influencer' || role === 'artist') return 'influencer-dashboard';
+    return 'user-dashboard';
+  };
+
   useEffect(() => {
     // Handle OAuth callback
     const handleCallback = async () => {
@@ -49,14 +56,7 @@ const AuthCallback = () => {
                 login(tokenData.user);
                 // OAuth successful
                 
-                // Redirect based on user role
-                if (tokenData.user.role === 'admin') {
-                  navigate('admin-dashboard');
-                } else if (tokenData.user.role === 'influencer' || tokenData.user.role === 'artist') {
-                  navigate('influencer-dashboard');
-                } else {
-                  navigate('user-dashboard');
-                }
+                navigate(getDashboardRoute(tokenData.user));
               } else {
                 console.error('Token generation failed');
                 navigate('auth');

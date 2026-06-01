@@ -15,10 +15,11 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const userRole = user?.role || user?.profileType || '';
   const dashboardRoute =
-    user?.role === 'admin'
+    userRole === 'admin'
       ? 'admin-dashboard'
-      : user?.role === 'artist' || user?.role === 'influencer'
+      : userRole === 'artist' || userRole === 'influencer'
         ? 'influencer-dashboard'
         : 'user-dashboard';
 

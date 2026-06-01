@@ -7,6 +7,13 @@ import { API_BASE_URL } from '../data/config';
 const inputClassName =
   'w-full rounded-2xl border border-[#A98BC8]/45 bg-white px-4 py-3.5 text-sm font-medium text-[#000000] outline-none transition placeholder:text-[#3E2A55]/55 focus:border-[#DF7AFE] focus:ring-4 focus:ring-[#0099FF]/20';
 
+const getDashboardRoute = (account = {}) => {
+  const role = account.role || account.profileType || 'brand';
+  if (role === 'admin') return 'admin-dashboard';
+  if (role === 'artist' || role === 'influencer') return 'influencer-dashboard';
+  return 'user-dashboard';
+};
+
 const AuthPage = ({ initialTab }) => {
   const { login } = useAuth();
   const { navigate, params, currentPath } = useRouter();
@@ -184,9 +191,7 @@ const AuthPage = ({ initialTab }) => {
 
       const hadPendingInquiry = await submitPendingInquiry(data.token);
       window.setTimeout(() => {
-        if (data.role === 'admin') navigate('admin-dashboard');
-        else if (data.role === 'artist' || data.role === 'influencer') navigate('influencer-dashboard');
-        else navigate('user-dashboard');
+        navigate(getDashboardRoute(userData));
       }, hadPendingInquiry ? 800 : 450);
     } catch {
       setMessage({ type: 'error', text: 'Network error. Please try again.' });

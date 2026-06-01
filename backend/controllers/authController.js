@@ -21,19 +21,20 @@ const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
     const accountRole = role === 'user' ? 'user' : 'brand';
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    if (!name || !email || !password) {
+    if (!name || !normalizedEmail || !password) {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
     // Check if this email is already registered as a user
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({ message: 'This email is already registered as a user' });
     }
 
     // Check if this email is already registered as an influencer
-    const influencerExists = await Influencer.findOne({ email });
+    const influencerExists = await Influencer.findOne({ email: normalizedEmail });
     if (influencerExists) {
       return res.status(400).json({ message: 'This email is already registered as an influencer' });
     }
@@ -41,7 +42,7 @@ const registerUser = async (req, res) => {
     // Create user
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password,
       phone,
       role: accountRole,
@@ -102,14 +103,19 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
+    if (!normalizedEmail || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
 
     // Check for user in User collection first
-    let user = await User.findOne({ email }).select('+password');
+    let user = await User.findOne({ email: normalizedEmail }).select('+password');
     let userType = 'user';
 
     // If not found in User collection, check Artist collection
     if (!user) {
-      user = await Influencer.findOne({ email }).select('+password');
+      user = await Influencer.findOne({ email: normalizedEmail }).select('+password');
       userType = 'artist';
     }
 
@@ -161,8 +167,11 @@ const loginUser = async (req, res) => {
     // For artists, return the FULL profile document so client has all data immediately
     if (userType === 'artist') {
       const fullArtist = await Influencer.findById(user._id).select('-password');
+      const artistObject = fullArtist ? fullArtist.toObject() : {};
       return res.json({
-        ...(fullArtist ? fullArtist.toObject() : {}),
+        ...artistObject,
+        role: artistObject.role || 'influencer',
+        profileType: artistObject.profileType || 'influencer',
         token,
         message: 'Login successful'
       });

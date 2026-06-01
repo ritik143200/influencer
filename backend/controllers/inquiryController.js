@@ -31,7 +31,8 @@ exports.createInquiry = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
-        if (req.user.role === 'influencer') {
+        const requesterRole = req.user.role || req.user.profileType;
+        if (requesterRole === 'influencer') {
             return res.status(403).json({
                 success: false,
                 message: 'Influencer accounts cannot create brand inquiries'
@@ -47,17 +48,17 @@ exports.createInquiry = async (req, res) => {
             categorySelections
         }, categoryDirectory);
 
-        const resolvedHiringFor = normalizedCategories.primaryLegacyHiringValue || hiringFor;
-        const resolvedCategoryLabel = normalizedCategories.microCategoryLabels.join(', ') || category;
+        const resolvedHiringFor = normalizedCategories.primaryLegacyHiringValue || String(hiringFor || '').trim();
+        const resolvedCategoryLabel = normalizedCategories.microCategoryLabels.join(', ') || String(category || '').trim();
 
         // Validate required fields
         const missingFields = [];
-        if (!name) missingFields.push('name');
-        if (!email) missingFields.push('email');
-        if (!phone) missingFields.push('phone');
+        if (!String(name || '').trim()) missingFields.push('name');
+        if (!String(email || '').trim()) missingFields.push('email');
+        if (!String(phone || '').trim()) missingFields.push('phone');
         if (!resolvedHiringFor) missingFields.push('hiringFor');
         if (!resolvedCategoryLabel) missingFields.push('category');
-        if (!location) missingFields.push('location');
+        if (!String(location || '').trim()) missingFields.push('location');
         if (budget === undefined || budget === null || budget === '') missingFields.push('budget');
 
         if (missingFields.length > 0) {
@@ -212,7 +213,8 @@ exports.updateInquiry = async (req, res) => {
             return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
-        if (req.user.role === 'influencer') {
+        const requesterRole = req.user.role || req.user.profileType;
+        if (requesterRole === 'influencer') {
             return res.status(403).json({
                 success: false,
                 message: 'Influencer accounts cannot edit brand inquiries'

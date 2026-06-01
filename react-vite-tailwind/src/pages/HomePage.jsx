@@ -41,7 +41,30 @@ const categories = [
   }
 ];
 
-const fallbackProfiles = [];
+const allowedFeaturedNames = ['ayushi sikarwar', 'pooja patel'];
+
+const fallbackProfiles = [
+  {
+    id: 'ayushi-sikarwar',
+    name: 'Ayushi Sikarwar',
+    category: 'Influencer',
+    followers: 'Verified',
+    engagement: 'Creator',
+    image: '',
+    instagramLink: ''
+  },
+  {
+    id: 'pooja-patel',
+    name: 'Pooja Patel',
+    category: 'Influencer',
+    followers: 'Verified',
+    engagement: 'Creator',
+    image: '',
+    instagramLink: ''
+  }
+];
+
+const getFeaturedNameKey = (name = '') => String(name).trim().replace(/\s+/g, ' ').toLowerCase();
 
 const normalizeProfile = (profile) => {
   const instagramLink = profile?.socialLinks?.instagram || profile?.instagramLink || '';
@@ -454,10 +477,19 @@ const LandingPage = () => {
         const response = await fetch(`${API_BASE_URL}/api/featured-profiles`);
         const data = await response.json();
         if (!ignore && response.ok && data.success && Array.isArray(data.data)) {
-          setProfiles(data.data.map(normalizeProfile).slice(0, 8));
+          const publicProfiles = data.data
+            .map(normalizeProfile)
+            .filter((profile) => allowedFeaturedNames.includes(getFeaturedNameKey(profile.name)))
+            .sort(
+              (a, b) =>
+                allowedFeaturedNames.indexOf(getFeaturedNameKey(a.name)) -
+                allowedFeaturedNames.indexOf(getFeaturedNameKey(b.name))
+            )
+            .slice(0, 2);
+          setProfiles(publicProfiles.length ? publicProfiles : fallbackProfiles);
         }
       } catch {
-        if (!ignore) setProfiles([]);
+        if (!ignore) setProfiles(fallbackProfiles);
       } finally {
         if (!ignore) setProfilesLoading(false);
       }
@@ -766,7 +798,7 @@ const LandingPage = () => {
 
           {profilesLoading ? (
             <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {[0, 1, 2, 3].map((item) => (
+              {[0, 1].map((item) => (
                 <div key={item} className="h-[360px] animate-pulse rounded-[32px] bg-[#0D0D0D]" />
               ))}
             </div>
