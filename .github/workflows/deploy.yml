@@ -9,22 +9,38 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      AWS_HOST: ${{ secrets.AWS_HOST }}
+      AWS_USER: ${{ secrets.AWS_USER }}
+      AWS_SSH_KEY_B64: ${{ secrets.AWS_SSH_KEY_B64 }}
+      PROJECT_PATH: ${{ secrets.PROJECT_PATH }}
+      PM2_APP_NAME: ${{ secrets.PM2_APP_NAME }}
 
     steps:
+      - name: Validate deployment secrets
+        run: |
+          set -e
+          test -n "$AWS_HOST" || { echo "::error::Missing AWS_HOST secret"; exit 1; }
+          test -n "$AWS_USER" || { echo "::error::Missing AWS_USER secret"; exit 1; }
+          test -n "$AWS_SSH_KEY_B64" || { echo "::error::Missing AWS_SSH_KEY_B64 secret"; exit 1; }
+          test -n "$PROJECT_PATH" || { echo "::error::Missing PROJECT_PATH secret"; exit 1; }
+          test -n "$PM2_APP_NAME" || { echo "::error::Missing PM2_APP_NAME secret"; exit 1; }
+
       - name: Prepare SSH key
         run: |
           set -e
           mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/viralmantrix_deploy_key
+          printf '%s' "$AWS_SSH_KEY_B64" | tr -d '\r\n ' | base64 -d > ~/.ssh/viralmantrix_deploy_key
           chmod 600 ~/.ssh/viralmantrix_deploy_key
-          ssh-keyscan -H "${{ secrets.AWS_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/viralmantrix_deploy_key > /dev/null
+          ssh-keyscan -H "$AWS_HOST" >> ~/.ssh/known_hosts
 
       - name: Deploy on AWS server
         run: |
           set -e
-          ssh -i ~/.ssh/viralmantrix_deploy_key "${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}" <<'EOF'
+          ssh -o BatchMode=yes -o IdentitiesOnly=yes -i ~/.ssh/viralmantrix_deploy_key "$AWS_USER@$AWS_HOST" <<EOF
             set -e
-            cd "${{ secrets.PROJECT_PATH }}"
+            cd "$PROJECT_PATH"
             git fetch origin main
             git checkout main
             git pull --ff-only origin main
@@ -35,6 +51,6 @@ jobs:
 
             cd ../backend
             npm install --omit=dev
-            pm2 restart "${{ secrets.PM2_APP_NAME }}" --update-env
+            pm2 restart "$PM2_APP_NAME" --update-env
             pm2 save
           EOF
