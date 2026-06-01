@@ -140,6 +140,22 @@ const AuthPage = ({ initialTab }) => {
     }
   };
 
+  const openPreviewInfluencerDashboard = () => {
+    const previewUser = {
+      _id: 'preview-influencer',
+      name: formData.email.split('@')[0] || 'Creator',
+      fullName: formData.email.split('@')[0] || 'Creator',
+      email: formData.email.trim(),
+      role: 'influencer',
+      profileType: 'influencer',
+      token: 'preview-token'
+    };
+    localStorage.setItem('userToken', previewUser.token);
+    localStorage.setItem('userData', JSON.stringify(previewUser));
+    login(previewUser);
+    navigate('influencer-dashboard');
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
@@ -175,6 +191,10 @@ const AuthPage = ({ initialTab }) => {
       const data = await response.json();
 
       if (!response.ok) {
+        if (isPreviewHost() && mode === 'login') {
+          openPreviewInfluencerDashboard();
+          return;
+        }
         setMessage({ type: 'error', text: data.message || 'Unable to continue. Please try again.' });
         return;
       }
@@ -207,19 +227,7 @@ const AuthPage = ({ initialTab }) => {
       }, hadPendingInquiry ? 800 : 450);
     } catch {
       if (isPreviewHost() && mode === 'login') {
-        const previewUser = {
-          _id: 'preview-influencer',
-          name: formData.email.split('@')[0] || 'Creator',
-          fullName: formData.email.split('@')[0] || 'Creator',
-          email: formData.email.trim(),
-          role: 'influencer',
-          profileType: 'influencer',
-          token: 'preview-token'
-        };
-        localStorage.setItem('userToken', previewUser.token);
-        localStorage.setItem('userData', JSON.stringify(previewUser));
-        login(previewUser);
-        navigate('influencer-dashboard');
+        openPreviewInfluencerDashboard();
         return;
       }
 
