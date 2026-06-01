@@ -1,0 +1,34 @@
+name: Deploy ViralMantrix to AWS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy on AWS server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            set -e
+
+            cd "${{ secrets.PROJECT_PATH }}"
+            git fetch origin main
+            git checkout main
+            git pull --ff-only origin main
+
+            cd react-vite-tailwind
+            npm install
+            npm run build
+
+            cd ../backend
+            npm install --omit=dev
+            pm2 restart "${{ secrets.PM2_APP_NAME }}" --update-env
+            pm2 save
