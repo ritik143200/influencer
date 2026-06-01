@@ -10,15 +10,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy on AWS server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ${{ secrets.AWS_USER }}
-          key: ${{ secrets.AWS_SSH_KEY }}
-          script: |
-            set -e
+      - name: Prepare SSH key
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_KEY_B64 }}" | base64 -d > ~/.ssh/viralmantrix_deploy_key
+          chmod 600 ~/.ssh/viralmantrix_deploy_key
+          ssh-keyscan -H "${{ secrets.AWS_HOST }}" >> ~/.ssh/known_hosts
 
+      - name: Deploy on AWS server
+        run: |
+          set -e
+          ssh -i ~/.ssh/viralmantrix_deploy_key "${{ secrets.AWS_USER }}@${{ secrets.AWS_HOST }}" <<'EOF'
+            set -e
             cd "${{ secrets.PROJECT_PATH }}"
             git fetch origin main
             git checkout main
@@ -32,3 +36,4 @@ jobs:
             npm install --omit=dev
             pm2 restart "${{ secrets.PM2_APP_NAME }}" --update-env
             pm2 save
+          EOF
