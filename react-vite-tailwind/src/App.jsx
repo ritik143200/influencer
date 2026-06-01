@@ -29,7 +29,23 @@ import AuthCallback from './pages/AuthCallback';
 import InfluencerDetailPage from './pages/InfluencerDetailPage';
 import { defaultConfig } from './data/mockData';
 
-const getUserRole = (user) => user?.role || user?.profileType || '';
+const getUserRole = (user) => {
+  const role = String(user?.role || user?.profileType || '').trim().toLowerCase();
+
+  if (role === 'admin') return 'admin';
+  if (['influencer', 'artist', 'creator'].includes(role)) return 'influencer';
+  if (['brand', 'user', 'client', 'customer'].includes(role)) return 'brand';
+
+  return user ? 'brand' : '';
+};
+
+const isRoleAllowed = (userRole, allowedRoles = []) => {
+  if (!allowedRoles.length) return true;
+  if (allowedRoles.includes(userRole)) return true;
+  if (userRole === 'brand' && allowedRoles.some((role) => role === 'brand' || role === 'user')) return true;
+  if (userRole === 'influencer' && allowedRoles.some((role) => role === 'influencer' || role === 'artist')) return true;
+  return false;
+};
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, isAuthenticated, loading } = useAuth();
@@ -40,9 +56,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     if (!loading) {
       if (!isAuthenticated) {
         navigate('auth');
-      } else if (allowedRoles && !allowedRoles.includes(userRole)) {
+      } else if (allowedRoles && !isRoleAllowed(userRole, allowedRoles)) {
         if (userRole === 'admin') navigate('admin-dashboard');
-        else if (userRole === 'influencer' || userRole === 'artist') navigate('influencer-dashboard');
+        else if (userRole === 'influencer') navigate('influencer-dashboard');
         else navigate('user-dashboard');
       }
     }
@@ -56,7 +72,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (!isAuthenticated || (allowedRoles && !allowedRoles.includes(userRole))) {
+  if (!isAuthenticated || (allowedRoles && !isRoleAllowed(userRole, allowedRoles))) {
     return null;
   }
 

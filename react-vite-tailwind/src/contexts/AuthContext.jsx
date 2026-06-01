@@ -14,9 +14,19 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const normalizeRole = (userData = {}) => {
+    const rawRole = String(userData.role || userData.profileType || '').trim().toLowerCase();
+
+    if (rawRole === 'admin') return 'admin';
+    if (['influencer', 'artist', 'creator'].includes(rawRole)) return 'influencer';
+    if (['brand', 'user', 'client', 'customer'].includes(rawRole)) return 'brand';
+
+    return userData.profileType === 'influencer' ? 'influencer' : 'brand';
+  };
+
   const normalizeUser = (userData = {}) => ({
     ...userData,
-    role: userData.role || userData.profileType || 'brand'
+    role: normalizeRole(userData)
   });
 
   const persistUser = (userData) => {
