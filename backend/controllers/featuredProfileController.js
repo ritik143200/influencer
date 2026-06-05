@@ -11,16 +11,7 @@ const normalizeFeaturedName = (value = '') => String(value).trim().replace(/\s+/
 exports.getFeaturedProfiles = async (req, res) => {
   try {
     const profiles = await FeaturedProfile.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
-    const publicProfiles = profiles
-      .filter((profile) => PUBLIC_FEATURED_PROFILE_NAMES.includes(normalizeFeaturedName(profile.name)))
-      .sort(
-        (a, b) =>
-          PUBLIC_FEATURED_PROFILE_NAMES.indexOf(normalizeFeaturedName(a.name)) -
-          PUBLIC_FEATURED_PROFILE_NAMES.indexOf(normalizeFeaturedName(b.name))
-      )
-      .slice(0, 2);
-
-    res.status(200).json({ success: true, data: publicProfiles });
+    res.status(200).json({ success: true, data: profiles });
   } catch (error) {
     console.error('Error fetching featured profiles:', error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -131,8 +122,21 @@ exports.updateFeaturedProfile = async (req, res) => {
       currentPortfolio = Array.isArray(existingPortfolio) ? existingPortfolio : [existingPortfolio];
     }
 
-    // If admin removed some existing portfolio items, delete orphaned cloudinary assets (best effort)
+    // Align portfolio metadata arrays (thumbs, public IDs) with remaining images
     const prevPortfolio = Array.isArray(existing.portfolio) ? existing.portfolio : [];
+    const prevThumbs = Array.isArray(existing.portfolioThumbs) ? existing.portfolioThumbs : [];
+    const prevPids = Array.isArray(existing.portfolioPublicIds) ? existing.portfolioPublicIds : [];
+    const prevThumbPids = Array.isArray(existing.portfolioThumbPublicIds) ? existing.portfolioThumbPublicIds : [];
+
+    const remainingIndices = prevPortfolio
+      .map((url, idx) => (currentPortfolio.includes(url) ? idx : -1))
+      .filter((idx) => idx !== -1);
+
+    const updatedThumbs = remainingIndices.map((idx) => prevThumbs[idx]).filter(Boolean);
+    const updatedPids = remainingIndices.map((idx) => prevPids[idx]).filter(Boolean);
+    const updatedThumbPids = remainingIndices.map((idx) => prevThumbPids[idx]).filter(Boolean);
+
+    // If admin removed some existing portfolio items, delete orphaned cloudinary assets (best effort)
     const removedPortfolio = prevPortfolio.filter((u) => !currentPortfolio.includes(u));
     for (const url of removedPortfolio) {
       const pid = extractCloudinaryPublicIdFromUrl(url);
@@ -181,10 +185,18 @@ exports.updateFeaturedProfile = async (req, res) => {
         const newThumbPids = uploads.map(u => u.thumb.publicId);
 
         currentPortfolio = [...currentPortfolio, ...newPortfolioUrls];
-        updateFields.portfolioThumbs = [...(existing.portfolioThumbs || []), ...newThumbUrls];
-        updateFields.portfolioPublicIds = [...(existing.portfolioPublicIds || []), ...newPids];
-        updateFields.portfolioThumbPublicIds = [...(existing.portfolioThumbPublicIds || []), ...newThumbPids];
+        updateFields.portfolioThumbs = [...updatedThumbs, ...newThumbUrls];
+        updateFields.portfolioPublicIds = [...updatedPids, ...newPids];
+        updateFields.portfolioThumbPublicIds = [...updatedThumbPids, ...newThumbPids];
+      } else {
+        updateFields.portfolioThumbs = updatedThumbs;
+        updateFields.portfolioPublicIds = updatedPids;
+        updateFields.portfolioThumbPublicIds = updatedThumbPids;
       }
+    } else {
+      updateFields.portfolioThumbs = updatedThumbs;
+      updateFields.portfolioPublicIds = updatedPids;
+      updateFields.portfolioThumbPublicIds = updatedThumbPids;
     }
     updateFields.portfolio = currentPortfolio;
 

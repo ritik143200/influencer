@@ -115,7 +115,7 @@ const normalizeProfile = (profile = {}) => ({
     youtube: profile.platforms?.youtube?.followers || '',
     facebook: profile.platforms?.facebook?.followers || ''
   },
-  profileImage: profile.profileImage || profile.profilePicture || '',
+  profileImage: profile.profileImage || profile.profilePicture || profile.avatar || '',
   mainCategories: profile.mainCategories?.length ? profile.mainCategories : ['creator-influencer'],
   microCategories: profile.microCategories?.length
     ? profile.microCategories
@@ -178,6 +178,8 @@ const ProfilePage = ({ previewMode = false }) => {
   const [isMicroDropdownOpen, setIsMicroDropdownOpen] = useState(false);
   const microDropdownRef = useRef(null);
   const hasLoadedProfileRef = useRef(false);
+  const avatarInputRef = useRef(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [loading, setLoading] = useState(!previewMode);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -248,6 +250,40 @@ const ProfilePage = ({ previewMode = false }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setMessage('');
     setMessageType('');
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    setAvatarUploading(true);
+    const token = localStorage.getItem('userToken');
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+
+      const response = await fetch(`${API_BASE_URL}/api/influencer/portfolio/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataUpload
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+      const url = data.url || data.path || data.data?.url;
+      if (url) {
+        setField('profileImage', url);
+        setField('profilePicture', url);
+      }
+    } catch (err) {
+      console.error('Avatar upload error', err);
+      alert('Failed to upload avatar. Try again.');
+    } finally {
+      setAvatarUploading(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
   };
 
   const setNestedField = (group, field, value) => {
@@ -343,6 +379,8 @@ const ProfilePage = ({ previewMode = false }) => {
       phone: formData.phone.trim(),
       bio: formData.bio.trim(),
       location: formData.location,
+      profileImage: formData.profileImage,
+      profilePicture: formData.profileImage || formData.profilePicture,
       gender: formData.gender || undefined,          // omit empty string
       username: formData.username.trim() || undefined, // omit empty string
       budgetMin: formData.budgetMin,
@@ -501,17 +539,40 @@ const ProfilePage = ({ previewMode = false }) => {
                 Profile Overview
               </div>
               <div className="flex items-center gap-5">
-                <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[#171321] ring-4 ring-[#3E2A55]">
+                <div className="relative h-28 w-28 overflow-hidden rounded-full bg-[#171321] ring-4 ring-[#3E2A55] group cursor-pointer" onClick={() => avatarInputRef.current?.click()}>
                   {formData.profileImage ? (
-                    <img src={formData.profileImage} alt={creatorName(formData)} className="h-full w-full object-cover" />
+                    <img src={formData.profileImage} alt={creatorName(formData)} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-4xl font-semibold text-[#DF7AFE]">
                       {creatorInitial(formData)}
                     </div>
                   )}
+                  {avatarUploading ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#DF7AFE] border-t-transparent"></div>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition group-hover:opacity-100">
+                      <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <div className="min-w-0">
+                <input type="file" ref={avatarInputRef} onChange={handleAvatarUpload} accept="image/*" className="hidden" />
+                <div className="min-w-0 flex-1">
                   <input value={formData.fullName} onChange={(event) => setField('fullName', event.target.value)} className={`${inputClassName} mb-3 font-semibold`} placeholder="Full name" />
+                  <div className="mb-3 flex items-center gap-3">
+                    <button type="button" onClick={() => avatarInputRef.current?.click()} className="text-xs font-semibold text-[#DF7AFE] hover:underline">
+                      Change Photo
+                    </button>
+                    {formData.profileImage && formData.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg' && (
+                      <button type="button" onClick={() => { setField('profileImage', ''); setField('profilePicture', ''); }} className="text-xs font-semibold text-rose-400 hover:underline">
+                        Remove
+                      </button>
+                    )}
+                  </div>
                   <div className="text-xs text-[#A98BC8]">{selectedMicroNames.join(', ') || formData.category || 'Influencer'}</div>
                   <div className="mt-3 flex items-center gap-2 text-xs text-[#A98BC8]">
                     <MapPin className="h-3.5 w-3.5" strokeWidth={2} />

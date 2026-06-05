@@ -18,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
 import { calculateProfileCompletion } from '../utils/profileCompletion';
+import InquiryStatusTracker from '../components/InquiryStatusTracker';
 
 const previewUser = {
   fullName: '',
@@ -73,7 +74,7 @@ const normalizeInquiries = (payload) => {
       brandName: item.userId?.name || item.brandName || item.name || 'Brand',
       category: item.category || item.hiringFor || 'Campaign',
       requirements: item.requirements || item.description || '',
-      status: item.artistStatus || item.acceptanceStatus || item.status || 'forwarded'
+      status: item.status || item.acceptanceStatus || 'forwarded'
     }))
     .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 };
@@ -349,7 +350,12 @@ const InfluencerDashboard = ({ previewMode = false }) => {
                       <div className="text-lg font-semibold">{formatMoney(inquiry.budget)}</div>
                     </div>
                     {inquiry.requirements && <p className="mt-4 text-sm leading-6 text-[#A98BC8]">{inquiry.requirements}</p>}
-                    <div className="mt-5 flex flex-wrap gap-3">
+                    {/* Progress tracker */}
+                    <div className="mt-4 rounded-xl border border-[#1D1228] bg-[#0A0A12] px-3 pb-3 pt-2.5">
+                      <div className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[#3E2A55]">Inquiry Progress</div>
+                      <InquiryStatusTracker status={inquiry.status} variant="full" />
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
                       <button
                         type="button"
                         disabled={respondingId === inquiry._id}

@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Bell,
   BriefcaseBusiness,
   Calendar,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Filter,
-  Inbox,
-  IndianRupee,
   MapPin,
   Plus,
   RefreshCw,
@@ -20,6 +17,7 @@ import {
   Tag
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import InquiryStatusTracker from '../components/InquiryStatusTracker';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
 import BrandTopNav from '../components/BrandTopNav';
@@ -167,8 +165,14 @@ const CampaignCard = ({ inquiry, onClick }) => {
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#A98BC8]">{inquiry.requirements}</p>
       )}
 
-      {/* Influencer assignment / Contact status info */}
-      <div className="mt-4 border-t border-[#171321] pt-3 flex items-center justify-between text-xs">
+      {/* Progress Tracker */}
+      <div className="mt-4 rounded-xl border border-[#1D1228] bg-[#0A0A12] px-3 pb-3 pt-2.5">
+        <div className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[#3E2A55]">Inquiry Progress</div>
+        <InquiryStatusTracker status={inquiry.status} variant="full" />
+      </div>
+
+      {/* Footer: creator info + link */}
+      <div className="mt-3 flex items-center justify-between text-xs">
         {assignedName ? (
           <span className="text-emerald-400 font-semibold flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse"></span>

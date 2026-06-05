@@ -194,8 +194,8 @@ exports.getUserInquiries = async (req, res) => {
 
         const inquiries = await Inquiry.find(filter)
             .populate('userId', 'name email phone role')
-            .populate('assignedInfluencer.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories')
-            .populate('forwardedTo.userId', 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories')
+            .populate({ path: 'assignedInfluencer.userId', model: 'Influencer', select: 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories' })
+            .populate({ path: 'forwardedTo.userId', model: 'Influencer', select: 'firstName lastName fullName username email phone profileType role category categories mainCategories microCategories' })
             .sort({ createdAt: -1 });
 
         res.status(200).json({ success: true, count: inquiries.length, data: inquiries });

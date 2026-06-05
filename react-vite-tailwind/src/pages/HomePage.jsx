@@ -41,26 +41,78 @@ const categories = [
   }
 ];
 
-const allowedFeaturedNames = ['ayushi sikarwar', 'pooja patel'];
-
 const fallbackProfiles = [
   {
     id: 'ayushi-sikarwar',
     name: 'Ayushi Sikarwar',
-    category: 'Influencer',
-    followers: 'Verified',
-    engagement: 'Creator',
-    image: '',
-    instagramLink: ''
+    category: 'Lifestyle & Travel',
+    followers: '1.2M',
+    engagement: '120 posts',
+    image: 'https://picsum.photos/seed/ayushi/400/400.jpg',
+    instagramLink: 'https://instagram.com'
   },
   {
     id: 'pooja-patel',
     name: 'Pooja Patel',
-    category: 'Influencer',
-    followers: 'Verified',
-    engagement: 'Creator',
-    image: '',
-    instagramLink: ''
+    category: 'Fashion & Beauty',
+    followers: '850K',
+    engagement: '310 posts',
+    image: 'https://picsum.photos/seed/pooja/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'rohan-sharma',
+    name: 'Rohan Sharma',
+    category: 'Fitness & Health',
+    followers: '520K',
+    engagement: '85 posts',
+    image: 'https://picsum.photos/seed/rohan/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'ananya-iyer',
+    name: 'Ananya Iyer',
+    category: 'Food & Cooking',
+    followers: '980K',
+    engagement: '412 posts',
+    image: 'https://picsum.photos/seed/ananya/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'kabir-mehta',
+    name: 'Kabir Mehta',
+    category: 'Technology & Gadgets',
+    followers: '1.5M',
+    engagement: '150 posts',
+    image: 'https://picsum.photos/seed/kabir/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'sneha-reddy',
+    name: 'Sneha Reddy',
+    category: 'Finance & Growth',
+    followers: '640K',
+    engagement: '95 posts',
+    image: 'https://picsum.photos/seed/sneha/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'vikram-singh',
+    name: 'Vikram Singh',
+    category: 'Comedy & Vlogs',
+    followers: '2.1M',
+    engagement: '520 posts',
+    image: 'https://picsum.photos/seed/vikram/400/400.jpg',
+    instagramLink: 'https://instagram.com'
+  },
+  {
+    id: 'dia-kapoor',
+    name: 'Dia Kapoor',
+    category: 'Art & Craft',
+    followers: '430K',
+    engagement: '108 posts',
+    image: 'https://picsum.photos/seed/dia/400/400.jpg',
+    instagramLink: 'https://instagram.com'
   }
 ];
 
@@ -404,7 +456,7 @@ const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profil
           {profilesLoading ? (
             <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5 text-sm font-bold text-white/64">Loading creators...</div>
           ) : profiles.length ? (
-            profiles.slice(0, 4).map((profile) => (
+            profiles.slice(0, 8).map((profile) => (
               <button
                 key={profile.id}
                 type="button"
@@ -479,13 +531,7 @@ const LandingPage = () => {
         if (!ignore && response.ok && data.success && Array.isArray(data.data)) {
           const publicProfiles = data.data
             .map(normalizeProfile)
-            .filter((profile) => allowedFeaturedNames.includes(getFeaturedNameKey(profile.name)))
-            .sort(
-              (a, b) =>
-                allowedFeaturedNames.indexOf(getFeaturedNameKey(a.name)) -
-                allowedFeaturedNames.indexOf(getFeaturedNameKey(b.name))
-            )
-            .slice(0, 2);
+            .slice(0, 8);
           setProfiles(publicProfiles.length ? publicProfiles : fallbackProfiles);
         }
       } catch {
@@ -798,7 +844,7 @@ const LandingPage = () => {
 
           {profilesLoading ? (
             <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {[0, 1].map((item) => (
+              {[0, 1, 2, 3].map((item) => (
                 <div key={item} className="h-[360px] animate-pulse rounded-[32px] bg-[#0D0D0D]" />
               ))}
             </div>

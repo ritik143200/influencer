@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
+import InquiryStatusTracker from '../components/InquiryStatusTracker';
 
 /* ─── Constants ──────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -98,7 +99,7 @@ const normalizeInquiries = (payload) => {
       brandEmail: item.userId?.email || item.email || '',
       category: item.category || item.hiringFor || 'Campaign',
       requirements: item.requirements || item.description || '',
-      status: item.artistStatus || item.acceptanceStatus || item.status || 'forwarded',
+      status: item.status || item.acceptanceStatus || 'forwarded',
       budget: item.budget || 0,
       location: item.location || '',
       eventDate: item.eventDate || null,
@@ -187,9 +188,15 @@ const CampaignCard = ({ inquiry, onRespond, respondingId }) => {
         <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#A98BC8]">{inquiry.requirements}</p>
       )}
 
+      {/* Progress Tracker */}
+      <div className="mt-4 rounded-xl border border-[#1D1228] bg-[#0A0A12] px-3 pb-3 pt-2.5">
+        <div className="mb-2 text-[0.6rem] font-semibold uppercase tracking-[0.15em] text-[#3E2A55]">Inquiry Progress</div>
+        <InquiryStatusTracker status={inquiry.status} variant="full" />
+      </div>
+
       {/* Action Buttons (only for pending) */}
       {isPending && (
-        <div className="mt-4 flex flex-wrap gap-2.5 border-t border-[#171321] pt-4">
+        <div className="mt-3 flex flex-wrap gap-2.5">
           <button
             type="button"
             disabled={isResponding}

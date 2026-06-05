@@ -536,7 +536,9 @@ const registerInfluencer = async (req, res) => {
         categorySelections: newInfluencer.categorySelections,
         niche: newInfluencer.niche,
         location: newInfluencer.location,
-        socialLinks: newInfluencer.socialLinks
+        socialLinks: newInfluencer.socialLinks,
+        profileImage: newInfluencer.profileImage,
+        profilePicture: newInfluencer.profilePicture
       }
     });
 
@@ -879,7 +881,7 @@ const respondToInquiry = async (req, res) => {
     }
 
     // If accepted, set as assigned influencer (one-time assignment, first to accept)
-    if (status === 'accepted' && !inquiry.assignedInfluencer) {
+    if (status === 'accepted' && !inquiry.assignedInfluencer?.userId) {
       inquiry.assignedInfluencer = {
         userId: req.user._id,
         assignedBy: req.user._id,
@@ -910,10 +912,15 @@ const respondToInquiry = async (req, res) => {
       });
     } else if (status === 'rejected') {
       // Check if all forwarded influencers have rejected
-      const allRejected = inquiry.forwardedTo.every(f => 
-        f.acceptanceStatus === 'rejected' || 
-        (f.userId && f.userId.toString() === req.user._id.toString())
-      );
+      // Exclude the current user's entry (already updated above) — check everyone else
+      const allRejected = inquiry.forwardedTo.every(f => {
+        const isCurrentUser = f.userId && f.userId.toString() === req.user._id.toString();
+        if (isCurrentUser) {
+          // Current user just set their status to 'rejected' — count it
+          return true;
+        }
+        return f.acceptanceStatus === 'rejected' || f.acceptanceStatus === 'auto-rejected';
+      });
       
       if (allRejected) {
         // If all have rejected, set overall status to artist_rejected

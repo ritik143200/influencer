@@ -185,7 +185,7 @@
 
   /* Admin skeleton loader */
   .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(90deg, #121212 25%, #222222 50%, #121212 75%) !important;
     background-size: 200% 100%;
     animation: skeletonShimmer 1.5s infinite;
     border-radius: 6px;
@@ -250,54 +250,118 @@
       linear-gradient(135deg, #000000 0%, #171321 54%, #000000 100%) !important;
   }
 
-  .vm-admin-red .bg-white,
-  .vm-admin-red .bg-gray-50,
-  .vm-admin-red .bg-gray-100,
-  .vm-admin-red .bg-blue-50,
-  .vm-admin-red .bg-indigo-50,
-  .vm-admin-red .bg-purple-50 {
-    background-color: rgba(18, 9, 10, 0.92) !important;
+  /* Target all elements with background colors like white, gray, blue/indigo, orange, green, etc. */
+  .vm-admin-red [class*="bg-white"],
+  .vm-admin-red [class*="bg-gray-50"],
+  .vm-admin-red [class*="bg-gray-100"],
+  .vm-admin-red [class*="bg-gray-200"],
+  .vm-admin-red [class*="bg-blue-50"],
+  .vm-admin-red [class*="bg-indigo-50"],
+  .vm-admin-red [class*="bg-purple-50"],
+  .vm-admin-red [class*="bg-orange-50"],
+  .vm-admin-red [class*="bg-emerald-50"],
+  .vm-admin-red [class*="bg-green-50"],
+  .vm-admin-red [class*="bg-green-100"],
+  .vm-admin-red [class*="bg-yellow-100"],
+  .vm-admin-red [class*="bg-red-100"] {
+    background-color: #0D0D0D !important;
+    background-image: none !important;
     color: #FFFFFF !important;
   }
 
-  .vm-admin-red .border-gray-100,
-  .vm-admin-red .border-gray-200,
-  .vm-admin-red .border-gray-300,
-  .vm-admin-red .border-blue-200,
-  .vm-admin-red .border-indigo-200 {
-    border-color: rgba(169, 139, 200, 0.28) !important;
+  /* Subtle card backgrounds and metadata blocks */
+  .vm-admin-red [class*="bg-gray-100"],
+  .vm-admin-red [class*="bg-gray-50"],
+  .vm-admin-red [class*="bg-white/10"],
+  .vm-admin-red [class*="bg-white/[0.05]"] {
+    background-color: rgba(255, 255, 255, 0.04) !important;
   }
 
-  .vm-admin-red .text-gray-900,
-  .vm-admin-red .text-gray-800,
-  .vm-admin-red .text-gray-700,
-  .vm-admin-red .text-gray-600 {
+  /* Specific dark-mode borders */
+  .vm-admin-red [class*="border-gray-"],
+  .vm-admin-red [class*="border-orange-"],
+  .vm-admin-red [class*="border-green-"],
+  .vm-admin-red [class*="border-blue-"],
+  .vm-admin-red [class*="border-indigo-"] {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Text color overrides */
+  .vm-admin-red [class*="text-gray-900"],
+  .vm-admin-red [class*="text-gray-800"],
+  .vm-admin-red [class*="text-gray-700"],
+  .vm-admin-red [class*="text-gray-600"] {
     color: #FFFFFF !important;
   }
 
-  .vm-admin-red .text-gray-500,
-  .vm-admin-red .text-gray-400 {
-    color: rgba(244, 240, 239, 0.62) !important;
+  .vm-admin-red [class*="text-gray-500"],
+  .vm-admin-red [class*="text-gray-400"] {
+    color: rgba(255, 255, 255, 0.5) !important;
   }
 
+  /* Input overrides */
   .vm-admin-red input,
   .vm-admin-red select,
   .vm-admin-red textarea {
-    background-color: #000000 !important;
+    background-color: #121212 !important;
     color: #FFFFFF !important;
-    border-color: rgba(169, 139, 200, 0.38) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
   }
 
   .vm-admin-red input::placeholder,
   .vm-admin-red textarea::placeholder {
-    color: rgba(244, 240, 239, 0.45) !important;
+    color: rgba(255, 255, 255, 0.3) !important;
   }
 
+  /* Table styles */
   .vm-admin-red table,
   .vm-admin-red thead,
   .vm-admin-red tbody,
-  .vm-admin-red tr {
+  .vm-admin-red tr,
+  .vm-admin-red th,
+  .vm-admin-red td {
     background-color: transparent !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Hover overrides */
+  .vm-admin-red [class*="hover:bg-gray-"]:hover,
+  .vm-admin-red [class*="hover:bg-white"]:hover,
+  .vm-admin-red [class*="hover:bg-blue-"]:hover,
+  .vm-admin-red [class*="hover:bg-indigo-"]:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* Modify default blue/indigo buttons in admin to theme magenta */
+  .vm-admin-red [class*="bg-blue-600"],
+  .vm-admin-red [class*="bg-indigo-600"],
+  .vm-admin-red [class*="bg-brand-"] {
+    background-color: #DF7AFE !important;
+    color: #FFFFFF !important;
+    border-color: #DF7AFE !important;
+  }
+
+  .vm-admin-red [class*="bg-blue-600"]:hover,
+  .vm-admin-red [class*="bg-indigo-600"]:hover,
+  .vm-admin-red [class*="bg-brand-"]:hover {
+    background-color: #814AC8 !important;
+    border-color: #814AC8 !important;
+  }
+
+  /* Dialogs / Modals (including nested fixed/absolute elements) */
+  .fixed.inset-0 .bg-white,
+  .fixed.inset-0 [class*="bg-white"] {
+    background-color: #0D0D0D !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #FFFFFF !important;
+  }
+
+  .fixed.inset-0 [class*="bg-gray-50"],
+  .fixed.inset-0 [class*="bg-gray-100"] {
+    background-color: #121212 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #FFFFFF !important;
   }
 
   .vm-admin-red .shadow-lg,

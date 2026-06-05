@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import InquiryStatusTracker from './InquiryStatusTracker';
 
 const AdminInquiryManagement = ({
   inquiries,
@@ -181,9 +182,9 @@ const AdminInquiryManagement = ({
       <div className="w-full p-6">
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Pagination Info */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <div className="bg-[#121212] rounded-xl border border-white/10 p-4">
             <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-white/70">
                 Showing {Math.min((inquiryCurrentPage - 1) * inquiryItemsPerPage + 1, filteredInquiries.length)} to {Math.min(inquiryCurrentPage * inquiryItemsPerPage, filteredInquiries.length)} of {filteredInquiries.length} inquiries
               </div>
               
@@ -192,7 +193,7 @@ const AdminInquiryManagement = ({
                 <button
                   onClick={() => setInquiryCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={inquiryCurrentPage === 1}
-                  className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
                 >
                   Previous
                 </button>
@@ -216,13 +217,13 @@ const AdminInquiryManagement = ({
                       <button
                         key={1}
                         onClick={() => setInquiryCurrentPage(1)}
-                        className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10 transition-colors"
                       >
                         1
                       </button>
                     );
                     if (startPage > 2) {
-                      pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+                      pages.push(<span key="ellipsis-start" className="px-2 text-white/50">...</span>);
                     }
                   }
                   
@@ -234,8 +235,8 @@ const AdminInquiryManagement = ({
                         onClick={() => setInquiryCurrentPage(i)}
                         className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
                           i === currentPage
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'border-gray-300 hover:bg-gray-50'
+                            ? 'bg-[#DF7AFE] text-black border-[#DF7AFE] font-bold'
+                            : 'border-white/10 text-white hover:bg-white/10'
                         }`}
                       >
                         {i}
@@ -246,13 +247,13 @@ const AdminInquiryManagement = ({
                   // Add last page if not visible
                   if (endPage < totalPages) {
                     if (endPage < totalPages - 1) {
-                      pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+                      pages.push(<span key="ellipsis-end" className="px-2 text-white/50">...</span>);
                     }
                     pages.push(
                       <button
                         key={totalPages}
                         onClick={() => setInquiryCurrentPage(totalPages)}
-                        className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+                        className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10 transition-colors"
                       >
                         {totalPages}
                       </button>
@@ -265,7 +266,7 @@ const AdminInquiryManagement = ({
                 <button
                   onClick={() => setInquiryCurrentPage(prev => Math.min(prev + 1, Math.ceil(filteredInquiries.length / inquiryItemsPerPage)))}
                   disabled={inquiryCurrentPage === Math.ceil(filteredInquiries.length / inquiryItemsPerPage)}
-                  className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
                 >
                   Next
                 </button>
@@ -274,8 +275,8 @@ const AdminInquiryManagement = ({
           </div>
 
           {filteredInquiries.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <div className="text-gray-400">No inquiries found matching your filters.</div>
+            <div className="bg-[#121212] rounded-xl border border-white/10 p-8 text-center">
+              <div className="text-white/50">No inquiries found matching your filters.</div>
             </div>
           ) : (
             // Get paginated inquiries
@@ -304,60 +305,60 @@ const AdminInquiryManagement = ({
             }
 
             return (
-              <div key={inquiryId} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200">
+              <div key={inquiryId} className="bg-[#121212] rounded-xl border border-white/10 p-6 hover:border-white/20 transition-all duration-200">
                 {/* Header Row */}
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        displayStatus === 'sent' ? 'bg-blue-100 text-blue-800' :
-                        displayStatus === 'admin_accepted' ? 'bg-green-100 text-green-800' :
-                        displayStatus === 'admin_rejected' ? 'bg-red-100 text-red-800' :
-                        displayStatus === 'forwarded' ? 'bg-purple-100 text-purple-800' :
-                        displayStatus === 'artist_accepted' ? 'bg-emerald-100 text-emerald-800' :
-                        displayStatus === 'artist_rejected' ? 'bg-orange-100 text-orange-800' :
-                        displayStatus === 'completed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-gray-100 text-gray-800'
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full border ${
+                        displayStatus === 'sent' ? 'bg-[#DF7AFE]/10 text-[#DF7AFE] border-[#DF7AFE]/20' :
+                        displayStatus === 'admin_accepted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        displayStatus === 'admin_rejected' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' :
+                        displayStatus === 'forwarded' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                        displayStatus === 'artist_accepted' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        displayStatus === 'artist_rejected' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                        displayStatus === 'completed' ? 'bg-white/10 text-white/70 border-white/10' :
+                        'bg-white/10 text-white/70 border-white/10'
                       }`}>
                         {displayStatus.replace(/_/g, ' ').replace(/artist/gi, 'influencer').charAt(0).toUpperCase() + displayStatus.replace(/_/g, ' ').replace(/artist/gi, 'influencer').slice(1)}
                         {hasInfluencerRejections && displayStatus !== 'artist_rejected' && (
-                          <span className="ml-1 text-xs">(Has Rejections)</span>
+                          <span className="ml-1 text-xs text-rose-400">(Has Rejections)</span>
                         )}
                         {hasInfluencerAcceptances && displayStatus !== 'artist_accepted' && (
-                          <span className="ml-1 text-xs text-green-600">(Has Acceptances)</span>
+                          <span className="ml-1 text-xs text-emerald-400">(Has Acceptances)</span>
                         )}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-white/40">
                         {new Date(inquiry.createdAt).toLocaleDateString('en-IN')}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Client Information</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium">{inquiry.name}</div>
-                          <div className="text-xs text-gray-400">{inquiry.email}</div>
-                          <div className="text-xs text-gray-400">{inquiry.phone}</div>
+                        <h4 className="font-semibold text-white text-sm mb-1">Client Information</h4>
+                        <div className="text-sm text-white/70">
+                          <div className="font-medium text-white">{inquiry.name}</div>
+                          <div className="text-xs text-white/40">{inquiry.email}</div>
+                          <div className="text-xs text-white/40">{inquiry.phone}</div>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Project Details</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium truncate">{inquiry.campaignName || inquiry.hiringFor}</div>
-                          <div className="text-xs text-gray-500 mt-1">{inquiry.category || inquiry.hiringFor}</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                        <h4 className="font-semibold text-white text-sm mb-1">Project Details</h4>
+                        <div className="text-sm text-white/70">
+                          <div className="font-medium text-white truncate">{inquiry.campaignName || inquiry.hiringFor}</div>
+                          <div className="text-xs text-white/50 mt-1">{inquiry.category || inquiry.hiringFor}</div>
+                          <div className="text-xs text-white/40 mt-1">
                             Budget: {inquiry.budget ? `Rs. ${inquiry.budget.toLocaleString()}` : 'Not specified'}
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-sm mb-1">Timeline</h4>
-                        <div className="text-sm text-gray-600">
-                          <div className="font-medium">{inquiry.timeline || 'Not specified'}</div>
-                          <div className="text-xs text-gray-500 mt-1">
+                        <h4 className="font-semibold text-white text-sm mb-1">Timeline</h4>
+                        <div className="text-sm text-white/70">
+                          <div className="font-medium text-white">{inquiry.timeline || 'Not specified'}</div>
+                          <div className="text-xs text-white/40 mt-1">
                             Duration: {inquiry.duration || 'Not specified'}
                           </div>
                         </div>
@@ -367,31 +368,37 @@ const AdminInquiryManagement = ({
                 </div>
 
                 {/* Requirements / Message */}
-                <div className="mb-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                  <h4 className="font-semibold text-gray-900 text-sm mb-2 flex items-center gap-2">
-                    <svg className="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="mb-3 bg-[#0D0D0D] p-4 rounded-xl border border-white/10">
+                  <h4 className="font-semibold text-white text-sm mb-2 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     Campaign Details / Requirements
                   </h4>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                  <p className="text-sm text-white/80 whitespace-pre-wrap leading-relaxed">
                     {inquiry.requirements || inquiry.message || 'No specific requirements mentioned'}
                   </p>
                 </div>
 
+                {/* Inquiry Progress Tracker */}
+                <div className="mb-4 rounded-xl border border-[#1D1228] bg-[#070710] px-4 py-3">
+                  <div className="mb-2 text-[0.6rem] font-semibold uppercase tracking-widest text-[#3E2A55]">Inquiry Pipeline Progress</div>
+                  <InquiryStatusTracker status={status} variant="full" />
+                </div>
+
                 {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/10">
                   {status === 'sent' && (
                     <>
                       <button
                         onClick={() => handleAdminInquiryAction(inquiryId, 'accept')}
-                        className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         Accept
                       </button>
                       <button
                         onClick={() => handleAdminInquiryAction(inquiryId, 'reject')}
-                        className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                        className="px-4 py-2 bg-rose-600 text-white text-sm font-semibold rounded-lg hover:bg-rose-700 transition-colors"
                       >
                         Reject
                       </button>
@@ -401,16 +408,16 @@ const AdminInquiryManagement = ({
                   {(status === 'admin_accepted' || status === 'forwarded') && (
                     <button
                       onClick={() => handleOpenForwardModal(inquiryId)}
-                      className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                      className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors"
                     >
                       Forward
                     </button>
                   )}
                   
-                  {(status === 'artist_accepted' || status === 'artist_rejected') && (
+                  {status === 'artist_accepted' && (
                     <button
                       onClick={() => handleAssignToInfluencer(inquiryId)}
-                      className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                      className="px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
                     >
                       Complete
                     </button>
@@ -418,7 +425,7 @@ const AdminInquiryManagement = ({
                   
                   <button
                     onClick={() => handleViewInquiryDetails(inquiry)}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-white/10 border border-white/10 text-white text-sm font-semibold rounded-lg hover:bg-white/20 transition-colors"
                   >
                     View Details
                   </button>

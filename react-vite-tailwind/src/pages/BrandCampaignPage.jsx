@@ -348,7 +348,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
       const saved = data.data || {};
       localStorage.setItem('lastSubmittedInquiryPreview', JSON.stringify(saved));
       setSuccess(isDetails ? 'Campaign details updated.' : 'Campaign created.');
-      setTimeout(() => navigate('user-dashboard'), 700);
+      setTimeout(() => navigate('my-inquiries'), 700);
     } catch (saveError) {
       const isLocalPreview = isLocalPreviewHost();
       const isNetworkBlocked = saveError?.message?.toLowerCase?.().includes('failed to fetch');

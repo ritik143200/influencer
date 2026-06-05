@@ -299,6 +299,11 @@ const AdminDashboard = ({ config }) => {
 
   const handleViewUserDetails = useCallback((u) => { setSelectedUser(u); setShowUserModal(true); }, []);
 
+  const handleCloseArtistModal = useCallback(() => {
+    setShowInfluencerModal(false);
+    setSelectedInfluencer(null);
+  }, []);
+
   const handleUpdateUserStatus = useCallback(async (userId, action) => {
     try {
       const updated = await adminApi.updateUserStatus(userId, action);
@@ -457,7 +462,7 @@ const AdminDashboard = ({ config }) => {
           disabled={isRefreshing}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 ${isRefreshing
               ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md'
+              : 'bg-white hover:bg-gray-50 text-white/80 hover:text-white shadow-sm hover:shadow-md'
             }`}
         >
           <svg
@@ -763,13 +768,13 @@ const AdminDashboard = ({ config }) => {
 
               <div className="min-w-0">
 
-                <div className="font-semibold text-gray-800 truncate">
+                <div className="font-semibold text-white/90 truncate">
 
                   {analytics.topInquirer.name || 'Unknown user'}
 
                 </div>
 
-                <div className="text-sm text-gray-500 truncate">
+                <div className="text-sm text-white/60 truncate">
 
                   {analytics.topInquirer.email || analytics.topInquirer.userId}
 
@@ -787,7 +792,7 @@ const AdminDashboard = ({ config }) => {
 
           ) : (
 
-            <div className="text-sm text-gray-500">No inquiry data yet</div>
+            <div className="text-sm text-white/60">No inquiry data yet</div>
 
           )}
 
@@ -1152,7 +1157,7 @@ const AdminDashboard = ({ config }) => {
 
                   >
 
-                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
 
@@ -1230,7 +1235,7 @@ const AdminDashboard = ({ config }) => {
 
                                 </h4>
 
-                                <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                                <p className="text-xs text-white/70 mt-1">{notification.message}</p>
 
                                 <p className="text-xs text-gray-400 mt-2">
 
@@ -1274,7 +1279,7 @@ const AdminDashboard = ({ config }) => {
 
                     <p className="text-sm font-semibold" style={{ color: getThemeColor('text') }}>{adminData?.name || 'Admin'}</p>
 
-                    <p className="text-xs text-gray-500">Administrator</p>
+                    <p className="text-xs text-white/60">Administrator</p>
 
                   </div>
 
@@ -1336,7 +1341,7 @@ const AdminDashboard = ({ config }) => {
 
                   ? 'text-white'
 
-                  : 'text-gray-600 hover:text-gray-900'
+                  : 'text-white/70 hover:text-white'
 
                   }`}
 
@@ -1481,7 +1486,7 @@ const AdminDashboard = ({ config }) => {
 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0D0D0D] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto text-white">
 
             {/* Modal Header */}
 
@@ -1527,9 +1532,9 @@ const AdminDashboard = ({ config }) => {
 
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.isActive !== false
 
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-green-500/20 text-green-300'
 
-                          : 'bg-red-100 text-red-700'
+                          : 'bg-red-500/20 text-red-300'
 
                         }`}>
 
@@ -1577,11 +1582,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Personal Information */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 
@@ -1597,17 +1602,17 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">First Name</p>
+                        <p className="text-sm text-white/60">First Name</p>
 
-                        <p className="font-medium text-gray-900">{selectedInfluencer.firstName || 'Not provided'}</p>
+                        <p className="font-medium text-white">{selectedInfluencer.firstName || 'Not provided'}</p>
 
                       </div>
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Last Name</p>
+                        <p className="text-sm text-white/60">Last Name</p>
 
-                        <p className="font-medium text-gray-900">{selectedInfluencer.lastName || 'Not provided'}</p>
+                        <p className="font-medium text-white">{selectedInfluencer.lastName || 'Not provided'}</p>
 
                       </div>
 
@@ -1615,17 +1620,17 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Email Address</p>
+                      <p className="text-sm text-white/60">Email Address</p>
 
-                      <p className="font-medium text-gray-900">{selectedInfluencer.email || 'Not provided'}</p>
+                      <p className="font-medium text-white">{selectedInfluencer.email || 'Not provided'}</p>
 
                     </div>
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Phone Number</p>
+                      <p className="text-sm text-white/60">Phone Number</p>
 
-                      <p className="font-medium text-gray-900">{selectedInfluencer.phone || 'Not provided'}</p>
+                      <p className="font-medium text-white">{selectedInfluencer.phone || 'Not provided'}</p>
 
                     </div>
 
@@ -1633,9 +1638,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Date of Birth</p>
+                        <p className="text-sm text-white/60">Date of Birth</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedInfluencer.dateOfBirth ? new Date(selectedInfluencer.dateOfBirth).toLocaleDateString() : 'Not provided'}
 
@@ -1645,9 +1650,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Gender</p>
+                        <p className="text-sm text-white/60">Gender</p>
 
-                        <p className="font-medium text-gray-900 capitalize">
+                        <p className="font-medium text-white capitalize">
 
                           {selectedInfluencer.gender || 'Not specified'}
 
@@ -1665,11 +1670,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Category Selection */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
 
@@ -1683,9 +1688,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Influencer Type</p>
+                      <p className="text-sm text-white/60">Influencer Type</p>
 
-                      <p className="font-medium text-gray-900 capitalize">
+                      <p className="font-medium text-white capitalize">
 
                         {selectedInfluencer.InfluencerType || 'Not specified'}
 
@@ -1695,13 +1700,13 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Category</p>
+                      <p className="text-sm text-white/60">Category</p>
 
                       <div className="flex flex-wrap gap-1 mt-1">
 
                         {selectedInfluencer.category ? (
 
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                          <span className="px-2 py-1 bg-[#DF7AFE]/20 text-[#DF7AFE] text-xs rounded-full font-medium capitalize">
 
                             {selectedInfluencer.category}
 
@@ -1709,7 +1714,7 @@ const AdminDashboard = ({ config }) => {
 
                         ) : (
 
-                          <span className="text-gray-500 text-sm">No category specified</span>
+                          <span className="text-white/60 text-sm">No category specified</span>
 
                         )}
 
@@ -1719,9 +1724,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Subcategory</p>
+                      <p className="text-sm text-white/60">Subcategory</p>
 
-                      <p className="font-medium text-gray-900 capitalize">
+                      <p className="font-medium text-white capitalize">
 
                         {selectedInfluencer.subcategory || 'Not specified'}
 
@@ -1731,7 +1736,7 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Skills</p>
+                      <p className="text-sm text-white/60">Skills</p>
 
                       <div className="flex flex-wrap gap-1 mt-1">
 
@@ -1739,7 +1744,7 @@ const AdminDashboard = ({ config }) => {
 
                           selectedInfluencer.skills.map((skill, idx) => (
 
-                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                            <span key={idx} className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full font-medium">
 
                               {skill}
 
@@ -1749,7 +1754,7 @@ const AdminDashboard = ({ config }) => {
 
                         ) : (
 
-                          <span className="text-gray-500 text-sm">No skills specified</span>
+                          <span className="text-white/60 text-sm">No skills specified</span>
 
                         )}
 
@@ -1765,11 +1770,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Professional Information */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 
@@ -1783,9 +1788,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Experience</p>
+                      <p className="text-sm text-white/60">Experience</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInfluencer.experience ? `${selectedInfluencer.experience} years` : 'Not specified'}
 
@@ -1795,9 +1800,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Bio / Description</p>
+                      <p className="text-sm text-white/60">Bio / Description</p>
 
-                      <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                      <p className="font-medium text-white text-sm leading-relaxed">
 
                         {selectedInfluencer.bio || 'No bio provided'}
 
@@ -1807,9 +1812,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Location</p>
+                      <p className="text-sm text-white/60">Location</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {renderLocation(selectedInfluencer.location)}
                       </p>
 
@@ -1817,9 +1822,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Registration Date</p>
+                      <p className="text-sm text-white/60">Registration Date</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInfluencer.createdAt ? new Date(selectedInfluencer.createdAt).toLocaleDateString() : 'Not available'}
 
@@ -1835,11 +1840,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Budget Information */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
 
@@ -1855,9 +1860,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Starting From</p>
+                        <p className="text-sm text-white/60">Starting From</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedInfluencer.budgetMin ? `₹${selectedInfluencer.budgetMin}` : 'Not specified'}
 
@@ -1867,9 +1872,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Upto</p>
+                        <p className="text-sm text-white/60">Upto</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedInfluencer.budgetMax ? `₹${selectedInfluencer.budgetMax}` : 'Not specified'}
 
@@ -1881,13 +1886,13 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Status</p>
+                      <p className="text-sm text-white/60">Status</p>
 
                       <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.isActive !== false
 
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-green-500/20 text-green-300'
 
-                          : 'bg-red-100 text-red-700'
+                          : 'bg-red-500/20 text-red-300'
 
                         }`}>
 
@@ -1909,11 +1914,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Portfolio & Social Links */}
 
-                <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6 md:col-span-2">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
 
@@ -1927,7 +1932,7 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Portfolio Files</p>
+                      <p className="text-sm text-white/60">Portfolio Files</p>
 
                       <div className="flex flex-wrap gap-2 mt-1">
 
@@ -1935,7 +1940,7 @@ const AdminDashboard = ({ config }) => {
 
                           selectedInfluencer.portfolio.map((file, idx) => (
 
-                            <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                            <span key={idx} className="px-2 py-1 bg-gray-100 text-white/80 text-xs rounded-full">
 
                               {file.name || `File ${idx + 1}`}
 
@@ -1945,7 +1950,7 @@ const AdminDashboard = ({ config }) => {
 
                         ) : (
 
-                          <span className="text-gray-500 text-sm">No portfolio files uploaded</span>
+                          <span className="text-white/60 text-sm">No portfolio files uploaded</span>
 
                         )}
 
@@ -1955,7 +1960,7 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Social Media Links</p>
+                      <p className="text-sm text-white/60">Social Media Links</p>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
 
@@ -1967,7 +1972,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
-                              className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                               Instagram
 
@@ -1985,7 +1990,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
-                              className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                               YouTube
 
@@ -2003,7 +2008,7 @@ const AdminDashboard = ({ config }) => {
 
                             <a href={selectedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
-                              className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                               Facebook
 
@@ -2017,11 +2022,11 @@ const AdminDashboard = ({ config }) => {
 
                           <div className="flex items-center gap-2">
 
-                            <span className="text-gray-600">🌐</span>
+                            <span className="text-white/70">🌐</span>
 
                             <a href={selectedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
-                              className="text-purple-600 hover:text-purple-700 text-sm">
+                              className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                               Website
 
@@ -2035,7 +2040,7 @@ const AdminDashboard = ({ config }) => {
 
                           !selectedInfluencer.socialLinks?.facebook && !selectedInfluencer.socialLinks?.website) && (
 
-                            <span className="text-gray-500 text-sm">No social links provided</span>
+                            <span className="text-white/60 text-sm">No social links provided</span>
 
                           )}
 
@@ -2045,9 +2050,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">ID Proof Status</p>
+                      <p className="text-sm text-white/60">ID Proof Status</p>
 
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.idProof ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full font-medium ${selectedInfluencer.idProof ? 'bg-green-500/20 text-green-300' : 'bg-yellow-500/20 text-yellow-300'
 
                         }`}>
 
@@ -2067,13 +2072,13 @@ const AdminDashboard = ({ config }) => {
 
               {/* Modal Footer */}
 
-              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
 
                 <button
 
                   onClick={handleCloseArtistModal}
 
-                  className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                  className="px-6 py-2 text-white/80 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
 
                 >
 
@@ -2204,7 +2209,7 @@ const AdminDashboard = ({ config }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                   <div className="relative">
-                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
                       <span className="text-lg">??</span> Category
                     </label>
                     <input
@@ -2217,11 +2222,11 @@ const AdminDashboard = ({ config }) => {
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
                       <span className="text-lg">??</span> Budget Min
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Rs</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm">Rs</span>
                       <input
                         type="number"
                         placeholder="0"
@@ -2233,11 +2238,11 @@ const AdminDashboard = ({ config }) => {
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
                       <span className="text-lg">??</span> Budget Max
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">Rs</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm">Rs</span>
                       <input
                         type="number"
                         placeholder="100000"
@@ -2249,7 +2254,7 @@ const AdminDashboard = ({ config }) => {
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-gray-700 mb-1 block flex items-center gap-1">
+                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
                       <span className="text-lg">??</span> Location
                     </label>
                     <input
@@ -2273,7 +2278,7 @@ const AdminDashboard = ({ config }) => {
                     >
                       <span className="text-lg">??</span> Clear Filters
                     </button>
-                    <div className="text-sm text-gray-600 sm:ml-auto flex items-center gap-1">
+                    <div className="text-sm text-white/70 sm:ml-auto flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                       Showing best-fit creators first
                     </div>
@@ -2316,8 +2321,8 @@ const AdminDashboard = ({ config }) => {
                           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                             <span className="text-2xl">??</span>
                           </div>
-                          <h4 className="text-lg font-semibold text-gray-900 mb-2">No Influencers Match Your Filters</h4>
-                          <p className="text-sm text-gray-600 max-w-md mb-4">
+                          <h4 className="text-lg font-semibold text-white mb-2">No Influencers Match Your Filters</h4>
+                          <p className="text-sm text-white/70 max-w-md mb-4">
                             Try adjusting your filters to see more influencers.
                           </p>
                           <button
@@ -2363,7 +2368,7 @@ const AdminDashboard = ({ config }) => {
                                       {matchScore}% match
                                     </span>
                                     {matchReasons.slice(0, 2).map((reason) => (
-                                      <span key={reason} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                                      <span key={reason} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-white/80">
                                         {reason}
                                       </span>
                                     ))}
@@ -2380,20 +2385,20 @@ const AdminDashboard = ({ config }) => {
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <span className="text-2xl">??</span>
                         </div>
-                        <h4 className="text-lg font-semibold text-gray-900 mb-2">Apply Filters to See Influencers</h4>
-                        <p className="text-sm text-gray-600 max-w-md mb-4">
+                        <h4 className="text-lg font-semibold text-white mb-2">Apply Filters to See Influencers</h4>
+                        <p className="text-sm text-white/70 max-w-md mb-4">
                           Use the filters above to search for influencers by category, budget, or location.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-white/60">
                             <span className="text-lg">??</span>
                             <span>Category</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-white/60">
                             <span className="text-lg">??</span>
                             <span>Budget</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <div className="flex items-center gap-2 text-sm text-white/60">
                             <span className="text-lg">??</span>
                             <span>Location</span>
                           </div>
@@ -2419,7 +2424,7 @@ const AdminDashboard = ({ config }) => {
 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
 
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0D0D0D] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto text-white">
 
             {/* Modal Header */}
 
@@ -2469,9 +2474,9 @@ const AdminDashboard = ({ config }) => {
 
                 {/* User Information */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
                     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -2487,9 +2492,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Name</p>
+                      <p className="text-sm text-white/60">Name</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.userId?.name || selectedInquiry.name || 'Not provided'}
 
@@ -2499,9 +2504,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Email</p>
+                      <p className="text-sm text-white/60">Email</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.userId?.email || selectedInquiry.email || 'Not provided'}
 
@@ -2511,9 +2516,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Phone</p>
+                      <p className="text-sm text-white/60">Phone</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.phone || 'Not provided'}
 
@@ -2529,9 +2534,9 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Event Information */}
 
-                <div className="bg-gray-50 rounded-xl p-6">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
                     <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -2547,9 +2552,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Category</p>
+                      <p className="text-sm text-white/60">Category</p>
 
-                      <p className="font-medium text-gray-900 capitalize">
+                      <p className="font-medium text-white capitalize">
 
                         {selectedInquiry.category || 'Not specified'}
 
@@ -2560,9 +2565,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Hiring Of</p>
+                      <p className="text-sm text-white/60">Hiring Of</p>
 
-                      <p className="font-medium text-gray-900 capitalize">
+                      <p className="font-medium text-white capitalize">
 
                         {selectedInquiry.hiringFor || 'Not specified'}
 
@@ -2573,9 +2578,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">inquiry date</p>
+                      <p className="text-sm text-white/60">inquiry date</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.eventDate ? new Date(selectedInquiry.eventDate).toLocaleDateString('en-IN') : 'Not specified'}
 
@@ -2585,7 +2590,7 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
                         {renderLocation(selectedInquiry.location)}
                       </p>
 
@@ -2593,9 +2598,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Budget</p>
+                      <p className="text-sm text-white/60">Budget</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.budget ? `₹${Number(selectedInquiry.budget).toLocaleString('en-IN')}` : 'Not specified'}
 
@@ -2611,11 +2616,11 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Requirements */}
 
-                <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                <div className="bg-[#121212] border border-white/10 rounded-xl p-6 md:col-span-2">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 
@@ -2625,7 +2630,7 @@ const AdminDashboard = ({ config }) => {
 
                   </h3>
 
-                  <p className="font-medium text-gray-900 text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="font-medium text-white text-sm leading-relaxed whitespace-pre-wrap">
 
                     {selectedInquiry.requirements || 'No specific requirements mentioned'}
 
@@ -2641,13 +2646,13 @@ const AdminDashboard = ({ config }) => {
 
               {selectedInquiry.forwardedTo && selectedInquiry.forwardedTo.length > 0 && (
 
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 md:col-span-2 mb-6 border border-indigo-200 shadow-sm">
+                <div className="bg-gradient-to-br from-[#171321] to-[#3E2A55] rounded-xl p-6 md:col-span-2 mb-6 border border-white/10 shadow-sm mt-6">
 
                   <div className="flex items-center justify-between mb-6">
 
-                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
 
-                      <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
 
@@ -2671,11 +2676,11 @@ const AdminDashboard = ({ config }) => {
 
                           <>
 
-                            {accepted > 0 && <span className="px-3 py-1 bg-green-200 text-green-800 font-semibold rounded-full">✓ Accepted: {accepted}</span>}
+                            {accepted > 0 && <span className="px-3 py-1 bg-green-500/20 text-green-300 font-semibold rounded-full">✓ Accepted: {accepted}</span>}
 
-                            {rejected > 0 && <span className="px-3 py-1 bg-red-200 text-red-800 font-semibold rounded-full">✕ Rejected: {rejected}</span>}
+                            {rejected > 0 && <span className="px-3 py-1 bg-red-500/20 text-red-300 font-semibold rounded-full">✕ Rejected: {rejected}</span>}
 
-                            {pending > 0 && <span className="px-3 py-1 bg-yellow-200 text-yellow-800 font-semibold rounded-full">⏳ Pending: {pending}</span>}
+                            {pending > 0 && <span className="px-3 py-1 bg-yellow-500/20 text-yellow-300 font-semibold rounded-full">⏳ Pending: {pending}</span>}
 
                           </>
 
@@ -2703,17 +2708,17 @@ const AdminDashboard = ({ config }) => {
 
                         anyAssigned
 
-                          ? 'bg-emerald-100 border border-emerald-300'
+                          ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300'
 
                           : accepted > 0
 
-                          ? 'bg-blue-100 border border-blue-300'
+                          ? 'bg-blue-950/40 border-blue-800 text-blue-300'
 
-                          : 'bg-amber-100 border border-amber-300'
+                          : 'bg-amber-950/40 border-amber-800 text-amber-300'
 
                       }`}>
 
-                        <p className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                        <p className="text-sm font-semibold text-white/90 flex items-center gap-2">
 
                           {anyAssigned ? (
 
@@ -2817,17 +2822,17 @@ const AdminDashboard = ({ config }) => {
 
                             isAssigned
 
-                              ? 'bg-emerald-50 border-emerald-400 ring-2 ring-emerald-300'
+                              ? 'bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-800'
 
                               : acceptanceStatus === 'accepted'
 
-                              ? 'bg-green-50 border-green-300'
+                              ? 'bg-green-950/40 border-green-500/50'
 
                               : acceptanceStatus === 'rejected' || acceptanceStatus === 'auto-rejected'
 
-                              ? 'bg-red-50 border-red-300 opacity-75'
+                              ? 'bg-red-950/40 border-red-500/50 opacity-75'
 
-                              : 'bg-white border-gray-300 hover:border-indigo-300'
+                              : 'bg-[#121212] border-white/10 hover:border-[#DF7AFE]'
 
                           }`}
 
@@ -2837,7 +2842,7 @@ const AdminDashboard = ({ config }) => {
 
                             <div className="flex items-center gap-2 mb-2">
 
-                              <p className="font-semibold text-gray-900 flex items-center gap-1">
+                              <p className="font-semibold text-white flex items-center gap-1">
 
                                 {isAssigned && (
 
@@ -2857,21 +2862,21 @@ const AdminDashboard = ({ config }) => {
 
                                 isAssigned
 
-                                  ? 'bg-emerald-200 text-emerald-800'
+                                  ? 'bg-emerald-500/20 text-emerald-300'
 
                                   : acceptanceStatus === 'accepted'
 
-                                  ? 'bg-green-200 text-green-800'
+                                  ? 'bg-green-500/20 text-green-300'
 
                                   : acceptanceStatus === 'rejected'
 
-                                  ? 'bg-red-200 text-red-800'
+                                  ? 'bg-red-500/20 text-red-300'
 
                                   : acceptanceStatus === 'auto-rejected'
 
-                                  ? 'bg-red-300 text-red-900'
+                                  ? 'bg-red-500/30 text-red-400'
 
-                                  : 'bg-yellow-200 text-yellow-800'
+                                  : 'bg-yellow-500/20 text-yellow-300'
 
                               }`}>
 
@@ -2899,19 +2904,19 @@ const AdminDashboard = ({ config }) => {
 
 
 
-                            <div className="text-sm text-gray-600 space-y-1">
+                            <div className="text-sm text-white/70 space-y-1">
 
                               <p>
 
-                                <span className="font-medium text-gray-700">Category:</span> {influencerCategory}
+                                <span className="font-medium text-white/80">Category:</span> {influencerCategory}
 
                               </p>
 
                               <p>
 
-                                <span className="font-medium text-gray-700">Email:</span>{' '}
+                                <span className="font-medium text-white/80">Email:</span>{' '}
 
-                                <a href={`mailto:${influencerEmail}`} className="text-indigo-600 hover:underline">
+                                <a href={`mailto:${influencerEmail}`} className="text-[#DF7AFE] hover:underline">
 
                                   {influencerEmail}
 
@@ -2921,7 +2926,7 @@ const AdminDashboard = ({ config }) => {
 
                               <p>
 
-                                <span className="font-medium text-gray-700">Forwarded:</span> {forwardedDate}
+                                <span className="font-medium text-white/80">Forwarded:</span> {forwardedDate}
 
                               </p>
 
@@ -2929,7 +2934,7 @@ const AdminDashboard = ({ config }) => {
 
                                 <p>
 
-                                  <span className="font-medium text-gray-700">
+                                  <span className="font-medium text-white/80">
 
                                     {acceptanceStatus === 'accepted' ? '✓ Accepted' : '✕ Responded'}:
 
@@ -2943,9 +2948,9 @@ const AdminDashboard = ({ config }) => {
 
                               {forward.response && (
 
-                                <div className="mt-2 p-2 bg-white bg-opacity-50 rounded border-l-2 border-gray-400">
+                                <div className="mt-2 p-2 bg-black/40 rounded border-l-2 border-white/20">
 
-                                  <p className="text-xs text-gray-700 whitespace-pre-wrap">
+                                  <p className="text-xs text-white/80 whitespace-pre-wrap">
 
                                     <span className="font-semibold">Response:</span> {forward.response}
 
@@ -3018,9 +3023,9 @@ const AdminDashboard = ({ config }) => {
 
               {(selectedInquiry.acceptedByAdmin || selectedInquiry.acceptedBy) && (
 
-                <div className="bg-blue-50 rounded-xl p-6 md:col-span-2 mb-6 border border-blue-200">
+                <div className="bg-blue-950/30 border border-blue-800/50 rounded-xl p-6 md:col-span-2 mb-6 text-white mt-6">
 
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
                     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -3036,9 +3041,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Admin Name</p>
+                      <p className="text-sm text-white/60">Admin Name</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.acceptedByAdmin?.name || selectedInquiry.acceptedByAdminName || 'Not specified'}
 
@@ -3048,9 +3053,9 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-gray-500">Admin Email</p>
+                      <p className="text-sm text-white/60">Admin Email</p>
 
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-white">
 
                         {selectedInquiry.acceptedByAdmin?.email || selectedInquiry.acceptedByAdminEmail || 'Not specified'}
 
@@ -3062,9 +3067,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Accepted On</p>
+                        <p className="text-sm text-white/60">Accepted On</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {new Date(selectedInquiry.acceptedAt).toLocaleString('en-IN')}
 
@@ -3106,13 +3111,13 @@ const AdminDashboard = ({ config }) => {
 
               {/* Modal Footer */}
 
-              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
 
                 <button
 
                   onClick={() => setShowInquiryDetailsModal(false)}
 
-                  className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                  className="px-6 py-2 text-white/80 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
 
                 >
 
@@ -3142,15 +3147,15 @@ const AdminDashboard = ({ config }) => {
 
             <div className="p-12 flex flex-col items-center justify-center">
 
-              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+              <div className="w-12 h-12 border-4 border-[#DF7AFE]/20 border-t-[#DF7AFE] rounded-full animate-spin mb-4"></div>
 
-              <p className="text-gray-600 font-medium">Loading Influencer Details...</p>
+              <p className="text-white/70 font-medium">Loading Influencer Details...</p>
 
             </div>
 
           ) : selectedForwardedInfluencer ? (
 
-            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-[#0D0D0D] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto text-white">
 
               {/* Modal Header */}
 
@@ -3228,11 +3233,11 @@ const AdminDashboard = ({ config }) => {
 
                   {/* Personal Information */}
 
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
 
@@ -3246,9 +3251,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Full Name</p>
+                        <p className="text-sm text-white/60">Full Name</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedForwardedInfluencer.fullName || selectedForwardedInfluencer.name || 'Not provided'}
 
@@ -3258,9 +3263,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Email Address</p>
+                        <p className="text-sm text-white/60">Email Address</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedForwardedInfluencer.email || 'Not provided'}
 
@@ -3270,9 +3275,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Phone Number</p>
+                        <p className="text-sm text-white/60">Phone Number</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedForwardedInfluencer.phone || 'Not provided'}
 
@@ -3282,7 +3287,7 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {renderLocation(selectedForwardedInfluencer.location)}
                         </p>
 
@@ -3296,11 +3301,11 @@ const AdminDashboard = ({ config }) => {
 
                   {/* Professional Information */}
 
-                  <div className="bg-gray-50 rounded-xl p-6">
+                  <div className="bg-[#121212] border border-white/10 rounded-xl p-6">
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 
@@ -3314,9 +3319,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Profile Type</p>
+                        <p className="text-sm text-white/60">Profile Type</p>
 
-                        <p className="font-medium text-gray-900 capitalize">
+                        <p className="font-medium text-white capitalize">
 
                           {selectedForwardedInfluencer.profileType || selectedForwardedInfluencer.InfluencerType || 'Not specified'}
 
@@ -3326,7 +3331,7 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Categories</p>
+                        <p className="text-sm text-white/60">Categories</p>
 
                         <div className="flex flex-wrap gap-1 mt-1">
 
@@ -3334,7 +3339,7 @@ const AdminDashboard = ({ config }) => {
 
                             selectedForwardedInfluencer.categories.map((cat, idx) => (
 
-                              <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium capitalize">
+                              <span key={idx} className="px-2 py-1 bg-[#DF7AFE]/20 text-[#DF7AFE] text-xs rounded-full font-medium capitalize">
 
                                 {cat}
 
@@ -3344,7 +3349,7 @@ const AdminDashboard = ({ config }) => {
 
                           ) : (
 
-                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-medium capitalize">
+                            <span className="px-2 py-1 bg-gray-100 text-white/70 text-xs rounded-full font-medium capitalize">
 
                               {selectedForwardedInfluencer.category || 'General'}
 
@@ -3358,9 +3363,9 @@ const AdminDashboard = ({ config }) => {
 
                       <div>
 
-                        <p className="text-sm text-gray-500">Experience</p>
+                        <p className="text-sm text-white/60">Experience</p>
 
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
 
                           {selectedForwardedInfluencer.experience ? `${selectedForwardedInfluencer.experience} years` : 'Not specified'}
 
@@ -3376,11 +3381,11 @@ const AdminDashboard = ({ config }) => {
 
                   {/* Bio */}
 
-                  <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                  <div className="bg-[#121212] border border-white/10 rounded-xl p-6 md:col-span-2">
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
 
@@ -3390,7 +3395,7 @@ const AdminDashboard = ({ config }) => {
 
                     </h3>
 
-                    <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                    <p className="font-medium text-white text-sm leading-relaxed">
 
                       {selectedForwardedInfluencer.bio || 'No bio provided'}
 
@@ -3402,11 +3407,11 @@ const AdminDashboard = ({ config }) => {
 
                   {/* Social Links */}
 
-                  <div className="bg-gray-50 rounded-xl p-6 md:col-span-2">
+                  <div className="bg-[#121212] border border-white/10 rounded-xl p-6 md:col-span-2">
 
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
 
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-[#DF7AFE]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
 
@@ -3426,7 +3431,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
 
-                            className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                             Instagram
 
@@ -3444,7 +3449,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.youtube} target="_blank" rel="noopener noreferrer"
 
-                            className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                             YouTube
 
@@ -3462,7 +3467,7 @@ const AdminDashboard = ({ config }) => {
 
                           <a href={selectedForwardedInfluencer.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
 
-                            className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                             Facebook
 
@@ -3476,11 +3481,11 @@ const AdminDashboard = ({ config }) => {
 
                         <div className="flex items-center gap-2">
 
-                          <span className="text-gray-600">🌐</span>
+                          <span className="text-white/70">🌐</span>
 
                           <a href={selectedForwardedInfluencer.socialLinks.website} target="_blank" rel="noopener noreferrer"
 
-                            className="text-purple-600 hover:text-purple-700 text-sm">
+                            className="text-[#DF7AFE] hover:text-purple-700 text-sm">
 
                             Website
 
@@ -3494,7 +3499,7 @@ const AdminDashboard = ({ config }) => {
 
                         !selectedForwardedInfluencer.socialLinks?.facebook && !selectedForwardedInfluencer.socialLinks?.website) && (
 
-                          <span className="text-gray-500 text-sm">No social links provided</span>
+                          <span className="text-white/60 text-sm">No social links provided</span>
 
                         )}
 
@@ -3508,7 +3513,7 @@ const AdminDashboard = ({ config }) => {
 
                 {/* Modal Footer */}
 
-                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+                <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-white/10">
                   <button
                     onClick={() => handleToggleInfluencerStatus(selectedForwardedInfluencer._id || selectedForwardedInfluencer.id, selectedForwardedInfluencer.isActive !== false)}
                     className={`px-6 py-2 text-white rounded-xl font-medium transition-colors ${selectedForwardedInfluencer.isActive !== false
@@ -3520,7 +3525,7 @@ const AdminDashboard = ({ config }) => {
                   </button>
                   <button
                     onClick={() => setShowInfluencerDetailsModal(false)}
-                    className="px-6 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
+                    className="px-6 py-2 text-white/80 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
                   >
                     Close
                   </button>
@@ -3534,7 +3539,7 @@ const AdminDashboard = ({ config }) => {
 
             <div className="p-12 text-center">
 
-              <p className="text-gray-600">No influencer data available</p>
+              <p className="text-white/70">No influencer data available</p>
 
             </div>
 

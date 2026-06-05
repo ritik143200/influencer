@@ -42,13 +42,13 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
         <button
           key={1}
           onClick={() => setCurrentPage(1)}
-          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10 transition-colors"
         >
           1
         </button>
       );
       if (startPage > 2) {
-        pages.push(<span key="ellipsis-start" className="px-2 text-gray-500">...</span>);
+        pages.push(<span key="ellipsis-start" className="px-2 text-white/50">...</span>);
       }
     }
     
@@ -60,8 +60,8 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
           onClick={() => setCurrentPage(i)}
           className={`px-3 py-1 rounded-lg border text-sm font-medium transition-colors ${
             i === currentPage
-              ? 'bg-orange-600 text-white border-orange-600'
-              : 'border-gray-300 hover:bg-gray-50'
+              ? 'bg-[#DF7AFE] text-black border-[#DF7AFE] font-bold'
+              : 'border-white/10 text-white hover:bg-white/10'
           }`}
         >
           {i}
@@ -72,13 +72,13 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
     // Add last page if not visible
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
-        pages.push(<span key="ellipsis-end" className="px-2 text-gray-500">...</span>);
+        pages.push(<span key="ellipsis-end" className="px-2 text-white/50">...</span>);
       }
       pages.push(
         <button
           key={totalPages}
           onClick={() => setCurrentPage(totalPages)}
-          className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white hover:bg-white/10 transition-colors"
         >
           {totalPages}
         </button>
@@ -208,10 +208,10 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
   const getVerificationBadge = (status) => {
     switch (status) {
-      case 'verified': return { bg: 'bg-green-100', text: 'text-green-800', label: '✅ Verified' };
-      case 'pending': return { bg: 'bg-yellow-100', text: 'text-yellow-800', label: '⏳ Pending' };
-      case 'rejected': return { bg: 'bg-red-100', text: 'text-red-800', label: '❌ Rejected' };
-      default: return { bg: 'bg-gray-100', text: 'text-gray-800', label: '❓ Unknown' };
+      case 'verified': return { bg: 'bg-emerald-500/10 border border-emerald-500/20', text: 'text-emerald-400', label: '✅ Verified' };
+      case 'pending': return { bg: 'bg-amber-500/10 border border-amber-500/20', text: 'text-amber-400', label: '⏳ Pending' };
+      case 'rejected': return { bg: 'bg-rose-500/10 border border-rose-500/20', text: 'text-rose-400', label: '❌ Rejected' };
+      default: return { bg: 'bg-white/10 border border-white/10', text: 'text-white/70', label: '❓ Unknown' };
     }
   };
 
@@ -259,15 +259,17 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
     // use shared `renderLocation`
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="text-xl font-bold text-gray-800">Influencer Profile Details</h3>
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div className="bg-[#0D0D0D] border border-white/10 rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#0D0D0D] sticky top-0 z-10">
+            <h3 className="text-xl font-bold text-white">Influencer Profile Details</h3>
             <button 
               onClick={() => setShowDetailsModal(false)} 
-              className="text-gray-500 hover:text-gray-700 text-2xl"
+              className="text-white/50 hover:text-white transition-colors"
             >
-              
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
           
@@ -277,16 +279,16 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               <img 
                 src={selectedInfluencer.profileImage} 
                 alt={selectedInfluencer.fullName}
-                className="w-24 h-24 rounded-full object-cover border-4 border-gray-100"
+                className="w-24 h-24 rounded-full object-cover border-4 border-white/10"
               />
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="text-2xl font-bold text-gray-800">{selectedInfluencer.fullName}</h4>
+                  <h4 className="text-2xl font-bold text-white">{selectedInfluencer.fullName}</h4>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${verificationBadge.bg} ${verificationBadge.text}`}>
                     {verificationBadge.label}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-white/70">
                   <span>📧 {selectedInfluencer.email}</span>
                   <span>📱 {selectedInfluencer.phone}</span>
                   <span>📍 {renderLocation(selectedInfluencer.location)}</span>
@@ -295,7 +297,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCompletionColor(selectedInfluencer.profileCompletion)}`}>
                     {getCompletionIcon(selectedInfluencer.profileCompletionStatus)} {selectedInfluencer.profileCompletion}% Complete
                   </span>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-white/50">
                     {selectedInfluencer.profileType}
                   </span>
                 </div>
@@ -306,20 +308,18 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <h5 className="font-semibold text-gray-700 mb-2">Influencer Details</h5>
-                  <div className="space-y-2 text-sm">
-                     <div><strong>Full Name:</strong> {selectedInfluencer.fullName}</div>
-                     <div><strong>Location:</strong> {selectedInfluencer.location}</div>
-                    <div><strong>Profile Type:</strong> {selectedInfluencer.profileType}</div>
-                    <div><strong>Categories:</strong> {selectedInfluencer.categories?.length > 0 ? selectedInfluencer.categories.join(', ') : (selectedInfluencer.category || 'None')}</div>
-                    {/* <div><strong>Subcategories:</strong> {selectedInfluencer.subcategories?.join(', ') || 'None'}</div> */}
-                    {/* <div><strong>Skills:</strong> {selectedInfluencer.skills?.join(', ') || 'None'}</div> */}
+                  <h5 className="font-semibold text-white/80 mb-2">Influencer Details</h5>
+                  <div className="space-y-2 text-sm text-white/70">
+                     <div><strong className="text-white/50 font-normal">Full Name:</strong> {selectedInfluencer.fullName}</div>
+                     <div><strong className="text-white/50 font-normal">Location:</strong> {selectedInfluencer.location}</div>
+                    <div><strong className="text-white/50 font-normal">Profile Type:</strong> {selectedInfluencer.profileType}</div>
+                    <div><strong className="text-white/50 font-normal">Categories:</strong> {selectedInfluencer.categories?.length > 0 ? selectedInfluencer.categories.join(', ') : (selectedInfluencer.category || 'None')}</div>
                   </div>
                 </div>
 
                 <div>
-                  <h5 className="font-semibold text-gray-700 mb-2">Bio</h5>
-                  <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                  <h5 className="font-semibold text-white/80 mb-2">Bio</h5>
+                  <p className="text-sm text-white/80 bg-[#121212] border border-white/5 p-3 rounded-lg leading-relaxed">
                     {selectedInfluencer.bio || 'No bio provided'}
                   </p>
                 </div>
@@ -327,80 +327,50 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
               <div className="space-y-4">
                 <div>
-                  <h5 className="font-semibold text-gray-700 mb-2">Pricing Information</h5>
-                  <div className="space-y-2 text-sm">
-                    <div><strong>Minimum Budget:</strong> ₹{selectedInfluencer.budgetMin?.toLocaleString('en-IN') || 'Not specified'}</div>
-                    <div><strong>Maximum Budget:</strong> ₹{selectedInfluencer.budgetMax?.toLocaleString('en-IN') || 'Not specified'}</div>
-                    <div><strong>Default Budget:</strong> ₹{selectedInfluencer.budget?.toLocaleString('en-IN') || 'Not specified'}</div>
+                  <h5 className="font-semibold text-white/80 mb-2">Pricing Information</h5>
+                  <div className="space-y-2 text-sm text-white/70">
+                    <div><strong className="text-white/50 font-normal">Minimum Budget:</strong> ₹{selectedInfluencer.budgetMin?.toLocaleString('en-IN') || 'Not specified'}</div>
+                    <div><strong className="text-white/50 font-normal">Maximum Budget:</strong> ₹{selectedInfluencer.budgetMax?.toLocaleString('en-IN') || 'Not specified'}</div>
+                    <div><strong className="text-white/50 font-normal">Default Budget:</strong> ₹{selectedInfluencer.budget?.toLocaleString('en-IN') || 'Not specified'}</div>
                   </div>
                 </div>
 
                 <div>
-                  <h5 className="font-semibold text-gray-700 mb-2">Social Links</h5>
-                  <div className="space-y-2 text-sm">
-                    <div><strong>Instagram:</strong> {selectedInfluencer.socialLinks?.instagram || 'Not provided'}</div>
-                    <div><strong>YouTube:</strong> {selectedInfluencer.socialLinks?.youtube || 'Not provided'}</div>
-                    {/* <div><strong>Facebook:</strong> {selectedInfluencer.socialLinks?.facebook|| 'Not provided'}</div> */}
-                    {/* <div><strong>Website:</strong> {selectedInfluencer.socialLinks?.website || 'Not provided'}</div> */}
+                  <h5 className="font-semibold text-white/80 mb-2">Social Links</h5>
+                  <div className="space-y-2 text-sm text-white/70">
+                    <div><strong className="text-white/50 font-normal">Instagram:</strong> {selectedInfluencer.socialLinks?.instagram || 'Not provided'}</div>
+                    <div><strong className="text-white/50 font-normal">YouTube:</strong> {selectedInfluencer.socialLinks?.youtube || 'Not provided'}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Portfolio */}
-            {/* <div>
-              <h5 className="font-semibold text-gray-700 mb-2">Portfolio ({selectedInfluencer.portfolio?.length || 0} items)</h5>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {selectedInfluencer.portfolio?.length > 0 ? (
-                  selectedInfluencer.portfolio.map((item, index) => (
-                    <div key={index} className="border rounded-lg overflow-hidden">
-                      {item.includes('image') ? (
-                        <img src={item} alt={`Portfolio ${index + 1}`} className="w-full h-32 object-cover" />
-                      ) : (
-                        <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
-                          <span className="text-gray-500">📎 File {index + 1}</span>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-lg">
-                    No portfolio items uploaded
-                  </div>
-                )}
-              </div>
-            </div> */}
-
             {/* System Information */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Registration Date</div>
-                <div>{new Date(selectedInfluencer.registrationDate).toLocaleDateString()}</div>
+              <div className="bg-[#121212] border border-white/5 p-3 rounded-lg">
+                <div className="font-semibold text-white/80">Registration Date</div>
+                <div className="text-white/70 mt-1">{new Date(selectedInfluencer.registrationDate).toLocaleDateString()}</div>
               </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <div className="font-semibold text-gray-700">Last Updated</div>
-                <div>{new Date(selectedInfluencer.lastUpdated).toLocaleDateString()}</div>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-lg">
-                {/* <div className="font-semibold text-gray-700">Profile Views</div> */}
-                {/* <div>{selectedInfluencer.profileViews?.toLocaleString() || 0}</div> */}
+              <div className="bg-[#121212] border border-white/5 p-3 rounded-lg">
+                <div className="font-semibold text-white/80">Last Updated</div>
+                <div className="text-white/70 mt-1">{new Date(selectedInfluencer.lastUpdated).toLocaleDateString()}</div>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t">
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
               <button 
                 onClick={() => setShowDetailsModal(false)}
-                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-6 py-2 border border-white/10 text-white bg-white/5 rounded-lg hover:bg-white/10 font-semibold transition"
               >
                 Close
               </button>
               <button 
                 onClick={() => handleToggleInfluencerStatus(selectedInfluencer._id, !selectedInfluencer.isActive)}
-                className={`px-6 py-2 rounded-lg text-white ${
+                className={`px-6 py-2 rounded-lg text-white font-semibold transition ${
                   selectedInfluencer.isActive 
-                    ? 'bg-red-600 hover:bg-red-700' 
-                    : 'bg-green-600 hover:bg-green-700'
+                    ? 'bg-rose-600 hover:bg-rose-700' 
+                    : 'bg-emerald-600 hover:bg-emerald-700'
                 }`}
               >
                 {selectedInfluencer.isActive ? 'Deactivate' : 'Activate'}
@@ -416,24 +386,24 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
     <div className="space-y-6">
       <ToastContainer />
       <div className="flex flex-col items-center gap-6">
-        <div className="w-full max-w-7xl bg-gradient-to-r from-white via-orange-50/30 to-white rounded-2xl border border-orange-100/50 p-6 shadow-lg">
+        <div className="w-full max-w-7xl bg-[#121212] rounded-2xl border border-white/10 p-6 shadow-lg">
           {/* Search and Filters Header */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#DF7AFE] to-[#814AC8] rounded-xl flex items-center justify-center shadow-md">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <div>
-              <h4 className="text-lg font-bold text-gray-800">Search & Filter Influencers</h4>
-              <p className="text-sm text-gray-600">Find the perfect influencers for your campaigns</p>
+              <h4 className="text-lg font-bold text-white">Search & Filter Influencers</h4>
+              <p className="text-sm text-white/70">Find the perfect influencers for your campaigns</p>
             </div>
           </div>
 
           {/* Search Input */}
           <div className="relative mb-4">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -442,7 +412,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               placeholder="Search by name, email, category, subcategory, or skills..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 hover:border-orange-300"
+              className="w-full pl-12 pr-4 py-3 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#DF7AFE] focus:border-transparent bg-[#0D0D0D] text-white placeholder-white/30 transition-all duration-200 hover:border-white/20"
             />
           </div>
 
@@ -451,29 +421,29 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 hover:border-orange-300"
+              className="px-4 py-3 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#DF7AFE] focus:border-transparent bg-[#0D0D0D] text-white transition-all duration-200 hover:border-white/20"
             >
-              <option value="all">All Profiles</option>
-              <option value="Complete">Complete (80%+)</option>
-              <option value="Good">Good (60-79%)</option>
-              <option value="Basic">Basic (40-59%)</option>
-              <option value="Incomplete">Incomplete (&lt;40%)</option>
+              <option value="all" className="bg-[#0D0D0D] text-white">All Profiles</option>
+              <option value="Complete" className="bg-[#0D0D0D] text-white">Complete (80%+)</option>
+              <option value="Good" className="bg-[#0D0D0D] text-white">Good (60-79%)</option>
+              <option value="Basic" className="bg-[#0D0D0D] text-white">Basic (40-59%)</option>
+              <option value="Incomplete" className="bg-[#0D0D0D] text-white">Incomplete (&lt;40%)</option>
             </select>
             
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 hover:border-orange-300"
+              className="px-4 py-3 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#DF7AFE] focus:border-transparent bg-[#0D0D0D] text-white transition-all duration-200 hover:border-white/20"
             >
-              <option value="registrationDate">Registration Date</option>
-              <option value="profileCompletion">Profile Completion</option>
-              <option value="name">Name</option>
+              <option value="registrationDate" className="bg-[#0D0D0D] text-white">Registration Date</option>
+              <option value="profileCompletion" className="bg-[#0D0D0D] text-white">Profile Completion</option>
+              <option value="name" className="bg-[#0D0D0D] text-white">Name</option>
             </select>
 
             {/* Date Availability Check */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -481,7 +451,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 type="date"
                 value={availabilityDate}
                 onChange={(e) => setAvailabilityDate(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all duration-200 hover:border-orange-300"
+                className="w-full pl-12 pr-4 py-3 border border-white/10 rounded-xl focus:ring-2 focus:ring-[#DF7AFE] focus:border-transparent bg-[#0D0D0D] text-white transition-all duration-200 hover:border-white/20"
               />
             </div>
 
@@ -490,7 +460,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               <button
                 type="button"
                 onClick={fetchAvailableInfluencers}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-60 transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#DF7AFE] to-[#814AC8] text-white rounded-xl hover:opacity-90 disabled:opacity-60 transition-all duration-200 shadow-md hover:shadow-lg font-bold"
                 disabled={loadingAvailable}
               >
                 <span className="flex items-center justify-center gap-2">
@@ -518,7 +488,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   setSearchTerm('');
                   setFilterStatus('all');
                 }}
-                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all duration-200 hover:shadow-md font-medium"
+                className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all duration-200 hover:shadow-md font-medium"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -530,14 +500,13 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       </div>
 
       {availableIds && (
-        <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-2 border-green-300 rounded-2xl p-6 shadow-lg relative overflow-hidden">
+        <div className="bg-[#0D0D0D] border-2 border-emerald-500/20 rounded-2xl p-6 shadow-lg relative overflow-hidden">
           {/* Decorative background elements */}
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-green-200/20 to-emerald-300/10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-emerald-200/20 to-teal-300/10 rounded-full blur-xl"></div>
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-emerald-500/10 to-teal-500/5 rounded-full blur-2xl"></div>
           
           <div className="relative z-10">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -545,39 +514,39 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h4 className="text-lg font-bold text-green-800">Available Influencers Found</h4>
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
+                  <h4 className="text-lg font-bold text-emerald-400">Available Influencers Found</h4>
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
                     {filteredInfluencers.length}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm text-green-700 mb-3">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-white/70 mb-3">
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span className="font-medium">Date:</span>
-                    <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-green-200">
+                    <span className="bg-[#121212] px-2 py-1 rounded-lg border border-white/10">
                       {new Date(availabilityDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                     <span className="font-medium">Total:</span>
-                    <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-green-200">
+                    <span className="bg-[#121212] px-2 py-1 rounded-lg border border-white/10">
                       {influencers.length} influencers
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                     <span className="font-medium">Available:</span>
-                    <span className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded-lg border border-green-200">
+                    <span className="bg-[#121212] px-2 py-1 rounded-lg border border-white/10">
                       {Math.round((filteredInfluencers.length / influencers.length) * 100)}% match rate
                     </span>
                   </div>
@@ -590,7 +559,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                       setAvailabilityDate('');
                       setAvailableIds(null);
                     }}
-                    className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg font-semibold flex items-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -598,7 +567,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                     Clear Filter
                   </button>
                   
-                  <div className="text-sm text-green-600 font-medium">
+                  <div className="text-sm text-emerald-400 font-semibold">
                     {filteredInfluencers.length === 0 
                       ? 'No influencers available on this date. Try a different date.'
                       : filteredInfluencers.length === 1
@@ -614,9 +583,9 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
       )}
 
       {/* Pagination Info Bar */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div className="bg-[#121212] rounded-xl border border-white/10 p-4">
         <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-white/70">
             Showing {Math.min(startIndex + 1, filteredInfluencers.length)} to {Math.min(endIndex, filteredInfluencers.length)} of {filteredInfluencers.length} influencers
           </div>
           
@@ -625,7 +594,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
             >
               Previous
             </button>
@@ -635,7 +604,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1 rounded-lg border border-gray-300 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="px-3 py-1 rounded-lg border border-white/10 text-sm font-medium text-white disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/10 transition-colors"
             >
               Next
             </button>
@@ -652,25 +621,25 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
           const isUnavailable = availableIds && !isAvailable;
           
           return (
-            <div key={influencer._id} className={`relative rounded-xl shadow-lg border-2 overflow-hidden hover:shadow-xl transition-all duration-300 ${
+            <div key={influencer._id} className={`relative rounded-xl shadow-lg border overflow-hidden hover:shadow-xl transition-all duration-300 ${
               isUnavailable 
-                ? 'bg-gray-50 border-gray-200 opacity-75 hover:opacity-80' 
+                ? 'bg-[#0D0D0D] border-white/10 opacity-40 hover:opacity-50' 
                 : isAvailable 
-                ? 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-green-300 hover:border-green-400 hover:shadow-2xl' 
-                : 'bg-white border-gray-100'
+                ? 'bg-[#121212] border-emerald-500/30 hover:border-emerald-500/50 hover:shadow-emerald-950/20' 
+                : 'bg-[#0D0D0D] border-white/10 hover:border-white/20'
             }`}>
               {/* Availability Status Badge */}
               {availableIds && (
                 <div className="absolute top-3 right-3 z-10">
                   {isAvailable ? (
-                    <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       AVAILABLE
                     </div>
                   ) : (
-                    <div className="bg-gradient-to-r from-red-500 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                    <div className="bg-gradient-to-r from-rose-500 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
@@ -682,10 +651,10 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
               {/* Unavailable Overlay */}
               {isUnavailable && (
-                <div className="absolute inset-0 bg-gray-900/10 backdrop-blur-[1px] z-0"></div>
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] z-0"></div>
               )}
 
-              <div className={`p-4 border-b ${isUnavailable ? 'border-gray-200' : 'border-gray-100'} relative z-5`}>
+              <div className={`p-4 border-b ${isUnavailable ? 'border-white/10' : 'border-white/10'} relative z-[5]`}>
                 <div className="flex items-start gap-3">
                   <div className="relative">
                     <img 
@@ -693,34 +662,34 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                       alt={influencer.displayName || influencer.email}
                       className={`w-16 h-16 rounded-full object-cover border-2 ${
                         isUnavailable 
-                          ? 'border-gray-300 grayscale' 
+                          ? 'border-white/10 grayscale' 
                           : isAvailable 
-                          ? 'border-green-300' 
-                          : 'border-gray-100'
+                          ? 'border-emerald-500/40' 
+                          : 'border-white/10'
                       }`}
                     />
                     {isUnavailable && (
-                      <div className="absolute inset-0 bg-gray-500/20 rounded-full"></div>
+                      <div className="absolute inset-0 bg-black/40 rounded-full"></div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className={`font-semibold truncate ${
-                      isUnavailable ? 'text-gray-600' : isAvailable ? 'text-green-800' : 'text-gray-800'
+                      isUnavailable ? 'text-white/40' : isAvailable ? 'text-emerald-400' : 'text-white'
                     }`}>
                       {influencer.displayName || (influencer.email ? influencer.email.split('@')[0] : `Influencer ${influencer._id?.slice(-6)}`)}
                     </div>
-                    <div className={`text-sm truncate ${isUnavailable ? 'text-gray-500' : 'text-gray-600'}`}>
+                    <div className={`text-sm truncate ${isUnavailable ? 'text-white/30' : 'text-white/50'}`}>
                       {influencer.email}
                     </div>
                     <div className="flex items-center gap-2 mt-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         isUnavailable 
-                          ? 'bg-gray-200 text-gray-600' 
+                          ? 'bg-white/10 text-white/50' 
                           : getCompletionColor(influencer.profileCompletion)
                       }`}>
                         {influencer.profileCompletion || 0}% Complete
                       </span>
-                      <span className={`text-xs ${isUnavailable ? 'text-gray-400' : 'text-gray-500'}`}>
+                      <span className={`text-xs ${isUnavailable ? 'text-white/30' : 'text-white/40'}`}>
                         {influencer.profileType || 'Influencer'} • {influencer.categories?.[0] || 'No category'}
                       </span>
                     </div>
@@ -728,72 +697,72 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                 </div>
               </div>
 
-              <div className={`p-4 space-y-3 relative z-5 ${isUnavailable ? 'bg-gray-50/50' : ''}`}>
+              <div className={`p-4 space-y-3 relative z-[5] ${isUnavailable ? 'bg-black/10' : ''}`}>
                 {/* Availability Status in Card */}
                 {availableIds && (
-                  <div className="flex items-center justify-between mb-3 p-2 rounded-lg bg-white/80 backdrop-blur-sm border">
+                  <div className="flex items-center justify-between mb-3 p-2 rounded-lg bg-[#121212] border border-white/10">
                     <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                      <span className={`text-xs font-semibold ${isAvailable ? 'text-green-700' : 'text-red-700'}`}>
+                      <div className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                      <span className={`text-xs font-semibold ${isAvailable ? 'text-emerald-400' : 'text-rose-400'}`}>
                         {isAvailable ? 'Available on selected date' : 'Not available on selected date'}
                       </span>
                     </div>
                     {isAvailable && (
-                      <div className="text-xs text-green-600 font-medium">
-                        ✓ Ready for booking
+                      <div className="text-xs text-emerald-400 font-medium">
+                        ✓ Ready
                       </div>
                     )}
                   </div>
                 )}
 
-                <div className={`text-sm ${isUnavailable ? 'text-gray-600' : 'text-gray-700'}`}>
+                <div className={`text-sm ${isUnavailable ? 'text-white/40' : 'text-white/70'}`}>
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium">Profile Completion:</span>
+                    <span className="font-medium text-white/50">Completion:</span>
                     <div className="flex items-center gap-2">
-                      <div className={`w-20 rounded-full h-2 ${isUnavailable ? 'bg-gray-300' : 'bg-gray-200'}`}>
+                      <div className={`w-20 rounded-full h-2 ${isUnavailable ? 'bg-white/10' : 'bg-white/10'}`}>
                         <div 
                           className={`h-2 rounded-full transition-all duration-300 ${
                             isUnavailable 
-                              ? 'bg-gray-400' 
-                              : 'bg-gradient-to-r from-red-500 via-yellow-500 to-green-500'
+                              ? 'bg-white/30' 
+                              : 'bg-gradient-to-r from-rose-500 via-amber-500 to-emerald-500'
                           }`}
                           style={{ width: `${influencer.profileCompletion || 0}%` }}
                         ></div>
                       </div>
-                      <span className={`text-xs font-medium ${isUnavailable ? 'text-gray-600' : ''}`}>{influencer.profileCompletion || 0}%</span>
+                      <span className={`text-xs font-medium ${isUnavailable ? 'text-white/40' : ''}`}>{influencer.profileCompletion || 0}%</span>
                     </div>
                   </div>
                   
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium">Categories:</span>
-                    <span className={isUnavailable ? 'text-gray-500' : 'text-gray-600'}>{influencer.categories?.slice(0, 2).join(', ') || 'None'}</span>
+                    <span className="font-medium text-white/50">Categories:</span>
+                    <span className={isUnavailable ? 'text-white/30' : 'text-white/70'}>{influencer.categories?.slice(0, 2).join(', ') || 'None'}</span>
                   </div>
                   
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium">Location:</span>
-                    <span className={isUnavailable ? 'text-gray-500' : 'text-gray-600'}>{renderLocation(influencer.location)}</span>
+                    <span className="font-medium text-white/50">Location:</span>
+                    <span className={isUnavailable ? 'text-white/30' : 'text-white/70'}>{renderLocation(influencer.location)}</span>
                   </div>
                   
                   <div className="flex justify-between mb-2">
-                    <span className="font-medium">Portfolio:</span>
-                    <span className={isUnavailable ? 'text-gray-500' : 'text-gray-600'}>{influencer.portfolio?.length || 0} items</span>
+                    <span className="font-medium text-white/50">Portfolio:</span>
+                    <span className={isUnavailable ? 'text-white/30' : 'text-white/70'}>{influencer.portfolio?.length || 0} items</span>
                   </div>
                   
                   <div className="flex justify-between">
-                    <span className="font-medium">Joined:</span>
-                    <span className={isUnavailable ? 'text-gray-500' : 'text-gray-600'}>{new Date(influencer.registrationDate).toLocaleDateString()}</span>
+                    <span className="font-medium text-white/50">Joined:</span>
+                    <span className={isUnavailable ? 'text-white/30' : 'text-white/70'}>{new Date(influencer.registrationDate).toLocaleDateString()}</span>
                   </div>
                 </div>
 
-                <div className={`flex gap-2 pt-3 border-t ${isUnavailable ? 'border-gray-200' : 'border-gray-100'}`}>
+                <div className={`flex gap-2 pt-3 border-t ${isUnavailable ? 'border-white/10' : 'border-white/10'}`}>
                   <button
                     onClick={() => handleViewDetails(influencer)}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 ${
                       isUnavailable 
-                        ? 'bg-gray-300 text-gray-600 hover:bg-gray-400 cursor-not-allowed' 
+                        ? 'bg-white/10 text-white/40 cursor-not-allowed' 
                         : isAvailable
-                        ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:from-emerald-600 hover:to-teal-700 shadow-md hover:shadow-lg'
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
                     }`}
                     disabled={isUnavailable}
                   >
@@ -808,12 +777,12 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                   <button
                     onClick={() => !isUnavailable && handleToggleInfluencerStatus(influencer._id, !influencer.isActive)}
                     disabled={isUnavailable}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 ${
                       isUnavailable 
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                        ? 'bg-white/10 text-white/30 cursor-not-allowed' 
                         : influencer.isActive 
-                        ? 'bg-red-500 text-white hover:bg-red-600 shadow-md hover:shadow-lg' 
-                        : 'bg-green-500 text-white hover:bg-green-600 shadow-md hover:shadow-lg'
+                        ? 'bg-rose-600 text-white hover:bg-rose-700 shadow-md hover:shadow-lg' 
+                        : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md hover:shadow-lg'
                     }`}
                   >
                     {isUnavailable ? (
@@ -848,20 +817,19 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
 
       {/* Empty State */}
       {paginatedInfluencers.length === 0 && filteredInfluencers.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-          <div className="text-gray-400">No influencers found on this page.</div>
+        <div className="bg-[#121212] rounded-xl border border-white/10 p-8 text-center">
+          <div className="text-white/50">No influencers found on this page.</div>
         </div>
       )}
 
       {filteredInfluencers.length === 0 && (
-        <div className={`relative overflow-hidden rounded-2xl p-8 ${availableIds ? 'bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 border-2 border-red-200' : 'bg-gradient-to-br from-gray-50 via-slate-50 to-zinc-50 border border-gray-200'} shadow-lg`}>
+        <div className={`relative overflow-hidden rounded-2xl p-8 ${availableIds ? 'bg-[#0D0D0D] border-2 border-rose-500/20' : 'bg-[#121212] border border-white/10'} shadow-lg`}>
           {/* Decorative background elements */}
-          <div className={`absolute top-0 right-0 w-32 h-32 ${availableIds ? 'bg-gradient-to-br from-red-200/20 to-pink-300/10' : 'bg-gradient-to-br from-gray-200/20 to-slate-300/10'} rounded-full blur-3xl`}></div>
-          <div className={`absolute bottom-0 left-0 w-24 h-24 ${availableIds ? 'bg-gradient-to-tr from-pink-200/20 to-rose-300/10' : 'bg-gradient-to-tr from-slate-200/20 to-zinc-300/10'} rounded-full blur-2xl`}></div>
+          <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-white/0 rounded-full blur-3xl`}></div>
           
           <div className="relative z-10 text-center">
             <div className="flex justify-center mb-6">
-              <div className={`w-20 h-20 ${availableIds ? 'bg-gradient-to-br from-red-500 to-pink-600' : 'bg-gradient-to-br from-gray-400 to-slate-500'} rounded-2xl flex items-center justify-center shadow-xl`}>
+              <div className={`w-20 h-20 ${availableIds ? 'bg-gradient-to-br from-rose-500 to-pink-600' : 'bg-gradient-to-br from-[#DF7AFE] to-[#814AC8]'} rounded-2xl flex items-center justify-center shadow-xl`}>
                 {availableIds ? (
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -874,11 +842,11 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
               </div>
             </div>
             
-            <h4 className={`text-2xl font-bold mb-3 ${availableIds ? 'text-red-800' : 'text-gray-800'}`}>
+            <h4 className={`text-2xl font-bold mb-3 ${availableIds ? 'text-rose-400' : 'text-white'}`}>
               {availableIds ? 'No Influencers Available' : 'No Influencers Found'}
             </h4>
             
-            <p className={`text-lg mb-6 max-w-md mx-auto ${availableIds ? 'text-red-700' : 'text-gray-600'}`}>
+            <p className={`text-lg mb-6 max-w-md mx-auto ${availableIds ? 'text-rose-300/80' : 'text-white/60'}`}>
               {availableIds 
                 ? `Unfortunately, no influencers are available on ${new Date(availabilityDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Please select a different date.`
                 : (searchTerm ? `No influencers match "${searchTerm}". Try adjusting your search terms or filters.` : 'No influencers match the current filters. Try adjusting your criteria.')
@@ -893,7 +861,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                     setAvailabilityDate('');
                     setAvailableIds(null);
                   }}
-                  className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl font-medium flex items-center gap-2"
+                  className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-medium flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -913,7 +881,7 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
                     setAvailableIds(null);
                   }
                 }}
-                className={`px-6 py-3 ${availableIds ? 'bg-gray-100 hover:bg-gray-200 text-gray-700' : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700'} rounded-xl transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2`}
+                className={`px-6 py-3 ${availableIds ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-gradient-to-r from-[#DF7AFE] to-[#814AC8] text-white hover:opacity-90'} rounded-xl transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -923,11 +891,11 @@ const AdminInfluencersManagement = ({ influencers, onRefreshInfluencers }) => {
             </div>
             
             {!availableIds && (
-              <div className="mt-6 p-4 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200">
-                <p className="text-sm text-gray-600 mb-2">
+              <div className="mt-6 p-4 bg-[#0D0D0D] border border-white/10 rounded-xl">
+                <p className="text-sm text-white/70 mb-2">
                   <span className="font-semibold">Tips:</span>
                 </p>
-                <ul className="text-xs text-gray-500 space-y-1 text-left max-w-sm mx-auto">
+                <ul className="text-xs text-white/50 space-y-1 text-left max-w-sm mx-auto">
                   <li>Try using different keywords in the search</li>
                   <li>Check the spelling of your search terms</li>
                   <li>Try selecting different filter options</li>
