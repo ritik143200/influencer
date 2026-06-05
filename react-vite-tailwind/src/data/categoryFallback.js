@@ -30,7 +30,7 @@ export const fallbackCategoryDirectory = [
       { slug: 'actor', name: 'Actor', iconKey: 'camera', accentFrom: '#ef4444', accentTo: '#8b5cf6' },
       { slug: 'model', name: 'Model', iconKey: 'gem', accentFrom: '#f472b6', accentTo: '#a855f7' },
       { slug: 'filmmaker', name: 'Filmmaker', iconKey: 'film', accentFrom: '#f97316', accentTo: '#b91c1c' },
-      { slug: 'celebrity', name: 'Celebrity', iconKey: 'star', accentFrom: '#f59e0b', accentTo: '#f97316' }
+      { slug: 'artist', name: 'Artist', iconKey: 'star', accentFrom: '#f59e0b', accentTo: '#f97316' }
     ]
   },
   {
@@ -67,10 +67,10 @@ export const fallbackCategoryDirectory = [
     ]
   },
   {
-    slug: 'celebrity',
-    name: 'Celebrity',
-    description: 'Celebrity-led collaborations, public figures, and high-visibility personality-driven campaigns.',
-    legacyHiringValue: 'celebrity',
+    slug: 'artist',
+    name: 'Artist',
+    description: 'Artist-led collaborations, public figures, and high-visibility personality-driven campaigns.',
+    legacyHiringValue: 'artist',
     iconKey: 'crown',
     accentFrom: '#f59e0b',
     accentTo: '#ec4899',

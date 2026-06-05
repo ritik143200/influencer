@@ -112,8 +112,8 @@ const RegistrationPage = () => {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_0%,rgba(223,122,254,0.18),transparent_32%),linear-gradient(135deg,#000000_0%,#171321_100%)] text-[#FFFFFF]">
-      <div className="relative isolate min-h-screen overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_12%_0%,rgba(223,122,254,0.18),transparent_32%),linear-gradient(135deg,#000000_0%,#171321_100%)] text-[#FFFFFF]">
+      <div className="relative isolate min-h-screen overflow-x-hidden">
         <div className="absolute inset-0">
           <div className="absolute left-[-6%] top-[10%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(223,122,254,0.30),transparent_62%)] blur-2xl" />
           <div className="absolute right-[-3%] top-[18%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(0,153,255,0.26),transparent_64%)] blur-2xl" />

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
+import BrandTopNav from '../components/BrandTopNav';
 
 const surfaceCardClass =
   'rounded-[24px] border border-[#3E2A55] bg-[linear-gradient(180deg,rgba(18,9,10,0.96)_0%,rgba(6,6,6,0.92)_100%)] shadow-[0_18px_45px_rgba(6,6,6,0.42)] backdrop-blur-xl';
@@ -38,35 +39,7 @@ const getStoredBrand = () => {
   }
 };
 
-const getBrandInitial = (brand) => {
-  const label = brand?.brandName || brand?.name || brand?.fullName || brand?.email || 'Brand';
-  return String(label).trim().slice(0, 1).toUpperCase() || 'B';
-};
-
-const BrandTopNav = ({ brand, navigate }) => (
-  <header className="sticky top-0 z-30 border-t-[3px] border-[#DF7AFE] border-b border-[#171321] bg-[#000000]/94 backdrop-blur-xl">
-    <div className="mx-auto flex h-[70px] max-w-[1280px] items-center justify-between px-5 lg:px-8">
-      <button type="button" onClick={() => navigate('home')} className="text-left text-[1.85rem] font-semibold leading-none tracking-[-0.06em] text-[#FFFFFF]">
-        <span>Viral</span>
-        <span className="text-[#DF7AFE]">X</span>
-      </button>
-
-      <nav className="hidden items-center gap-10 text-sm font-semibold text-[#FFFFFF]/70 md:flex">
-        <button type="button" onClick={() => navigate('home')} className="transition hover:text-[#DF7AFE]">Home</button>
-        <button type="button" onClick={() => navigate('services')} className="transition hover:text-[#DF7AFE]">Services</button>
-        <button type="button" onClick={() => navigate('inquiry')} className="transition hover:text-[#DF7AFE]">Hire Influencer</button>
-      </nav>
-
-      <button type="button" className="inline-flex h-12 items-center gap-3 rounded-[22px] border border-[#171321] bg-[#0D0D0D] px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_14px_34px_rgba(223,122,254,0.10)]">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171321] text-xs font-bold text-[#DF7AFE]">
-          {getBrandInitial(brand)}
-        </span>
-        <span className="hidden sm:inline">Brand Account</span>
-        <ChevronDown className="h-4 w-4 text-[#FFFFFF]/70" strokeWidth={2} />
-      </button>
-    </div>
-  </header>
-);
+// BrandTopNav is imported from '../components/BrandTopNav'
 
 const BrandHeroArt = () => (
   <div className="relative h-40 overflow-hidden">
@@ -92,17 +65,26 @@ const BrandHeroArt = () => (
   </div>
 );
 
-const QuickAction = ({ icon: Icon, title, description }) => (
-  <div className="flex items-start gap-4 rounded-[18px] border border-[#3E2A55] bg-[#0D0D0D] px-5 py-4">
-    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#171321] text-[#DF7AFE]">
-      <Icon className="h-5 w-5" strokeWidth={2} />
-    </div>
-    <div>
-      <div className="text-sm font-semibold text-[#FFFFFF]">{title}</div>
-      <div className="mt-1 text-xs leading-5 text-[#FFFFFF]/72">{description}</div>
-    </div>
-  </div>
-);
+const QuickAction = ({ icon: Icon, title, description, onClick }) => {
+  const Component = onClick ? 'button' : 'div';
+  return (
+    <Component
+      type={onClick ? 'button' : undefined}
+      onClick={onClick}
+      className={`flex items-start text-left w-full gap-4 rounded-[18px] border border-[#3E2A55] bg-[#0D0D0D] px-5 py-4 transition ${
+        onClick ? 'hover:border-[#DF7AFE]/40 hover:bg-[#171321]/30 cursor-pointer' : ''
+      }`}
+    >
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#171321] text-[#DF7AFE]">
+        <Icon className="h-5 w-5" strokeWidth={2} />
+      </div>
+      <div>
+        <div className="text-sm font-semibold text-[#FFFFFF]">{title}</div>
+        <div className="mt-1 text-xs leading-5 text-[#FFFFFF]/72">{description}</div>
+      </div>
+    </Component>
+  );
+};
 
 const getStoredCampaignPreview = () => {
   try {
@@ -161,7 +143,7 @@ const normalizeInquiries = (data) => {
 };
 
 const UserDashboard = ({ previewMode = null }) => {
-  const { navigate } = useRouter();
+  const { navigate, currentPath } = useRouter();
   const brand = useMemo(() => getStoredBrand(), []);
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -261,12 +243,14 @@ const UserDashboard = ({ previewMode = null }) => {
       {
         icon: Search,
         title: 'Find Influencers',
-        description: 'Discover creators that match your brand'
+        description: 'Discover creators that match your brand',
+        onClick: () => navigate('explore-influencers')
       },
       {
         icon: ClipboardList,
         title: 'My Campaigns',
-        description: 'Manage and track your campaigns'
+        description: 'Manage and track your campaigns',
+        onClick: () => navigate('my-inquiries')
       },
       {
         icon: MessageSquare,
@@ -279,13 +263,13 @@ const UserDashboard = ({ previewMode = null }) => {
         description: 'View and manage your shortlisted creators'
       }
     ],
-    []
+    [navigate]
   );
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#000000]">
-        <BrandTopNav brand={brand} navigate={navigate} />
+        <BrandTopNav brand={brand} navigate={navigate} currentPath={currentPath} />
         <div className="mx-auto max-w-[1280px] px-5 py-8 lg:px-8">
           <div className={`${surfaceCardClass} flex h-48 items-center justify-center`}>
             <div className="text-sm text-[#FFFFFF]/78">Loading brand dashboard...</div>
@@ -297,7 +281,7 @@ const UserDashboard = ({ previewMode = null }) => {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_15%_0%,rgba(223,122,254,0.16),transparent_32%),linear-gradient(180deg,#000000_0%,#171321_100%)] text-[#FFFFFF]">
-      <BrandTopNav brand={brand} navigate={navigate} />
+      <BrandTopNav brand={brand} navigate={navigate} currentPath={currentPath} />
       <div className="mx-auto max-w-[1280px] px-5 py-5 pb-10 lg:px-8">
         <div className="space-y-5">
           <section className={`${surfaceCardClass} p-6 lg:p-7`}>
@@ -323,8 +307,8 @@ const UserDashboard = ({ previewMode = null }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.scrollTo({ top: 480, behavior: 'smooth' })}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] px-5 text-sm font-semibold text-[#DF7AFE]"
+                  onClick={() => navigate('my-inquiries')}
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] px-5 text-sm font-semibold text-[#DF7AFE] transition hover:bg-[#171321]"
                 >
                   <ClipboardList className="h-4 w-4" strokeWidth={2} />
                   View All Campaigns

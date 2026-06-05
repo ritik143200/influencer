@@ -24,7 +24,7 @@ const categoryOptions = {
     'Historical',
     'Other'
   ],
-  'celebrity': [
+  'artist': [
     'All Type'
   ],
   'city page': [
@@ -35,7 +35,7 @@ const categoryOptions = {
   'meme page': [
     'Meme Pages',
     'Music Pages',
-    'Celebrity Pages',
+    'Artist Pages',
     'Motivation Pages',
     'Devotional Pages',
     'Media Pages',

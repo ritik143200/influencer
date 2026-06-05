@@ -265,7 +265,7 @@ const InfluencerDashboard = ({ previewMode = false }) => {
             <SidebarItem icon={LayoutDashboard} label="Dashboard" active onClick={() => navigate('influencer-dashboard')} />
             <SidebarItem icon={UserRound} label="Profile" onClick={() => navigate('profile')} />
             <SidebarItem icon={Inbox} label="Inbox" badge={pendingInquiries.length || null} />
-            <SidebarItem icon={Send} label="My Campaigns" />
+            <SidebarItem icon={Send} label="My Campaigns" onClick={() => navigate('my-campaigns')} />
             <SidebarItem icon={Wallet} label="Earnings" />
             <SidebarItem icon={CreditCard} label="Payments" />
             <SidebarItem icon={Settings} label="Settings" />
@@ -287,6 +287,10 @@ const InfluencerDashboard = ({ previewMode = false }) => {
             </div>
 
             <div className="flex items-center gap-3">
+              <button type="button" onClick={handleLogout} className="flex h-11 items-center gap-2 rounded-xl border border-rose-500/20 bg-[#0D0D0D] px-4 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 shadow-sm transition-all" title="Logout">
+                <LogOut className="h-4 w-4" strokeWidth={2.2} />
+                <span>Logout</span>
+              </button>
               <button type="button" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0D0D0D] text-[#DF7AFE] shadow-sm">
                 <Bell className="h-5 w-5" strokeWidth={2} />
               </button>

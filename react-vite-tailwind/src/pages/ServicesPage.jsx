@@ -21,7 +21,7 @@ const serviceCards = [
   {
     icon: Users,
     title: 'Creator network discovery',
-    description: 'The platform is being redesigned to help brands discover creators, meme pages, city communities, and celebrity-facing profiles more intentionally.',
+    description: 'The platform is being redesigned to help brands discover creators, meme pages, city communities, and artist-facing profiles more intentionally.',
     points: ['Main categories plus micro categories', 'Better creator segmentation', 'Premium discovery positioning']
   },
   {

@@ -144,7 +144,7 @@ const updateMyProfile = async (req, res) => {
       'email', 'phone', 'location', 'categories',
       'mainCategories', 'microCategories', 'categorySelections',
       'socialLinks', 'profileImage', 'fullName', 'username',
-      'bio', 'experience', 'niche', 'category',
+      'bio', 'experience', 'gender', 'niche', 'category',
       'previousCollaborations', 'pricing',
       'portfolio', 'platforms', 'subcategories', 'skills',
       'profilePicture', 'budget', 'budgetMin', 'budgetMax'
@@ -187,11 +187,39 @@ const updateMyProfile = async (req, res) => {
       applyNormalizedCategoryData(updateData, normalizedCategories);
     }
 
+    // Strip fields that would cause DB validation/constraint issues if empty
+    if (updateData.gender === '' || updateData.gender === null || updateData.gender === undefined) {
+      delete updateData.gender;
+    }
+    if (updateData.username === '' || updateData.username === null) {
+      delete updateData.username;
+    }
+
+    // Always update lastUpdated (findByIdAndUpdate skips pre-save hooks)
+    updateData.lastUpdated = new Date();
+
+    // Normalize portfolio: filter empty rows, ensure objects
+    if (Array.isArray(updateData.portfolio)) {
+      updateData.portfolio = updateData.portfolio
+        .filter((item) => {
+          if (typeof item === 'string') return item.trim().length > 0;
+          return (item?.title || '').trim() || (item?.url || '').trim();
+        })
+        .map((item) => {
+          if (typeof item === 'string') return { title: '', url: item };
+          return { title: (item.title || '').trim(), url: (item.url || '').trim() };
+        });
+    }
+
     const influencer = await Influencer.findByIdAndUpdate(
       req.user._id,
       { $set: updateData },
       { new: true, runValidators: false }
     ).select('-password');
+
+    if (!influencer) {
+      return res.status(404).json({ success: false, message: 'Influencer profile not found.' });
+    }
 
     res.status(200).json({
       success: true,
@@ -199,6 +227,7 @@ const updateMyProfile = async (req, res) => {
       data: influencer
     });
   } catch (error) {
+    console.error('updateMyProfile error:', error);
     res.status(500).json({ success: false, message: 'Failed to update profile', error: error.message });
   }
 };

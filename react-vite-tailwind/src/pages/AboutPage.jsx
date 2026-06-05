@@ -65,7 +65,7 @@ const AboutPage = () => {
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {[
               { label: 'Platform role', value: 'Creator network', sub: 'Discovery, briefs, and collaboration flow' },
-              { label: 'Core users', value: 'Brands + creators', sub: 'Influencers, city pages, meme pages, celebrity talent' },
+              { label: 'Core users', value: 'Brands + creators', sub: 'Influencers, city pages, meme pages, artist talent' },
               { label: 'Direction', value: 'Premium and scalable', sub: 'Cleaner UI, better taxonomy, stronger systems' }
             ].map((item) => (
               <div key={item.label} className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5">

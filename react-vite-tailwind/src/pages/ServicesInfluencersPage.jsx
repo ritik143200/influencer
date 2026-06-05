@@ -74,7 +74,7 @@ const categorySurfaces = [
   'Actor',
   'Model',
   'Filmmaker',
-  'Celebrity'
+  'Artist'
 ];
 
 const ServicesInfluencersPage = () => {

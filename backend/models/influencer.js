@@ -83,7 +83,7 @@ const influencerSchema = new mongoose.Schema({
     youtube: { hasAccount: Boolean, url: String, followers: String, engagementRate: String },
     facebook: { hasAccount: Boolean, url: String, followers: String, engagementRate: String }
   },
-  portfolio: [{ type: String }],
+  portfolio: [{ title: { type: String, trim: true }, url: { type: String, trim: true } }],
   unavailableDates: [{ type: Date }],
   previousCollaborations: { type: String },
 

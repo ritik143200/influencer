@@ -22,6 +22,8 @@ import InquiryPage from './pages/InquiryPage';
 import BrandCampaignPage from './pages/BrandCampaignPage';
 import UserDashboard from './pages/UserDashboard';
 import InfluencerDashboard from './pages/InfluencerDashboard';
+import MyCampaignsPage from './pages/MyCampaignsPage';
+import MyInquiriesPage from './pages/MyInquiriesPage';
 import AdminDashboard from './pages/AdminDashboard';
 import TermsAndCondition from './pages/TermsAndCondition';
 import PrivacyPolicy from './pages/privetPolice';
@@ -92,6 +94,8 @@ const AppContent = ({ config }) => {
     currentPath === 'brand-campaign-details' ||
     currentPath === 'influencer-dashboard' ||
     currentPath === 'influencer-dashboard-preview' ||
+    currentPath === 'my-campaigns' ||
+    currentPath === 'my-inquiries' ||
     currentPath === 'profile' ||
     currentPath === 'profile-preview';
   const hideFooter =
@@ -104,6 +108,8 @@ const AppContent = ({ config }) => {
     currentPath === 'brand-campaign-details' ||
     currentPath === 'influencer-dashboard' ||
     currentPath === 'influencer-dashboard-preview' ||
+    currentPath === 'my-campaigns' ||
+    currentPath === 'my-inquiries' ||
     currentPath === 'profile' ||
     currentPath === 'profile-preview';
 
@@ -154,6 +160,16 @@ const AppContent = ({ config }) => {
       {currentPath === 'influencer-dashboard' && (
         <ProtectedRoute allowedRoles={['influencer', 'artist']}>
           <InfluencerDashboard config={config} />
+        </ProtectedRoute>
+      )}
+      {currentPath === 'my-campaigns' && (
+        <ProtectedRoute allowedRoles={['influencer', 'artist']}>
+          <MyCampaignsPage config={config} />
+        </ProtectedRoute>
+      )}
+      {currentPath === 'my-inquiries' && (
+        <ProtectedRoute allowedRoles={['user', 'brand']}>
+          <MyInquiriesPage config={config} />
         </ProtectedRoute>
       )}
       {currentPath === 'admin-dashboard' && (

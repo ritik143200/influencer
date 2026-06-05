@@ -15,7 +15,7 @@ const offerCards = [
   {
     icon: Users,
     title: 'Curated creator discovery',
-    description: 'Find creators, meme pages, city communities, and celebrity-facing profiles through cleaner category logic and better filtering.'
+    description: 'Find creators, meme pages, city communities, and artist-facing profiles through cleaner category logic and better filtering.'
   },
   {
     icon: ShieldCheck,
@@ -48,7 +48,7 @@ const categoryHighlights = [
   'Creator / Influencer',
   'City Pages',
   'Meme Pages',
-  'Celebrity',
+  'Artist',
   'Lifestyle',
   'UGC Creator',
   'Fashion',

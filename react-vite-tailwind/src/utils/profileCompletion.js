@@ -42,28 +42,34 @@ const hasPricing = (pricing = {}, profile = {}) =>
   hasValue(profile.budgetMax) ||
   hasValue(profile.budget);
 
-const hasFollowers = (profile = {}) =>
-  hasValue(profile.followers) ||
-  hasValue(profile.platforms?.instagram?.followers) ||
-  hasValue(profile.platforms?.youtube?.followers) ||
-  hasValue(profile.platforms?.facebook?.followers);
+const hasFollowers = (profile = {}) => {
+  // followers is { instagram, youtube, facebook } in normalized frontend state
+  const f = profile.followers;
+  if (f && typeof f === 'object') {
+    if (hasValue(f.instagram) || hasValue(f.youtube) || hasValue(f.facebook)) return true;
+  }
+  return (
+    hasValue(profile.platforms?.instagram?.followers) ||
+    hasValue(profile.platforms?.youtube?.followers) ||
+    hasValue(profile.platforms?.facebook?.followers)
+  );
+};
 
-const BASE_COMPLETION = 25;
+const BASE_COMPLETION = 20;
 
 export const calculateProfileCompletion = (profile = {}) => {
   const profileSteps = [
-    { done: hasValue(profile.bio || profile.description), weight: 12 },
-    { done: hasValue(profile.experience), weight: 8 },
+    { done: hasValue(profile.bio || profile.description), weight: 15 },
     { done: hasValue(profile.gender), weight: 5 },
-    { done: hasFollowers(profile), weight: 15 },
-    { done: hasPricing(profile.pricing, profile), weight: 18 },
-    { done: hasPortfolio(profile.portfolio), weight: 12 },
+    { done: hasFollowers(profile), weight: 18 },
+    { done: hasPricing(profile.pricing, profile), weight: 20 },
+    { done: hasPortfolio(profile.portfolio), weight: 14 },
     {
       done:
         hasValue(profile.socialLinks?.instagram || profile.instagram || profile.platforms?.instagram?.url) &&
         hasLocation(profile.location) &&
         hasRealCategory(profile),
-      weight: 5
+      weight: 8
     }
   ];
 

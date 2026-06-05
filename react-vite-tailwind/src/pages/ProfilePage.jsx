@@ -124,13 +124,19 @@ const normalizeProfile = (profile = {}) => ({
       : profile.niche
         ? [profile.niche]
         : [],
-  portfolio: Array.isArray(profile.portfolio) && profile.portfolio.length
-    ? profile.portfolio
-    : [
-        { title: '', url: '' },
-        { title: '', url: '' },
-        { title: '', url: '' }
-      ]
+  portfolio: (() => {
+    const raw = profile.portfolio;
+    if (!Array.isArray(raw) || raw.length === 0) {
+      return [{ title: '', url: '' }, { title: '', url: '' }, { title: '', url: '' }];
+    }
+    const normalized = raw.map((item) => {
+      if (typeof item === 'string') return { title: '', url: item };
+      return { title: item?.title || '', url: item?.url || '' };
+    });
+    // Always show at least one empty row for UX
+    if (normalized.length === 0) normalized.push({ title: '', url: '' });
+    return normalized;
+  })()
 });
 
 const creatorName = (profile) => profile.fullName || profile.name || '';
@@ -175,6 +181,8 @@ const ProfilePage = ({ previewMode = false }) => {
   const [loading, setLoading] = useState(!previewMode);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState(''); // 'success' | 'error'
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
   useEffect(() => {
     if (previewMode || hasLoadedProfileRef.current) return;
@@ -239,11 +247,13 @@ const ProfilePage = ({ previewMode = false }) => {
   const setField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setMessage('');
+    setMessageType('');
   };
 
   const setNestedField = (group, field, value) => {
     setFormData((prev) => ({ ...prev, [group]: { ...prev[group], [field]: value } }));
     setMessage('');
+    setMessageType('');
   };
 
   const updatePortfolio = (index, field, value) => {
@@ -302,26 +312,39 @@ const ProfilePage = ({ previewMode = false }) => {
     navigate('home');
   };
 
+  // Auto-clear message after 4 seconds
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => {
+      setMessage('');
+      setMessageType('');
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [message]);
+
   const handleSave = async () => {
     if (!formData.socialLinks.instagram.trim()) {
       setMessage('Instagram profile link is required.');
+      setMessageType('error');
       return;
     }
 
     setSaving(true);
     setMessage('');
+    setMessageType('');
 
     const categoryPayload = getCategorySelectionPayload(directory, mainCategories, microCategories);
     const selectedMainName = directory.find((category) => category.slug === mainCategories[0])?.name || formData.category;
+
+    // Build clean payload — strip empty values that cause DB constraint issues
     const payload = {
-      fullName: formData.fullName,
-      username: formData.username,
-      email: formData.email,
-      phone: formData.phone,
-      bio: formData.bio,
+      fullName: formData.fullName.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      bio: formData.bio.trim(),
       location: formData.location,
-      experience: formData.experience,
-      gender: formData.gender,
+      gender: formData.gender || undefined,          // omit empty string
+      username: formData.username.trim() || undefined, // omit empty string
       budgetMin: formData.budgetMin,
       budgetMax: formData.budgetMax,
       budget: formData.budgetMax || formData.budgetMin,
@@ -346,12 +369,14 @@ const ProfilePage = ({ previewMode = false }) => {
       },
       category: selectedMainName,
       niche: selectedMicroNames,
-      portfolio: formData.portfolio.filter((item) => item.title || item.url),
+      // Only send portfolio rows that have at least one value
+      portfolio: formData.portfolio.filter((item) => (item.title || '').trim() || (item.url || '').trim()),
       ...categoryPayload
     };
 
     if (previewMode) {
       setMessage('Preview saved.');
+      setMessageType('success');
       setSaving(false);
       return;
     }
@@ -369,13 +394,30 @@ const ProfilePage = ({ previewMode = false }) => {
       const result = await response.json();
       if (!response.ok) {
         setMessage(result.message || 'Unable to save profile.');
+        setMessageType('error');
         return;
       }
-      updateUser(result.data || payload);
-      localStorage.setItem('userData', JSON.stringify(result.data || payload));
-      setMessage('Profile saved.');
+
+      // Sync local state from server response so form always reflects DB state
+      if (result.data) {
+        const refreshed = normalizeProfile(result.data);
+        setFormData(refreshed);
+        setMainCategories(refreshed.mainCategories);
+        setMicroCategories(refreshed.microCategories);
+        updateUser(result.data);
+        localStorage.setItem('userData', JSON.stringify(result.data));
+      } else {
+        updateUser(payload);
+        localStorage.setItem('userData', JSON.stringify(payload));
+      }
+
+      setMessage('Profile saved successfully!');
+      setMessageType('success');
+      setShowCompletionPopup(true);
+      setTimeout(() => setShowCompletionPopup(false), 6000);
     } catch {
       setMessage('Network error. Please try again.');
+      setMessageType('error');
     } finally {
       setSaving(false);
     }
@@ -392,7 +434,7 @@ const ProfilePage = ({ previewMode = false }) => {
             <SidebarItem icon={LayoutDashboard} label="Dashboard" onClick={() => navigate('influencer-dashboard')} />
             <SidebarItem icon={UserRound} label="Profile" active onClick={() => navigate('profile')} />
             <SidebarItem icon={Inbox} label="Inbox" />
-            <SidebarItem icon={Send} label="My Campaigns" />
+            <SidebarItem icon={Send} label="My Campaigns" onClick={() => navigate('my-campaigns')} />
             <SidebarItem icon={Wallet} label="Earnings" />
             <SidebarItem icon={CreditCard} label="Payments" />
             <SidebarItem icon={Settings} label="Settings" />
@@ -438,7 +480,14 @@ const ProfilePage = ({ previewMode = false }) => {
             </div>
           </header>
 
-          {message && <div className="mb-4 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] px-4 py-3 text-sm font-semibold text-[#A98BC8]">{message}</div>}
+          {/* Inline message banner */}
+          {message && (
+            <div className={`mb-4 rounded-xl border px-4 py-3 text-sm font-semibold ${
+              messageType === 'success'
+                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+                : 'border-rose-500/40 bg-rose-500/10 text-rose-400'
+            }`}>{message}</div>
+          )}
           {loading && (
             <div className="mb-4 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] px-4 py-3 text-sm font-semibold text-[#A98BC8]">
               Syncing profile...
@@ -471,7 +520,7 @@ const ProfilePage = ({ previewMode = false }) => {
                   <div className="mt-2 text-xs text-[#A98BC8]">{formData.email || 'Email'}</div>
                 </div>
               </div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="mt-5 grid gap-3">
                 <Field label="Location">
                   <LocationSelectInput
                     value={[formData.location.city, formData.location.country].filter(Boolean).join(', ')}
@@ -487,9 +536,6 @@ const ProfilePage = ({ previewMode = false }) => {
                     placeholder="Search city or location"
                   />
                 </Field>
-                <Field label="Country">
-                  <input value={formData.location.country} onChange={(event) => setNestedField('location', 'country', event.target.value)} className={inputClassName} placeholder="Country" />
-                </Field>
               </div>
             </section>
 
@@ -498,7 +544,7 @@ const ProfilePage = ({ previewMode = false }) => {
                 <ShieldCheck className="h-4 w-4" strokeWidth={2} />
                 Professional Bio
               </div>
-              <div className="grid gap-4 lg:grid-cols-[1fr_220px]">
+              <div className="grid gap-4 lg:grid-cols-[1fr_120px]">
                 <Field label="Description" required>
                   <textarea value={formData.bio} onChange={(event) => setField('bio', event.target.value)} className={`${inputClassName} min-h-[112px] resize-none`} placeholder="Add a short description about your work." />
                 </Field>
@@ -510,9 +556,6 @@ const ProfilePage = ({ previewMode = false }) => {
                       <option value="male">Male</option>
                       <option value="other">Other</option>
                     </select>
-                  </Field>
-                  <Field label="Experience">
-                    <input value={formData.experience} onChange={(event) => setField('experience', event.target.value)} className={inputClassName} placeholder="Experience" />
                   </Field>
                 </div>
               </div>
@@ -708,7 +751,7 @@ const ProfilePage = ({ previewMode = false }) => {
             </div>
             <div className="space-y-3">
               {formData.portfolio.map((item, index) => (
-                <div key={`${index}-${item.title}`} className="grid gap-3 lg:grid-cols-[0.7fr_1fr]">
+                <div key={`portfolio-row-${index}`} className="grid gap-3 lg:grid-cols-[0.7fr_1fr]">
                   <input value={item.title || ''} onChange={(event) => updatePortfolio(index, 'title', event.target.value)} className={inputClassName} placeholder="Project title" />
                   <input value={item.url || ''} onChange={(event) => updatePortfolio(index, 'url', event.target.value)} className={inputClassName} placeholder="Project URL" />
                 </div>
@@ -725,11 +768,69 @@ const ProfilePage = ({ previewMode = false }) => {
             </button>
             <button type="button" onClick={handleSave} disabled={saving} className="inline-flex h-12 min-w-[220px] items-center justify-center gap-2 rounded-xl bg-[#8B4DD8] px-6 text-sm font-semibold text-white shadow-[0_18px_42px_rgba(223,122,254,0.24)] disabled:opacity-60">
               <Save className="h-4 w-4" strokeWidth={2.2} />
-              {saving ? 'Saving' : 'Save & Submit Profile'}
+              {saving ? 'Saving...' : 'Save & Submit Profile'}
             </button>
           </div>
         </section>
       </div>
+
+      {/* Completion Popup */}
+      {showCompletionPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backdropFilter: 'blur(4px)', background: 'rgba(0,0,0,0.6)' }}>
+          <div className="w-full max-w-sm rounded-[2rem] border border-[#3E2A55] bg-[#0D0D0D] p-8 shadow-[0_40px_90px_rgba(223,122,254,0.22)] text-center animate-[fadeInScale_0.3s_ease]">
+            {completion >= 100 ? (
+              <>
+                <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/15 ring-4 ring-emerald-500/30">
+                  <Check className="h-10 w-10 text-emerald-400" strokeWidth={2.5} />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Profile Complete! 🎉</h3>
+                <p className="mt-2 text-sm text-[#A98BC8]">Your profile is 100% complete. You're all set to get discovered by top brands!</p>
+              </>
+            ) : (
+              <>
+                <div className="relative mx-auto mb-4 h-24 w-24">
+                  <svg className="h-24 w-24 -rotate-90" viewBox="0 0 96 96">
+                    <circle cx="48" cy="48" r="40" fill="none" stroke="#1e1030" strokeWidth="8" />
+                    <circle
+                      cx="48" cy="48" r="40" fill="none"
+                      stroke="url(#grad)"
+                      strokeWidth="8"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 40}`}
+                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - completion / 100)}`}
+                    />
+                    <defs>
+                      <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#DF7AFE" />
+                        <stop offset="100%" stopColor="#8B4DD8" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold text-white">{completion}%</span>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-white">Profile Saved!</h3>
+                <p className="mt-2 text-sm text-[#A98BC8]">Your profile is <span className="font-bold text-[#DF7AFE]">{completion}% complete</span>. Fill in more details to attract more brand collaborations.</p>
+                <div className="mt-4 w-full rounded-full bg-[#1e1030] h-2 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#DF7AFE] to-[#8B4DD8] transition-all duration-1000"
+                    style={{ width: `${completion}%` }}
+                  />
+                </div>
+                <p className="mt-2 text-xs text-[#A98BC8]/70">{100 - completion}% remaining to full completion</p>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowCompletionPopup(false)}
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#DF7AFE] to-[#8B4DD8] py-3 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(223,122,254,0.24)]"
+            >
+              {completion >= 100 ? 'Awesome! 🚀' : 'Keep Going!'}
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
