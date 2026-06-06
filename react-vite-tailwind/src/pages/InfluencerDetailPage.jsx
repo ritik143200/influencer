@@ -82,20 +82,20 @@ const InfluencerDetailPage = ({ config }) => {
   const primary = config?.primary_action || '#ee7711';
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center pt-20" style={{ backgroundColor: config?.background_color || '#ffffff' }}>
+    <div className="min-h-screen flex items-center justify-center pt-20" style={{ backgroundColor: config?.background_color || '#050816' }}>
       <div className="text-center">
-        <div className="w-14 h-14 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-500 font-medium">Loading profile...</p>
+        <div className="w-14 h-14 border-4 border-white/10 border-t-brand-500 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-slate-400 font-medium">Loading profile...</p>
       </div>
     </div>
   );
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center pt-20" style={{ backgroundColor: config?.background_color || '#ffffff' }}>
+    <div className="min-h-screen flex items-center justify-center pt-20" style={{ backgroundColor: config?.background_color || '#050816' }}>
       <div className="text-center max-w-md mx-auto px-4">
         <div className="text-6xl mb-4">😔</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
-        <p className="text-gray-500 mb-6">{error}</p>
+        <h2 className="text-2xl font-bold text-white mb-2">Profile Not Found</h2>
+        <p className="text-slate-400 mb-6">{error}</p>
         <button onClick={() => navigate('home')} className="px-6 py-3 rounded-xl text-white font-semibold transition-all hover:scale-105 shadow-lg" style={{ backgroundColor: primary }}>Go Home</button>
       </div>
     </div>
@@ -111,7 +111,7 @@ const InfluencerDetailPage = ({ config }) => {
   const hasSocials = socialLinks.instagram || socialLinks.youtube || socialLinks.facebook || socialLinks.website;
 
   return (
-    <div className="min-h-screen pb-16" style={{ backgroundColor: config?.background_color || '#ffffff' }}>
+    <div className="min-h-screen pb-16" style={{ backgroundColor: config?.background_color || '#050816' }}>
       {/* Lightbox */}
       {lightboxImage && (
         <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn" onClick={() => setLightboxImage(null)}>
@@ -124,7 +124,7 @@ const InfluencerDetailPage = ({ config }) => {
 
       {/* Top Navbar Spacer & Back Button */}
       <div className="max-w-[935px] mx-auto px-4 sm:px-6 pt-24 pb-6">
-        <button onClick={() => window.history.back()} className="flex items-center gap-2 text-gray-500 hover:text-gray-800 font-medium transition-colors group">
+        <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-400 hover:text-white font-medium transition-colors group">
           <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back
         </button>
@@ -136,7 +136,7 @@ const InfluencerDetailPage = ({ config }) => {
         <div className="flex flex-col sm:flex-row gap-8 sm:gap-16 mb-12">
           {/* Avatar Left */}
           <div className="flex-shrink-0 flex justify-center sm:justify-start sm:w-1/3">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-gray-100 border border-gray-200">
+            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden bg-slate-900 border border-white/10">
               {influencer.profileImage && influencer.profileImage !== 'https://picsum.photos/seed/artist-avatar/400/400.jpg' ? (
                 <img src={influencer.profileImage} alt={displayName} className="w-full h-full object-cover" />
               ) : (
@@ -151,7 +151,7 @@ const InfluencerDetailPage = ({ config }) => {
           <div className="flex-1 flex flex-col justify-center">
             {/* Top Row: Username & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-white truncate flex items-center gap-2">
                 {displayName}
                 {influencer.verificationStatus === 'verified' && (
                   <span className="text-blue-500" title="Verified">
@@ -163,7 +163,7 @@ const InfluencerDetailPage = ({ config }) => {
                 <button onClick={() => navigate('inquiry')} className="px-5 py-1.5 rounded-lg text-white font-semibold text-sm transition-all hover:opacity-90" style={{ backgroundColor: primary }}>
                   Hire Now
                 </button>
-                <button onClick={() => navigate('contact')} className="px-5 py-1.5 rounded-lg font-semibold text-sm bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors">
+                <button onClick={() => navigate('contact')} className="px-5 py-1.5 rounded-lg font-semibold text-sm bg-white/[0.05] text-white hover:bg-white/[0.1] border border-white/10 transition-colors">
                   Contact
                 </button>
               </div>
@@ -172,19 +172,19 @@ const InfluencerDetailPage = ({ config }) => {
             {/* Middle Row: Stats */}
             <div className="hidden sm:flex gap-8 mb-4">
               {(influencer.followers) && (
-                <div><span className="font-semibold text-gray-900">{influencer.followers}</span> <span className="text-gray-600">followers</span></div>
+                <div><span className="font-semibold text-white">{influencer.followers}</span> <span className="text-slate-400">followers</span></div>
               )}
               {(influencer.completedEvents > 0 || typeof influencer.completedEvents === 'string') && (
-                <div><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-gray-600">posts</span></div>
+                <div><span className="font-semibold text-white">{influencer.completedEvents}</span> <span className="text-slate-400">posts</span></div>
               )}
               {influencer.budget && !influencer.budgetMin && (
-                <div><span className="font-semibold text-gray-900">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-gray-600">budget</span></div>
+                <div><span className="font-semibold text-white">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-slate-400">budget</span></div>
               )}
               {(influencer.budgetMin != null || influencer.budgetMax != null) && (
-                <div><span className="font-semibold text-gray-900">₹{influencer.budgetMin ? Number(influencer.budgetMin).toLocaleString() : 0} - ₹{influencer.budgetMax ? Number(influencer.budgetMax).toLocaleString() : 'Any'}</span> <span className="text-gray-600">budget</span></div>
+                <div><span className="font-semibold text-white">₹{influencer.budgetMin ? Number(influencer.budgetMin).toLocaleString() : 0} - ₹{influencer.budgetMax ? Number(influencer.budgetMax).toLocaleString() : 'Any'}</span> <span className="text-slate-400">budget</span></div>
               )}
               {influencer.rating?.average > 0 && (
-                <div><span className="font-semibold text-gray-900">⭐ {influencer.rating.average.toFixed(1)}</span> <span className="text-gray-600">rating</span></div>
+                <div><span className="font-semibold text-white">⭐ {influencer.rating.average.toFixed(1)}</span> <span className="text-slate-400">rating</span></div>
               )}
             </div>
 
@@ -192,48 +192,48 @@ const InfluencerDetailPage = ({ config }) => {
             <div>
               {/* Name already shown in top row */}
               {categories.length > 0 && (
-                <p className="text-sm text-gray-500 mb-1">{categories.join(' • ')}</p>
+                <p className="text-sm text-slate-400 mb-1">{categories.join(' • ')}</p>
               )}
               {influencer.bio && (
-                <p className="text-sm text-gray-900 whitespace-pre-line mb-1">{influencer.bio}</p>
+                <p className="text-sm text-slate-200 whitespace-pre-line mb-1">{influencer.bio}</p>
               )}
-              <p className="text-sm text-gray-600 mb-2">📍 {renderLocation(influencer.location)}</p>
+              <p className="text-sm text-slate-300 mb-2">📍 {renderLocation(influencer.location)}</p>
 
               {/* Mobile Stats (visible only on sm) */}
-              <div className="flex sm:hidden gap-6 mt-4 mb-4 border-t border-b border-gray-200 py-3">
+              <div className="flex sm:hidden gap-6 mt-4 mb-4 border-t border-b border-white/10 py-3">
                  {(influencer.followers) && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{influencer.followers}</span> <span className="text-xs text-gray-500">followers</span></div>
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-white">{influencer.followers}</span> <span className="text-xs text-slate-400">followers</span></div>
                 )}
                  {(influencer.completedEvents > 0 || typeof influencer.completedEvents === 'string') && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{influencer.completedEvents}</span> <span className="text-xs text-gray-500">posts</span></div>
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-white">{influencer.completedEvents}</span> <span className="text-xs text-slate-400">posts</span></div>
                 )}
                 {influencer.budget && !influencer.budgetMin && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-xs text-gray-500">budget</span></div>
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-white">{isNaN(Number(influencer.budget)) ? influencer.budget : `₹${Number(influencer.budget).toLocaleString()}`}</span> <span className="text-xs text-slate-400">budget</span></div>
                 )}
                 {influencer.rating?.average > 0 && (
-                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-gray-900">⭐ {influencer.rating.average.toFixed(1)}</span> <span className="text-xs text-gray-500">rating</span></div>
+                  <div className="flex flex-col items-center flex-1"><span className="font-semibold text-white">⭐ {influencer.rating.average.toFixed(1)}</span> <span className="text-xs text-slate-400">rating</span></div>
                 )}
               </div>
 
               {hasSocials && (
                 <div className="flex flex-wrap gap-3 mt-3">
                   {(socialLinks.instagram || platforms.instagram?.url) && (
-                    <a href={socialLinks.instagram || platforms.instagram?.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-900 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition-colors flex items-center gap-1">
+                    <a href={socialLinks.instagram || platforms.instagram?.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-pink-400 bg-pink-500/10 border border-pink-500/20 px-3 py-1.5 rounded hover:bg-pink-500/20 transition-colors flex items-center gap-1">
                       Instagram
                     </a>
                   )}
                   {(socialLinks.youtube || platforms.youtube?.url) && (
-                    <a href={socialLinks.youtube || platforms.youtube?.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-red-900 bg-red-50 px-3 py-1 rounded hover:bg-red-100 transition-colors flex items-center gap-1">
+                    <a href={socialLinks.youtube || platforms.youtube?.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-red-400 bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded hover:bg-red-500/20 transition-colors flex items-center gap-1">
                       YouTube
                     </a>
                   )}
                   {socialLinks.facebook && (
-                    <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-900 bg-blue-50 px-3 py-1 rounded hover:bg-blue-100 transition-colors flex items-center gap-1">
+                    <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 rounded hover:bg-blue-500/20 transition-colors flex items-center gap-1">
                       Facebook
                     </a>
                   )}
                   {socialLinks.website && (
-                    <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-gray-900 bg-gray-100 px-3 py-1 rounded hover:bg-gray-200 transition-colors flex items-center gap-1">
+                    <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-slate-300 bg-white/[0.05] border border-white/10 px-3 py-1.5 rounded hover:bg-white/[0.1] transition-colors flex items-center gap-1">
                       Website
                     </a>
                   )}
@@ -244,10 +244,10 @@ const InfluencerDetailPage = ({ config }) => {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-gray-200 mt-8 mb-8 flex justify-center">
-          <div className="flex items-center gap-2 border-t border-gray-900 -mt-px pt-4 px-1">
-            <svg aria-label="Posts" className="w-3 h-3 text-gray-900" fill="currentColor" viewBox="0 0 24 24"><rect fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" width="18" x="3" y="3"></rect><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="9.015" x2="9.015" y1="3" y2="21"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="14.985" x2="14.985" y1="3" y2="21"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="21" x2="3" y1="9.015" y2="9.015"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="21" x2="3" y1="14.985" y2="14.985"></line></svg>
-            <span className="text-xs font-semibold tracking-widest text-gray-900 uppercase">Portfolio</span>
+        <div className="border-t border-white/10 mt-8 mb-8 flex justify-center">
+          <div className="flex items-center gap-2 border-t border-white -mt-px pt-4 px-1">
+            <svg aria-label="Posts" className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><rect fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" width="18" x="3" y="3"></rect><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="9.015" x2="9.015" y1="3" y2="21"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="14.985" x2="14.985" y1="3" y2="21"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="21" x2="3" y1="9.015" y2="9.015"></line><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="21" x2="3" y1="14.985" y2="14.985"></line></svg>
+            <span className="text-xs font-semibold tracking-widest text-white uppercase">Portfolio</span>
           </div>
         </div>
 
@@ -255,7 +255,7 @@ const InfluencerDetailPage = ({ config }) => {
         {portfolioImages.length > 0 ? (
           <div className="grid grid-cols-3 gap-1 sm:gap-6">
             {portfolioImages.map((img, i) => (
-              <div key={i} onClick={() => setLightboxImage(img)} className="relative aspect-square bg-gray-100 cursor-pointer group">
+              <div key={i} onClick={() => setLightboxImage(img)} className="relative aspect-square bg-slate-900 border border-white/5 cursor-pointer group">
                 <img src={img} alt={`Portfolio ${i + 1}`} className="w-full h-full object-cover transition-opacity duration-300" />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
                   <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -265,10 +265,10 @@ const InfluencerDetailPage = ({ config }) => {
           </div>
         ) : (
           <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-2 border-gray-900 mb-4">
-              <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-2 border-white/20 mb-4">
+              <svg className="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">No Portfolio Yet</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-white/80">No Portfolio Yet</h2>
           </div>
         )}
       </div>

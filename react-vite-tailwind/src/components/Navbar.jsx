@@ -228,8 +228,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white/82 shadow-[0_16px_45px_rgba(123,79,210,0.08)] backdrop-blur-xl' : 'bg-white/60 backdrop-blur'
+      className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 border-b ${
+        isScrolled 
+          ? 'bg-[#000000]/90 border-white/10 shadow-[0_16px_45px_rgba(0,0,0,0.4)] backdrop-blur-xl' 
+          : 'bg-[#050816]/60 border-transparent backdrop-blur-sm'
       }`}
     >
       <div className="section-shell">
@@ -238,7 +240,7 @@ const Navbar = () => {
             <div className="text-left text-sm font-semibold uppercase tracking-[0.34em] text-[#DF7AFE]">ViralMantrix</div>
           </button>
 
-          <div className="hidden items-center gap-2 rounded-full bg-white/75 px-3 py-2 shadow-sm lg:flex">
+          <div className="hidden items-center gap-2 rounded-full bg-white/[0.05] border border-white/10 px-3 py-2 shadow-sm lg:flex">
             {defaultNavItems.map((item) => (
               <button
                 key={item.label}
@@ -249,7 +251,7 @@ const Navbar = () => {
                   (item.label === 'Service' && currentPath === 'services') ||
                   (item.label === 'Hire Influencer' && currentPath === 'inquiry')
                     ? 'bg-[#DF7AFE] text-white'
-                    : 'text-slate-600 hover:text-[#DF7AFE]'
+                    : 'text-slate-300 hover:text-[#DF7AFE]'
                 }`}
               >
                 {item.label}
@@ -263,7 +265,7 @@ const Navbar = () => {
                 <button
                   type="button"
                   onClick={() => navigate(dashboardRoute)}
-                  className="rounded-full border border-white/70 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-700"
+                  className="rounded-full border border-white/10 bg-white/[0.05] hover:bg-white/[0.08] hover:border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-all"
                 >
                   Dashboard
                 </button>
@@ -273,7 +275,7 @@ const Navbar = () => {
                     logout();
                     navigate('home');
                   }}
-                  className="rounded-full border border-white/70 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-600"
+                  className="rounded-full border border-white/10 bg-white/[0.05] hover:bg-white/[0.08] hover:border-white/20 px-4 py-2.5 text-sm font-semibold text-slate-300 transition-all"
                 >
                   Log out
                 </button>
@@ -282,7 +284,7 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() => navigate('registration')}
-                className="rounded-full border border-white/70 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-700"
+                className="rounded-full border border-white/10 bg-white/[0.05] hover:bg-white/[0.08] hover:border-white/20 px-5 py-2.5 text-sm font-semibold text-white transition-all"
               >
                 Sign Up
               </button>
@@ -292,14 +294,14 @@ const Navbar = () => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((value) => !value)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-sm lg:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[0.05] border border-white/10 text-white hover:bg-white/[0.08] transition-all lg:hidden"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" strokeWidth={2} /> : <Menu className="h-5 w-5" strokeWidth={2} />}
           </button>
         </div>
 
         {mobileMenuOpen && (
-          <div className="mb-4 rounded-[1.6rem] border border-white/80 bg-white/92 p-4 shadow-[0_16px_45px_rgba(123,79,210,0.08)] backdrop-blur lg:hidden">
+          <div className="mb-4 rounded-[1.6rem] border border-white/10 bg-[#000000]/96 p-4 shadow-2xl backdrop-blur lg:hidden">
             <div className="space-y-2">
               {defaultNavItems.map((item) => (
                 <button
@@ -309,7 +311,7 @@ const Navbar = () => {
                     item.action();
                     setMobileMenuOpen(false);
                   }}
-                  className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-[#f6efff]"
+                  className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-slate-300 hover:bg-white/[0.05] hover:text-white transition-colors"
                 >
                   {item.label}
                 </button>

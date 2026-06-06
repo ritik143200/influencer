@@ -291,15 +291,14 @@ const ExploreInfluencersPage = ({ config }) => {
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold" style={{ color: config.text_color }}>
                 Explore Top Influencers
               </h1>
-              <p className="mt-2 text-gray-600">
+              <p className="mt-2 text-slate-400">
                 Browse a curated selection of top creators. Filter by category to keep the results clean and focused.
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate('home')}
-              className="px-4 py-2 rounded-xl border border-gray-200 bg-white/70 backdrop-blur hover:bg-white transition-colors text-sm font-semibold"
-              style={{ color: config.text_color }}
+              className="px-4 py-2 rounded-xl border border-white/10 bg-white/[0.05] hover:bg-white/[0.1] hover:border-white/20 transition-all text-sm font-semibold text-white"
             >
               Back
             </button>
@@ -307,7 +306,7 @@ const ExploreInfluencersPage = ({ config }) => {
 
           <div className="flex flex-col md:flex-row items-center gap-4 mt-8">
             <div className="relative flex-1 w-full">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
               </span>
               <input
@@ -315,7 +314,7 @@ const ExploreInfluencersPage = ({ config }) => {
                 placeholder="Search influencers by name or bio..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-brand-500 outline-none transition-all bg-white/70 backdrop-blur"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-white/10 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all bg-white/[0.05] text-white placeholder-slate-400"
               />
             </div>
             
@@ -324,7 +323,7 @@ const ExploreInfluencersPage = ({ config }) => {
               <div className="custom-dropdown relative flex-1 md:w-56">
                 <button
                   onClick={() => { setIsCatOpen(!isCatOpen); setIsSubOpen(false); }}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 backdrop-blur flex items-center justify-between font-semibold text-gray-700 hover:border-brand-500 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.05] flex items-center justify-between font-semibold text-slate-300 hover:border-white/20 transition-all"
                 >
                   <span className="truncate">
                     {selectedCategory === 'All' ? 'All Categories' : selectedCategory.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
@@ -333,12 +332,12 @@ const ExploreInfluencersPage = ({ config }) => {
                 </button>
                 
                 {isCatOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-60 overflow-y-auto hide-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#0b1125] rounded-xl shadow-2xl border border-white/10 z-50 max-h-60 overflow-y-auto hide-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
                     {visibleCategories.map(cat => (
                       <button
                         key={cat}
                         onClick={() => { setSelectedCategory(cat); setIsCatOpen(false); }}
-                        className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50 transition-colors ${selectedCategory === cat ? 'text-brand-600 bg-brand-50' : 'text-gray-700'}`}
+                        className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-white/[0.05] transition-colors ${selectedCategory === cat ? 'text-brand-400 bg-white/[0.08]' : 'text-slate-300'}`}
                       >
                         {cat === 'All' ? 'All Categories' : cat.split(' ').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
                       </button>
@@ -352,7 +351,7 @@ const ExploreInfluencersPage = ({ config }) => {
                 <button
                   onClick={() => { if (selectedCategory !== 'All') { setIsSubOpen(!isSubOpen); setIsCatOpen(false); } }}
                   disabled={selectedCategory === 'All'}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white/70 backdrop-blur flex items-center justify-between font-semibold text-gray-700 hover:border-brand-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/[0.05] flex items-center justify-between font-semibold text-slate-300 hover:border-white/20 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <span className="truncate">
                     {selectedSubCategory === 'All' ? 'All Sub-Categories' : selectedSubCategory}
@@ -361,12 +360,12 @@ const ExploreInfluencersPage = ({ config }) => {
                 </button>
 
                 {isSubOpen && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-60 overflow-y-auto hide-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-[#0b1125] rounded-xl shadow-2xl border border-white/10 z-50 max-h-60 overflow-y-auto hide-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
                     {visibleSubCategories.map(sub => (
                       <button
                         key={sub}
                         onClick={() => { setSelectedSubCategory(sub); setIsSubOpen(false); }}
-                        className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-gray-50 transition-colors ${selectedSubCategory === sub ? 'text-brand-600 bg-brand-50' : 'text-gray-700'}`}
+                        className={`w-full px-4 py-2.5 text-left text-sm font-medium hover:bg-white/[0.05] transition-colors ${selectedSubCategory === sub ? 'text-brand-400 bg-white/[0.08]' : 'text-slate-300'}`}
                       >
                         {sub === 'All' ? 'All Sub-Categories' : sub}
                       </button>
@@ -404,7 +403,7 @@ const ExploreInfluencersPage = ({ config }) => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.05] text-slate-300 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 </button>
@@ -417,7 +416,7 @@ const ExploreInfluencersPage = ({ config }) => {
                       className={`w-10 h-10 rounded-lg font-semibold text-sm transition-all ${
                         currentPage === i + 1 
                           ? 'text-white shadow-md' 
-                          : 'text-gray-600 hover:bg-gray-100'
+                          : 'text-slate-400 hover:bg-white/[0.05] hover:text-white'
                       }`}
                       style={currentPage === i + 1 ? { backgroundColor: config.primary_action } : {}}
                     >
@@ -429,7 +428,7 @@ const ExploreInfluencersPage = ({ config }) => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg border border-white/10 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/[0.05] text-slate-300 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
@@ -440,7 +439,7 @@ const ExploreInfluencersPage = ({ config }) => {
 
         {!loading && filteredInfluencers.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-600 font-medium">No influencers found for this category.</p>
+            <p className="text-slate-400 font-medium">No influencers found for this category.</p>
           </div>
         )}
       </section>

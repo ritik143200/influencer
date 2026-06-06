@@ -2,18 +2,18 @@ import React from 'react';
 
 const InfluencerCard = ({ p, config, navigate, initials }) => {
   return (
-    <div className="h-full rounded-3xl border bg-white shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden group flex flex-col" style={{ borderColor: `${config.primary_action}18` }}>
+    <div className="h-full rounded-3xl border bg-white/[0.03] backdrop-blur-md shadow-sm hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden group flex flex-col" style={{ borderColor: `${config.primary_action}25` }}>
       <div className="p-6 flex flex-col h-full">
         <div className="flex items-start gap-4">
           <div className="shrink-0">
             <div className="p-[2px] rounded-full bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:from-[#f9ce34] hover:via-[#ee2a7b] hover:to-[#6228d7] transition-all duration-300">
-              <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden">
+              <div className="w-20 h-20 rounded-full bg-slate-950 flex items-center justify-center overflow-hidden">
                 <img
                   src={p.image || ''}
                   alt={p.name}
                   onError={(e) => {
                     e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = `<div class="w-20 h-20 rounded-full flex items-center justify-center text-sm font-bold text-gray-900" style="background-color: ${config.primary_action}12">${initials(p.name)}</div>`;
+                    e.target.parentElement.innerHTML = `<div class="w-20 h-20 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background-color: ${config.primary_action}12">${initials(p.name)}</div>`;
                   }}
                   className="w-full h-full object-cover"
                 />
@@ -24,7 +24,7 @@ const InfluencerCard = ({ p, config, navigate, initials }) => {
           <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 min-w-0">
-                <div className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                <div className="font-bold text-white truncate group-hover:text-brand-400 transition-colors">
                   {p.name}
                 </div>
                 {p.verified && (
@@ -62,12 +62,12 @@ const InfluencerCard = ({ p, config, navigate, initials }) => {
                 )}
               </div>
             </div>
-            <div className="text-xs text-gray-500 truncate mt-0.5">Influencer</div>
+            <div className="text-xs text-slate-400 truncate mt-0.5">Influencer</div>
             <div className="mt-3 flex items-center gap-2 flex-wrap">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold group-hover:shadow-md transition-shadow" style={{ backgroundColor: `${config.primary_action}10`, color: config.primary_action }}>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold group-hover:shadow-md transition-shadow" style={{ backgroundColor: `${config.primary_action}15`, color: config.primary_action }}>
                 {p.followers} followers
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 group-hover:bg-gray-200 transition-colors">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/[0.05] text-slate-300 group-hover:bg-white/[0.08] transition-colors">
                 {p.posts} posts
               </span>
             </div>
@@ -76,21 +76,21 @@ const InfluencerCard = ({ p, config, navigate, initials }) => {
 
         <div className="mt-5 grid grid-cols-2 gap-4">
           <div>
-            <div className="text-sm font-semibold text-gray-700">Category</div>
-            <div className="mt-1 text-sm text-gray-600 group-hover:text-blue-600 transition-colors">{p.category}</div>
+            <div className="text-sm font-semibold text-slate-400">Category</div>
+            <div className="mt-1 text-sm text-slate-300 group-hover:text-brand-400 transition-colors">{p.category}</div>
           </div>
           {p.budget && (
             <div>
-              <div className="text-sm font-semibold text-gray-700">Budget</div>
-              <div className="mt-1 text-sm text-green-600 font-medium">{p.budget}</div>
+              <div className="text-sm font-semibold text-slate-400">Budget</div>
+              <div className="mt-1 text-sm text-emerald-400 font-semibold">{p.budget}</div>
             </div>
           )}
         </div>
 
         {p.bio && (
           <div className="mt-4">
-            <div className="text-sm font-semibold text-gray-700">Bio</div>
-            <div className="mt-1 text-sm text-gray-600 group-hover:text-gray-800 transition-colors line-clamp-2">{p.bio}</div>
+            <div className="text-sm font-semibold text-slate-400">Bio</div>
+            <div className="mt-1 text-sm text-slate-300 group-hover:text-slate-200 transition-colors line-clamp-2">{p.bio}</div>
           </div>
         )}
 
@@ -104,7 +104,7 @@ const InfluencerCard = ({ p, config, navigate, initials }) => {
           </button>
           <button
             onClick={() => navigate('inquiry')}
-            className="px-4 py-2.5 rounded-2xl font-semibold text-sm border transition-all hover:shadow-md hover:scale-105"
+            className="px-4 py-2.5 rounded-2xl font-semibold text-sm border transition-all hover:scale-105 hover:bg-white/[0.04]"
             style={{ borderColor: config.primary_action, color: config.primary_action }}
           >
             Hire

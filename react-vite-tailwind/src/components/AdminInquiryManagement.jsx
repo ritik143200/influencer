@@ -135,7 +135,7 @@ const AdminInquiryManagement = ({
                 placeholder="Search inquiries..."
                 value={searchTermInquiry}
                 onChange={(e) => setSearchTermInquiry(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full px-4 py-2 rounded-lg border border-white/10 bg-[#0D0D0D] text-white placeholder-white/40 focus:outline-none focus:ring-1 focus:ring-[#DF7AFE] focus:border-[#DF7AFE]"
               />
             </div>
 
@@ -143,16 +143,16 @@ const AdminInquiryManagement = ({
             <select
               value={filterStatusInquiry}
               onChange={(e) => setFilterStatusInquiry(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="px-4 py-2 rounded-lg border border-white/10 bg-[#0D0D0D] text-white focus:outline-none focus:ring-1 focus:ring-[#DF7AFE] focus:border-[#DF7AFE]"
             >
-              <option value="all" className="text-gray-900">All Status</option>
-              <option value="sent" className="text-gray-900">Sent</option>
-              <option value="admin_accepted" className="text-gray-900">Accepted</option>
-              <option value="admin_rejected" className="text-gray-900">Rejected</option>
-              <option value="forwarded" className="text-gray-900">Forwarded</option>
-              <option value="artist_accepted" className="text-gray-900">Influencer Accepted</option>
-              <option value="artist_rejected" className="text-gray-900">Influencer Rejected</option>
-              <option value="completed" className="text-gray-900">Completed</option>
+              <option value="all" className="bg-[#0D0D0D] text-white">All Status</option>
+              <option value="sent" className="bg-[#0D0D0D] text-white">Sent</option>
+              <option value="admin_accepted" className="bg-[#0D0D0D] text-white">Accepted</option>
+              <option value="admin_rejected" className="bg-[#0D0D0D] text-white">Rejected</option>
+              <option value="forwarded" className="bg-[#0D0D0D] text-white">Forwarded</option>
+              <option value="artist_accepted" className="bg-[#0D0D0D] text-white">Influencer Accepted</option>
+              <option value="artist_rejected" className="bg-[#0D0D0D] text-white">Influencer Rejected</option>
+              <option value="completed" className="bg-[#0D0D0D] text-white">Completed</option>
             </select>
 
             {/* Date Filter */}
@@ -160,7 +160,7 @@ const AdminInquiryManagement = ({
               type="date"
               value={filterDate}
               onChange={(e) => setFilterDate(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+              className="px-4 py-2 rounded-lg border border-white/10 bg-[#0D0D0D] text-white focus:outline-none focus:ring-1 focus:ring-[#DF7AFE] focus:border-[#DF7AFE]"
             />
 
             {/* Clear Filters */}
@@ -170,7 +170,7 @@ const AdminInquiryManagement = ({
                 setFilterDate('');
                 setSearchTermInquiry('');
               }}
-              className="px-4 py-2 rounded-lg border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-colors"
+              className="px-4 py-2 rounded-lg border border-white/10 bg-white/[0.05] hover:bg-white/[0.08] hover:border-white/20 text-white transition-colors"
             >
               Clear Filters
             </button>

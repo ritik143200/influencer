@@ -2132,27 +2132,22 @@ const AdminDashboard = ({ config }) => {
 
       {showForwardModal && (
 
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-50 bg-[#0D0D0D] overflow-y-auto animate-fadeIn text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-            <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-white/95 backdrop-blur animate-slideDown shadow-xl" style={{ 
+            <div className="sticky top-0 z-10 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-4 bg-[#0D0D0D]/95 backdrop-blur animate-slideDown shadow-xl" style={{ 
               borderBottom: `3px solid ${config.primary_action}`,
               boxShadow: `0 4px 20px ${config.primary_action}30`
             }}>
               <div className="flex items-center justify-between gap-4">
                 <div className="animate-fadeIn">
-                  <h3 className="text-2xl font-bold" style={{ color: config.text_color || '#1e293b' }}>Forward Inquiry</h3>
-                  <p className="text-sm mt-1" style={{ color: config.secondary_action || '#64748b' }}>Select one or more influencers to forward this inquiry to.</p>
+                  <h3 className="text-2xl font-bold text-white">Forward Inquiry</h3>
+                  <p className="text-sm mt-1 text-slate-400">Select one or more creators to forward this inquiry to.</p>
                 </div>
                 <div className="flex items-center gap-2 animate-fadeIn">
                   <button 
                     onClick={() => setShowForwardModal(false)} 
-                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105 shadow-md"
-                    style={{ 
-                      backgroundColor: config.surface_color || '#f0f9ff',
-                      color: config.primary_action || '#0ea5e9',
-                      border: `2px solid ${config.primary_action}`
-                    }}
+                    className="px-4 py-2 rounded-xl text-sm font-medium transition-all border border-white/10 bg-white/[0.05] hover:bg-white/[0.08]"
                   >
                     Close
                   </button>
@@ -2192,15 +2187,15 @@ const AdminDashboard = ({ config }) => {
 
               {/* Filters: Category, Budget, Location */}
               <div className="rounded-2xl shadow-xl p-4 sm:p-6" style={{ 
-                background: 'white',
-                border: `2px solid ${config.primary_action}30`,
-                boxShadow: `0 8px 25px ${config.primary_action}15`
+                background: '#121212',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.5)'
               }}>
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-3 h-3 rounded-full animate-pulse" style={{ backgroundColor: config.primary_action }}></div>
-                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Auto Match Influencers</h4>
+                  <h4 className="text-lg font-semibold text-white">Auto Match Influencers</h4>
                 </div>
-                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
                   {loadingSmartMatches
                     ? 'Finding best creators from campaign category, micro-category, budget and location...'
                     : smartMatchInquiryId === forwardInquiryId && smartMatchedInfluencers.length > 0
@@ -2209,60 +2204,60 @@ const AdminDashboard = ({ config }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                   <div className="relative">
-                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
-                      <span className="text-lg">??</span> Category
+                    <label className="text-xs font-semibold text-slate-300 mb-1 block flex items-center gap-1">
+                      Category
                     </label>
                     <input
                       type="text"
                       placeholder="e.g. Lifestyle, Music"
                       value={forwardSearchCategory}
                       onChange={(e) => setForwardSearchCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100 placeholder-gray-400"
+                      className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0D0D0D] text-white text-sm font-medium transition-all focus:border-[#DF7AFE] focus:ring-1 focus:ring-[#DF7AFE] placeholder-white/30"
                     />
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
-                      <span className="text-lg">??</span> Budget Min
+                    <label className="text-xs font-semibold text-slate-300 mb-1 block flex items-center gap-1">
+                      Budget Min
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm">Rs</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">Rs</span>
                       <input
                         type="number"
                         placeholder="0"
                         value={forwardFilterBudgetMin}
                         onChange={(e) => setForwardFilterBudgetMin(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-green-400 focus:ring-2 focus:ring-green-100 placeholder-gray-400"
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-white/10 bg-[#0D0D0D] text-white text-sm font-medium transition-all focus:border-[#DF7AFE] focus:ring-1 focus:ring-[#DF7AFE] placeholder-white/30"
                       />
                     </div>
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
-                      <span className="text-lg">??</span> Budget Max
+                    <label className="text-xs font-semibold text-slate-300 mb-1 block flex items-center gap-1">
+                      Budget Max
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60 text-sm">Rs</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm">Rs</span>
                       <input
                         type="number"
                         placeholder="100000"
                         value={forwardFilterBudgetMax}
                         onChange={(e) => setForwardFilterBudgetMax(e.target.value)}
-                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-green-400 focus:ring-2 focus:ring-green-100 placeholder-gray-400"
+                        className="w-full pl-8 pr-4 py-2.5 rounded-xl border border-white/10 bg-[#0D0D0D] text-white text-sm font-medium transition-all focus:border-[#DF7AFE] focus:ring-1 focus:ring-[#DF7AFE] placeholder-white/30"
                       />
                     </div>
                   </div>
 
                   <div className="relative">
-                    <label className="text-xs font-semibold text-white/80 mb-1 block flex items-center gap-1">
-                      <span className="text-lg">??</span> Location
+                    <label className="text-xs font-semibold text-slate-300 mb-1 block flex items-center gap-1">
+                      Location
                     </label>
                     <input
                       type="text"
                       placeholder="City or Country"
                       value={forwardFilterLocation}
                       onChange={(e) => setForwardFilterLocation(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 bg-white text-sm font-medium transition-all focus:border-purple-400 focus:ring-2 focus:ring-purple-100 placeholder-gray-400"
+                      className="w-full px-4 py-2.5 rounded-xl border border-white/10 bg-[#0D0D0D] text-white text-sm font-medium transition-all focus:border-[#DF7AFE] focus:ring-1 focus:ring-[#DF7AFE] placeholder-white/30"
                     />
                   </div>
 
@@ -2274,9 +2269,9 @@ const AdminDashboard = ({ config }) => {
                         setForwardFilterBudgetMax('');
                         setForwardFilterLocation('');
                       }}
-                      className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all w-full sm:w-auto flex items-center justify-center gap-2"
+                      className="px-5 py-2.5 rounded-xl border border-white/10 text-white bg-white/[0.05] hover:bg-white/[0.08] transition-all w-full sm:w-auto flex items-center justify-center gap-2"
                     >
-                      <span className="text-lg">??</span> Clear Filters
+                      Clear Filters
                     </button>
                     <div className="text-sm text-white/70 sm:ml-auto flex items-center gap-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -2287,13 +2282,13 @@ const AdminDashboard = ({ config }) => {
               </div>
 
               <div className="rounded-2xl shadow-xl p-4 sm:p-6" style={{ 
-                background: 'white',
-                border: `2px solid ${config.primary_action}30`,
-                boxShadow: `0 8px 25px ${config.primary_action}15`
+                background: '#121212',
+                border: '1px solid rgba(255,255,255,0.1)',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.5)'
               }}>
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-semibold" style={{ color: config.text_color || '#1e293b' }}>Available Influencers</h4>
-                  <div className="text-sm" style={{ color: config.secondary_action || '#64748b' }}>
+                  <h4 className="text-lg font-semibold text-white">Available Influencers</h4>
+                  <div className="text-sm text-slate-400">
                     {filteredInfluencersForForward.length} matching
                   </div>
                 </div>
@@ -2303,11 +2298,11 @@ const AdminDashboard = ({ config }) => {
                   {(isFilteringInfluencers || loadingSmartMatches) ? (
                     // Loading skeleton
                     Array.from({ length: 6 }).map((_, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-4 border rounded-xl animate-pulse">
-                        <div className="w-5 h-5 bg-gray-200 rounded mt-1"></div>
+                      <div key={idx} className="flex items-start gap-3 p-4 border border-white/10 rounded-xl animate-pulse">
+                        <div className="w-5 h-5 bg-white/[0.08] rounded mt-1"></div>
                         <div className="flex-1 min-w-0">
-                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                          <div className="h-3 bg-gray-100 rounded w-3/4"></div>
+                          <div className="h-4 bg-white/[0.08] rounded mb-2"></div>
+                          <div className="h-3 bg-white/[0.05] rounded w-3/4"></div>
                         </div>
                       </div>
                     ))
@@ -2318,11 +2313,11 @@ const AdminDashboard = ({ config }) => {
                       filteredInfluencersForForward.length === 0 ? (
                         // No influencers match filters
                         <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <div className="w-16 h-16 bg-white/[0.05] border border-white/10 rounded-full flex items-center justify-center mb-4">
                             <span className="text-2xl">??</span>
                           </div>
                           <h4 className="text-lg font-semibold text-white mb-2">No Influencers Match Your Filters</h4>
-                          <p className="text-sm text-white/70 max-w-md mb-4">
+                          <p className="text-sm text-slate-400 max-w-md mb-4">
                             Try adjusting your filters to see more influencers.
                           </p>
                           <button
@@ -2346,29 +2341,29 @@ const AdminDashboard = ({ config }) => {
                           const matchReasons = Array.isArray(i.matchReasons) ? i.matchReasons : [];
 
                           return (
-                            <label key={aid} className="flex items-start gap-3 p-4 border-2 rounded-xl hover:bg-gray-50 cursor-pointer transition-all hover:shadow-lg" style={{ 
-                              borderColor: checked ? config.primary_action : `${config.primary_action}30`,
-                              backgroundColor: checked ? `${config.primary_action}05` : 'white',
-                              boxShadow: checked ? `0 4px 15px ${config.primary_action}20` : 'none'
+                            <label key={aid} className="flex items-start gap-3 p-4 border rounded-xl hover:bg-white/[0.05] cursor-pointer transition-all hover:shadow-lg" style={{ 
+                              borderColor: checked ? config.primary_action : 'rgba(255,255,255,0.1)',
+                              backgroundColor: checked ? `${config.primary_action}15` : '#0D0D0D',
+                              boxShadow: checked ? `0 4px 15px ${config.primary_action}30` : 'none'
                             }}>
                               <input className="mt-1 w-5 h-5 rounded focus:ring-2 focus:ring-brand-100" type="checkbox" checked={checked} onChange={() => handleToggleRecipient(aid)} style={{ 
                                 color: checked ? 'white' : config.primary_action,
-                                backgroundColor: checked ? config.primary_action : 'white'
+                                backgroundColor: checked ? config.primary_action : '#0D0D0D'
                               }} />
                               <div className="flex-1 min-w-0">
-                                <div className="font-semibold truncate" style={{ color: checked ? config.primary_action : config.text_color || '#1f2937' }}>
+                                <div className="font-semibold truncate text-[#f8fafc]">
                                   {i.fullName || i.name || `Influencer ${aid?.slice(-6)}`}
                                 </div>
-                                <div className="text-xs mt-1 break-words" style={{ color: checked ? config.primary_action : config.secondary_action || '#64748b' }}>
+                                <div className="text-xs mt-1 break-words text-slate-400">
                                   {i.categories?.join(', ') || i.category || 'General'} · {i.email}
                                 </div>
                                 {matchScore > 0 && (
                                   <div className="mt-3 flex flex-wrap items-center gap-2">
-                                    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800">
+                                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/20">
                                       {matchScore}% match
                                     </span>
                                     {matchReasons.slice(0, 2).map((reason) => (
-                                      <span key={reason} className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-white/80">
+                                      <span key={reason} className="rounded-full bg-white/[0.05] px-2.5 py-1 text-xs font-medium text-slate-300 border border-white/5">
                                         {reason}
                                       </span>
                                     ))}
@@ -2382,24 +2377,21 @@ const AdminDashboard = ({ config }) => {
                     ) : (
                       // No filters applied - show empty state
                       <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <div className="w-16 h-16 bg-white/[0.05] border border-white/10 rounded-full flex items-center justify-center mb-4">
                           <span className="text-2xl">??</span>
                         </div>
                         <h4 className="text-lg font-semibold text-white mb-2">Apply Filters to See Influencers</h4>
-                        <p className="text-sm text-white/70 max-w-md mb-4">
+                        <p className="text-sm text-slate-400 max-w-md mb-4">
                           Use the filters above to search for influencers by category, budget, or location.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                          <div className="flex items-center gap-2 text-sm text-white/60">
-                            <span className="text-lg">??</span>
+                          <div className="flex items-center gap-2 text-sm text-slate-300">
                             <span>Category</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-white/60">
-                            <span className="text-lg">??</span>
+                          <div className="flex items-center gap-2 text-sm text-slate-300">
                             <span>Budget</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-white/60">
-                            <span className="text-lg">??</span>
+                          <div className="flex items-center gap-2 text-sm text-slate-300">
                             <span>Location</span>
                           </div>
                         </div>
