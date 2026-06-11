@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 
 const RouterContext = createContext();
 
@@ -48,7 +48,7 @@ export const RouterProvider = ({ children }) => {
     });
   };
 
-  const navigate = (path, navParams = {}) => {
+  const navigate = useCallback((path, navParams = {}) => {
     setCurrentPath(path);
     setParams(navParams);
     try {
@@ -64,7 +64,7 @@ export const RouterProvider = ({ children }) => {
       // ignore
     }
     window.scrollTo({ top: 0, behavior: 'auto' });
-  };
+  }, []);
 
   useEffect(() => {
     const originalPushState = window.history.pushState;
@@ -100,8 +100,10 @@ export const RouterProvider = ({ children }) => {
     };
   }, []);
 
+  const contextValue = useMemo(() => ({ currentPath, params, navigate }), [currentPath, params, navigate]);
+
   return (
-    <RouterContext.Provider value={{ currentPath, params, navigate }}>
+    <RouterContext.Provider value={contextValue}>
       {children}
     </RouterContext.Provider>
   );

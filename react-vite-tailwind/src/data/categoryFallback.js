@@ -8,29 +8,25 @@ export const fallbackCategoryDirectory = [
     accentFrom: '#8b5cf6',
     accentTo: '#22d3ee',
     microCategories: [
-      { slug: 'lifestyle', name: 'Lifestyle', starterCount: 2450, spotlight: true, spotlightOrder: 1, iconKey: 'sparkles', accentFrom: '#a855f7', accentTo: '#3b82f6' },
-      { slug: 'ugc-creator', name: 'UGC Creator', starterCount: 1540, spotlight: true, spotlightOrder: 2, iconKey: 'smartphone', accentFrom: '#f97316', accentTo: '#ec4899' },
-      { slug: 'fashion', name: 'Fashion', starterCount: 980, spotlight: true, spotlightOrder: 3, iconKey: 'shirt', accentFrom: '#ec4899', accentTo: '#8b5cf6' },
-      { slug: 'fitness-health', name: 'Fitness & Health', starterCount: 1820, spotlight: true, spotlightOrder: 4, iconKey: 'dumbbell', accentFrom: '#ec4899', accentTo: '#f97316' },
-      { slug: 'travel', name: 'Travel', starterCount: 540, spotlight: true, spotlightOrder: 5, iconKey: 'plane', accentFrom: '#0ea5e9', accentTo: '#14b8a6' },
+      { slug: 'education-information', name: 'Education & Information', iconKey: 'graduationCap', accentFrom: '#6366f1', accentTo: '#3b82f6' },
       { slug: 'food', name: 'Food', starterCount: 890, spotlight: true, spotlightOrder: 6, iconKey: 'utensils', accentFrom: '#f97316', accentTo: '#ef4444' },
-      { slug: 'technology', name: 'Technology', starterCount: 3100, spotlight: true, spotlightOrder: 7, iconKey: 'cpu', accentFrom: '#3b82f6', accentTo: '#06b6d4' },
-      { slug: 'finance-investment', name: 'Finance & Investment', starterCount: 1200, spotlight: true, spotlightOrder: 8, iconKey: 'badgeIndianRupee', accentFrom: '#10b981', accentTo: '#22c55e' },
-      { slug: 'gaming', name: 'Gaming', starterCount: 620, spotlight: true, spotlightOrder: 9, iconKey: 'gamepad2', accentFrom: '#f59e0b', accentTo: '#f97316' },
-      { slug: 'education', name: 'Education', iconKey: 'graduationCap', accentFrom: '#6366f1', accentTo: '#3b82f6' },
-      { slug: 'motivation-self-growth', name: 'Motivation & Self Growth', iconKey: 'rocket', accentFrom: '#f97316', accentTo: '#ef4444' },
-      { slug: 'spiritual-astrology', name: 'Spiritual & Astrology', iconKey: 'moonStar', accentFrom: '#8b5cf6', accentTo: '#c084fc' },
-      { slug: 'comedy-entertainment', name: 'Comedy & Entertainment', iconKey: 'theater', accentFrom: '#fb7185', accentTo: '#f97316' },
-      { slug: 'historical', name: 'Historical', iconKey: 'scrollText', accentFrom: '#f59e0b', accentTo: '#b45309' },
-      { slug: 'art-craft', name: 'Art & Craft', iconKey: 'palette', accentFrom: '#f97316', accentTo: '#eab308' },
-      { slug: 'ai', name: 'AI', iconKey: 'bot', accentFrom: '#6366f1', accentTo: '#22d3ee' },
+      { slug: 'ugc-creator', name: 'UGC Creator', starterCount: 1540, spotlight: true, spotlightOrder: 2, iconKey: 'smartphone', accentFrom: '#f97316', accentTo: '#ec4899' },
       { slug: 'vlogs', name: 'Vlogs', iconKey: 'clapperboard', accentFrom: '#3b82f6', accentTo: '#8b5cf6' },
-      { slug: 'street-interviews', name: 'Street Interviews', iconKey: 'mic2', accentFrom: '#14b8a6', accentTo: '#0ea5e9' },
-      { slug: 'influencer', name: 'Influencer', iconKey: 'megaphone', accentFrom: '#8b5cf6', accentTo: '#ec4899' },
+      { slug: 'entertainment-comedy', name: 'Entertainment & Comedy', iconKey: 'theater', accentFrom: '#fb7185', accentTo: '#f97316' },
+      { slug: 'lifestyle', name: 'Lifestyle', starterCount: 2450, spotlight: true, spotlightOrder: 1, iconKey: 'sparkles', accentFrom: '#a855f7', accentTo: '#3b82f6' },
+      { slug: 'fashion-beauty', name: 'Fashion & Beauty', starterCount: 980, spotlight: true, spotlightOrder: 3, iconKey: 'shirt', accentFrom: '#ec4899', accentTo: '#8b5cf6' },
+      { slug: 'ai', name: 'AI', iconKey: 'bot', accentFrom: '#6366f1', accentTo: '#22d3ee' },
+      { slug: 'motivational-self-growth', name: 'Motivational and self growth', iconKey: 'rocket', accentFrom: '#f97316', accentTo: '#ef4444' },
+      { slug: 'travel', name: 'Travel', starterCount: 540, spotlight: true, spotlightOrder: 5, iconKey: 'plane', accentFrom: '#0ea5e9', accentTo: '#14b8a6' },
+      { slug: 'fitness-health', name: 'Fitness & Health', starterCount: 1820, spotlight: true, spotlightOrder: 4, iconKey: 'dumbbell', accentFrom: '#ec4899', accentTo: '#f97316' },
+      { slug: 'technology', name: 'Technology', starterCount: 3100, spotlight: true, spotlightOrder: 7, iconKey: 'cpu', accentFrom: '#3b82f6', accentTo: '#06b6d4' },
+      { slug: 'finance-investment', name: 'Finance & investment', starterCount: 1200, spotlight: true, spotlightOrder: 8, iconKey: 'badgeIndianRupee', accentFrom: '#10b981', accentTo: '#22c55e' },
+      { slug: 'gaming', name: 'Gaming', starterCount: 620, spotlight: true, spotlightOrder: 9, iconKey: 'gamepad2', accentFrom: '#f59e0b', accentTo: '#f97316' },
+      { slug: 'news-social-commentary', name: 'News & Social Commentary', iconKey: 'newspaper', accentFrom: '#3b82f6', accentTo: '#22d3ee' },
       { slug: 'actor', name: 'Actor', iconKey: 'camera', accentFrom: '#ef4444', accentTo: '#8b5cf6' },
       { slug: 'model', name: 'Model', iconKey: 'gem', accentFrom: '#f472b6', accentTo: '#a855f7' },
-      { slug: 'filmmaker', name: 'Filmmaker', iconKey: 'film', accentFrom: '#f97316', accentTo: '#b91c1c' },
-      { slug: 'artist', name: 'Artist', iconKey: 'star', accentFrom: '#f59e0b', accentTo: '#f97316' }
+      { slug: 'celebrity', name: 'Celebrity', iconKey: 'crown', accentFrom: '#f59e0b', accentTo: '#ec4899' },
+      { slug: 'spiritual-astrology', name: 'Spritual and astrology', iconKey: 'moonStar', accentFrom: '#8b5cf6', accentTo: '#c084fc' }
     ]
   },
   {
@@ -75,7 +71,17 @@ export const fallbackCategoryDirectory = [
     accentFrom: '#f59e0b',
     accentTo: '#ec4899',
     microCategories: [
-      { slug: 'all-types', name: 'All Types', iconKey: 'crown', accentFrom: '#f59e0b', accentTo: '#f97316' }
+      { slug: 'singers', name: 'Singers', iconKey: 'music', accentFrom: '#f59e0b', accentTo: '#f97316' },
+      { slug: 'rappers', name: 'Rappers', iconKey: 'mic', accentFrom: '#ec4899', accentTo: '#8b5cf6' },
+      { slug: 'musicians', name: 'Musicians', iconKey: 'music4', accentFrom: '#3b82f6', accentTo: '#8b5cf6' },
+      { slug: 'sketch-painting', name: 'Sketch/painting', iconKey: 'palette', accentFrom: '#f97316', accentTo: '#eab308' },
+      { slug: 'dance', name: 'Dance', iconKey: 'sparkles', accentFrom: '#a855f7', accentTo: '#3b82f6' },
+      { slug: 'choreographer', name: 'Choreographer', iconKey: 'crown', accentFrom: '#f59e0b', accentTo: '#ec4899' },
+      { slug: 'performing-arts', name: 'Performing arts', iconKey: 'theater', accentFrom: '#fb7185', accentTo: '#f97316' },
+      { slug: 'writers-storyteller', name: 'Writers/storyteller', iconKey: 'scrollText', accentFrom: '#f59e0b', accentTo: '#b45309' },
+      { slug: 'art-craft', name: 'Art and craft', iconKey: 'palette', accentFrom: '#f97316', accentTo: '#eab308' },
+      { slug: 'filmmaker', name: 'Filmmaker', iconKey: 'film', accentFrom: '#f97316', accentTo: '#b91c1c' },
+      { slug: 'anchor', name: 'Anchor', iconKey: 'megaphone', accentFrom: '#8b5cf6', accentTo: '#ec4899' }
     ]
   }
 ];

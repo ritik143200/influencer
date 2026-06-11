@@ -130,7 +130,7 @@ const onboardingSteps = [
   'Collaborate with brands'
 ];
 
-const JellyMascotPanel = () => (
+const JellyMascotPanel = ({ onNavigate }) => (
   <div className="relative min-h-[260px] overflow-hidden rounded-[28px] border border-[#3E2A55] bg-[#000000] px-5 py-6 shadow-[0_24px_70px_rgba(6,6,6,0.42)] md:min-h-[300px]">
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_52%_54%,rgba(223,122,254,0.20),transparent_42%),radial-gradient(circle_at_62%_44%,rgba(0,153,255,0.12),transparent_34%)]" />
     <div className="relative z-10 grid items-center gap-5 md:grid-cols-[1fr_1.2fr]">
@@ -140,14 +140,28 @@ const JellyMascotPanel = () => (
           Grow your creator profile.
         </h2>
         <div className="mt-6 grid gap-3">
-          {onboardingSteps.map((step, index) => (
-            <div key={step} className="flex items-center gap-3 rounded-2xl border border-[#3E2A55] bg-[#0D0D0D]/80 px-4 py-3">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#171321] text-xs font-semibold text-[#DF7AFE]">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <span className="text-sm font-semibold text-[#FFFFFF]">{step}</span>
-            </div>
-          ))}
+          {onboardingSteps.map((step, index) => {
+            const getClickHandler = () => {
+              if (index === 0) return () => onNavigate('profile');
+              if (index === 1) return () => onNavigate('my-campaigns');
+              return undefined;
+            };
+            const clickHandler = getClickHandler();
+            return (
+              <div
+                key={step}
+                onClick={clickHandler}
+                className={`flex items-center gap-3 rounded-2xl border border-[#3E2A55] bg-[#0D0D0D]/80 px-4 py-3 ${
+                  clickHandler ? 'cursor-pointer hover:bg-white/5 transition' : ''
+                }`}
+              >
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-[#171321] text-xs font-semibold text-[#DF7AFE]">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <span className="text-sm font-semibold text-[#FFFFFF]">{step}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
       <div className="relative mx-auto flex h-[220px] w-full max-w-[360px] items-center justify-center md:h-[300px]">
@@ -313,7 +327,7 @@ const InfluencerDashboard = ({ previewMode = false }) => {
             </div>
           </header>
 
-          <JellyMascotPanel />
+          <JellyMascotPanel onNavigate={navigate} />
 
           <section className="mt-5 rounded-[28px] border border-[#3E2A55] bg-[#0D0D0D] shadow-[0_24px_70px_rgba(6,6,6,0.42)]">
             <div className="grid md:grid-cols-3">
@@ -326,7 +340,7 @@ const InfluencerDashboard = ({ previewMode = false }) => {
                   </button>
                 </div>
               </div>
-              <DashboardMetric icon={Inbox} label="Inquiry Received" value={loading ? '...' : inquiries.length} action="View Inquiries" />
+              <DashboardMetric icon={Inbox} label="Inquiry Received" value={loading ? '...' : inquiries.length} action="View Inquiries" onClick={() => navigate('my-campaigns')} />
               <DashboardMetric icon={BriefcaseBusiness} label="Total Balance" value={formatMoney(balance)} action="View Earnings" />
             </div>
             <div className="border-t border-[#171321] px-6 py-4 text-center">

@@ -33,6 +33,7 @@ const hasPortfolio = (portfolio) =>
 
 const hasPricing = (pricing = {}, profile = {}) =>
   hasValue(pricing.reel) ||
+  hasValue(pricing.reelCreation) ||
   hasValue(pricing.story) ||
   hasValue(pricing.collab) ||
   hasValue(pricing.staticPost) ||

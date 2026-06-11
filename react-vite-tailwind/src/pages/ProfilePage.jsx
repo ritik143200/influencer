@@ -99,6 +99,7 @@ const normalizeProfile = (profile = {}) => ({
   budgetMax: profile.budgetMax || profile.budget || '',
   pricing: {
     reel: profile.pricing?.reel || profile.pricing?.collaborationCharges || '',
+    reelCreation: profile.pricing?.reelCreation || '',
     story: profile.pricing?.story || '',
     collab: profile.pricing?.collab || '',
     staticPost: profile.pricing?.staticPost || '',
@@ -660,7 +661,7 @@ const ProfilePage = ({ previewMode = false }) => {
                     </button>
 
                     {isMicroDropdownOpen ? (
-                      <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-40 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
+                      <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] top-auto sm:top-[calc(100%+8px)] sm:bottom-auto z-40 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
                         {categoriesLoading ? (
                           <div className="p-2 text-xs text-[#A98BC8]">Loading</div>
                         ) : (
@@ -757,15 +758,22 @@ const ProfilePage = ({ previewMode = false }) => {
               <Wallet className="h-4 w-4" strokeWidth={2} />
               Budget
             </div>
-            <div className="grid gap-3 md:grid-cols-5">
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
               {[
                 ['reel', 'Reel'],
+                ['reelCreation', 'Reel Creation'],
                 ['story', 'Story'],
                 ['collab', 'Reel with Collab'],
                 ['staticPost', 'Static Post']
               ].map(([key, label]) => (
                 <Field key={key} label={label}>
-                  <input value={formData.pricing[key]} onChange={(event) => setNestedField('pricing', key, event.target.value)} className={inputClassName} placeholder="0" />
+                  <input
+                    type={key === 'reelCreation' ? 'number' : 'text'}
+                    value={formData.pricing[key]}
+                    onChange={(event) => setNestedField('pricing', key, event.target.value)}
+                    className={inputClassName}
+                    placeholder="0"
+                  />
                 </Field>
               ))}
               <div>
@@ -813,7 +821,7 @@ const ProfilePage = ({ previewMode = false }) => {
             <div className="space-y-3">
               {formData.portfolio.map((item, index) => (
                 <div key={`portfolio-row-${index}`} className="grid gap-3 lg:grid-cols-[0.7fr_1fr]">
-                  <input value={item.title || ''} onChange={(event) => updatePortfolio(index, 'title', event.target.value)} className={inputClassName} placeholder="Project title" />
+                  <input value={item.title || ''} onChange={(event) => updatePortfolio(index, 'title', event.target.value)} className={inputClassName} placeholder="Campaign name" />
                   <input value={item.url || ''} onChange={(event) => updatePortfolio(index, 'url', event.target.value)} className={inputClassName} placeholder="Project URL" />
                 </div>
               ))}

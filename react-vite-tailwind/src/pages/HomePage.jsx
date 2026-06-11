@@ -25,7 +25,7 @@ const categories = [
     tone: 'from-[#000000] via-[#0D0D0D] to-[#222222]'
   },
   {
-    title: 'Celebrities',
+    title: 'Artists',
     icon: Star,
     tone: 'from-[#000000] via-[#0D0D0D] to-[#0D0D0D]'
   },
@@ -395,10 +395,10 @@ const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profil
             </button>
             <button
               type="button"
-              onClick={() => navigate('auth')}
+              onClick={() => navigate('influencer-registration')}
               className="inline-flex h-12 min-w-0 items-center justify-center rounded-lg border border-white/12 bg-black/72 px-2 text-[0.68rem] font-black text-white shadow-[0_18px_46px_rgba(0,0,0,0.22)] backdrop-blur-xl"
             >
-              Influencer Login
+              Influencer Sign Up
             </button>
           </div>
         </motion.div>
@@ -460,7 +460,7 @@ const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profil
               <button
                 key={profile.id}
                 type="button"
-                onClick={() => openInstagram(profile.instagramLink)}
+                onClick={() => navigate('influencer-detail', { id: profile.id })}
                 className="flex items-center gap-4 rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-4 text-left backdrop-blur-xl"
               >
                 <div className="h-20 w-20 shrink-0 overflow-hidden rounded-[1.25rem] bg-white/[0.08]">
@@ -740,10 +740,10 @@ const LandingPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('auth')}
+                onClick={() => navigate('influencer-registration')}
                 className="inline-flex h-12 items-center justify-center rounded-full border border-[#DF7AFE]/45 bg-[#0D0D0D]/72 px-7 py-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_18px_46px_rgba(223,122,254,0.10)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:bg-[#0D0D0D] sm:h-13"
               >
-                Influencer Login
+                Influencer Sign Up
               </button>
             </div>
           </motion.div>
@@ -858,52 +858,53 @@ const LandingPage = () => {
                   viewport={{ once: true, amount: 0.25 }}
                   transition={{ duration: 0.55, delay: index * 0.06 }}
                   whileHover={{ y: -10 }}
-                  className="group overflow-hidden rounded-[32px] border border-[#222222] bg-[#0D0D0D]/88 p-4 shadow-[0_24px_70px_rgba(20,16,32,0.44)] backdrop-blur-xl"
+                  onClick={() => navigate('influencer-detail', { id: profile.id })}
+                  className="group cursor-pointer overflow-hidden rounded-[32px] border border-[#222222] bg-[#0D0D0D]/88 p-4 shadow-[0_24px_70px_rgba(20,16,32,0.44)] backdrop-blur-xl text-left"
                 >
-                  <button
-                    type="button"
-                    onClick={() => openInstagram(profile.instagramLink)}
-                    className="block w-full text-left"
-                    disabled={!profile.instagramLink}
-                  >
-                    <div className="relative overflow-hidden rounded-[26px] bg-[#0D0D0D]">
-                      {profile.image ? (
-                        <img
-                          src={makeImageUrl(profile.image)}
-                          alt={profile.name}
-                          className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-64 w-full items-center justify-center bg-[linear-gradient(135deg,#0D0D0D,#222222)] text-4xl font-semibold text-[#DF7AFE]">
-                          {profile.name.slice(0, 1).toUpperCase()}
-                        </div>
-                      )}
-                      {profile.instagramLink ? (
-                        <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#DF7AFE] shadow-[0_12px_26px_rgba(41,26,68,0.12)] backdrop-blur">
-                          <Instagram className="h-5 w-5" strokeWidth={2} />
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="px-2 pb-2 pt-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="text-xl font-semibold text-[#FFFFFF]">{profile.name}</h3>
-                          <p className="mt-1 text-sm text-[#FFFFFFBF]">{profile.category}</p>
-                        </div>
-                        <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-[#DF7AFE]" strokeWidth={2} />
+                  <div className="relative overflow-hidden rounded-[26px] bg-[#0D0D0D]">
+                    {profile.image ? (
+                      <img
+                        src={makeImageUrl(profile.image)}
+                        alt={profile.name}
+                        className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-64 w-full items-center justify-center bg-[linear-gradient(135deg,#0D0D0D,#222222)] text-4xl font-semibold text-[#DF7AFE]">
+                        {profile.name.slice(0, 1).toUpperCase()}
                       </div>
-                      <div className="mt-5 grid grid-cols-2 gap-3">
-                        <div className="rounded-2xl bg-[#0D0D0D] px-3 py-3">
-                          <div className="text-xs text-[#FFFFFFBF]">Followers</div>
-                          <div className="mt-1 text-sm font-semibold text-[#FFFFFF]">{profile.followers}</div>
-                        </div>
-                        <div className="rounded-2xl bg-[#0D0D0D] px-3 py-3">
-                          <div className="text-xs text-[#FFFFFFBF]">Engagement</div>
-                          <div className="mt-1 text-sm font-semibold text-[#FFFFFF]">{profile.engagement}</div>
-                        </div>
+                    )}
+                    {profile.instagramLink ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openInstagram(profile.instagramLink);
+                        }}
+                        className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 text-[#DF7AFE] shadow-[0_12px_26px_rgba(41,26,68,0.12)] backdrop-blur hover:bg-white transition"
+                      >
+                        <Instagram className="h-5 w-5" strokeWidth={2} />
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="px-2 pb-2 pt-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h3 className="text-xl font-semibold text-[#FFFFFF]">{profile.name}</h3>
+                        <p className="mt-1 text-sm text-[#FFFFFFBF]">{profile.category}</p>
+                      </div>
+                      <BadgeCheck className="mt-1 h-5 w-5 shrink-0 text-[#DF7AFE]" strokeWidth={2} />
+                    </div>
+                    <div className="mt-5 grid grid-cols-2 gap-3">
+                      <div className="rounded-2xl bg-[#0D0D0D] px-3 py-3">
+                        <div className="text-xs text-[#FFFFFFBF]">Followers</div>
+                        <div className="mt-1 text-sm font-semibold text-[#FFFFFF]">{profile.followers}</div>
+                      </div>
+                      <div className="rounded-2xl bg-[#0D0D0D] px-3 py-3">
+                        <div className="text-xs text-[#FFFFFFBF]">Engagement</div>
+                        <div className="mt-1 text-sm font-semibold text-[#FFFFFF]">{profile.engagement}</div>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 </motion.article>
               ))}
             </div>

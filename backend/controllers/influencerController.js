@@ -809,8 +809,10 @@ const getMyInquiries = async (req, res) => {
            inquiryObj.assignedInfluencer.userId === req.user._id.toString());
         const isAssignedToOtherInfluencer = hasAssignedInfluencer && !isThisInfluencerAssigned;
         
-        // If assigned to another influencer, show completed status regardless of own response
-        if (isAssignedToOtherInfluencer) {
+        // If assigned to this influencer, or assigned to another influencer, show completed status
+        if (isThisInfluencerAssigned) {
+          displayStatus = 'completed'; // Assigned to this influencer - completed/success
+        } else if (isAssignedToOtherInfluencer) {
           displayStatus = 'completed'; // Assigned to someone else - inquiry no longer available
         } else if (myForwardedEntry.acceptanceStatus === 'accepted') {
           displayStatus = 'artist_accepted'; // This influencer accepted (and wasn't auto-rejected)

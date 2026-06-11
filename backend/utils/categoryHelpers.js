@@ -21,6 +21,12 @@ const toArray = (value) => {
 };
 
 const ensureCategoryDirectory = async () => {
+  try {
+    await Category.deleteOne({ slug: 'celebrity' });
+  } catch (err) {
+    console.error('Error deleting legacy celebrity category:', err.message);
+  }
+
   await Category.bulkWrite(
     CATEGORY_TREE_SEED.map((category) => ({
       updateOne: {

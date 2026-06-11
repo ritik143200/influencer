@@ -560,7 +560,7 @@ const InfluencerRegistrationPage = ({ embedded = false }) => {
                         </button>
 
                         {isMicroDropdownOpen ? (
-                          <div className="absolute left-0 right-0 top-[calc(100%+10px)] z-30 rounded-[1.4rem] border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
+                          <div className="absolute left-0 right-0 bottom-[calc(100%+10px)] top-auto sm:top-[calc(100%+10px)] sm:bottom-auto z-30 rounded-[1.4rem] border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
                             <div className="max-h-72 space-y-4 overflow-y-auto pr-1">
                               {activeCategoryGroups.map((category) => (
                                 <div key={category.slug}>

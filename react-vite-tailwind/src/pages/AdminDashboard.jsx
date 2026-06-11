@@ -291,7 +291,7 @@ const AdminDashboard = ({ config }) => {
       if (selectedInquiry && (selectedInquiry._id === inquiryId || selectedInquiry.id === inquiryId)) {
         setSelectedInquiry(updated);
       }
-      showToast('Inquiry assigned! Others auto-rejected.', 'success');
+      showToast('Inquiry assigned successfully!', 'success');
     } catch (err) {
       showToast(err.message || 'Assignment failed', 'error');
     }

@@ -85,6 +85,7 @@ const getInfluencerBudgetRange = (influencer = {}) => {
         influencer.budget,
         pricing.collaborationCharges,
         pricing.reel,
+        pricing.reelCreation,
         pricing.story,
         pricing.collab,
         pricing.staticPost,

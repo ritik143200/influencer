@@ -92,6 +92,7 @@ const influencerSchema = new mongoose.Schema({
     collaborationCharges: { type: Number },
     pricingModel: { type: String, default: 'fixed' },
     reel: { type: mongoose.Schema.Types.Mixed },
+    reelCreation: { type: mongoose.Schema.Types.Mixed },
     story: { type: mongoose.Schema.Types.Mixed },
     collab: { type: mongoose.Schema.Types.Mixed },
     staticPost: { type: mongoose.Schema.Types.Mixed },
@@ -197,6 +198,7 @@ influencerSchema.virtual('profileCompletion').get(function () {
 
   const hasPricing = Boolean(
     hasValue(this.pricing?.reel) ||
+    hasValue(this.pricing?.reelCreation) ||
     hasValue(this.pricing?.story) ||
     hasValue(this.pricing?.collab) ||
     hasValue(this.pricing?.staticPost) ||
