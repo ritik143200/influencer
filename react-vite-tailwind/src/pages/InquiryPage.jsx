@@ -9,8 +9,12 @@ import {
   Rocket,
   ShieldCheck,
   Sparkles,
-  Users
+  Users,
+  AlertCircle,
+  CheckCircle2,
+  X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 import { useCategoryDirectory } from '../hooks/useCategoryDirectory';
@@ -87,12 +91,16 @@ const InquiryPage = () => {
     campaignName: '',
     campaignDescription: ''
   });
-  const [selectedMainCategory, setSelectedMainCategory] = useState(categoryDirectory[0]?.slug || '');
+  const [selectedMainCategories, setSelectedMainCategories] = useState([categoryDirectory[0]?.slug].filter(Boolean));
   const [selectedMicroCategories, setSelectedMicroCategories] = useState([]);
+  const [isMainDropdownOpen, setIsMainDropdownOpen] = useState(false);
   const [isMicroDropdownOpen, setIsMicroDropdownOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [modalType, setModalType] = useState(null); // 'error' | 'success' | null
+  const [validationErrors, setValidationErrors] = useState([]);
+  const mainDropdownRef = useRef(null);
   const microDropdownRef = useRef(null);
 
   const [loginForm, setLoginForm] = useState({
@@ -102,9 +110,24 @@ const InquiryPage = () => {
   const [loginError, setLoginError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
 
-  const activeMainCategory =
-    categoryDirectory.find((item) => item.slug === selectedMainCategory) || categoryDirectory[0] || null;
-  const activeMicroCategories = activeMainCategory?.microCategories || [];
+  const activeMicroCategories = useMemo(() => {
+    if (!selectedMainCategories.length) return [];
+    const allMicros = [];
+    const seenSlugs = new Set();
+    selectedMainCategories.forEach((mainSlug) => {
+      const mainCat = categoryDirectory.find((item) => item.slug === mainSlug);
+      if (mainCat && mainCat.microCategories) {
+        mainCat.microCategories.forEach((micro) => {
+          if (!seenSlugs.has(micro.slug)) {
+            seenSlugs.add(micro.slug);
+            allMicros.push(micro);
+          }
+        });
+      }
+    });
+    return allMicros;
+  }, [selectedMainCategories, categoryDirectory]);
+
   const selectedMicroCategoryNames = useMemo(
     () =>
       activeMicroCategories
@@ -113,6 +136,39 @@ const InquiryPage = () => {
     [activeMicroCategories, selectedMicroCategories]
   );
 
+  const selectedMainCategoryNames = useMemo(
+    () =>
+      categoryDirectory
+        .filter((item) => selectedMainCategories.includes(item.slug))
+        .map((item) => item.name),
+    [categoryDirectory, selectedMainCategories]
+  );
+
+  const toggleMainCategory = (slug) => {
+    setSelectedMainCategories((prev) => {
+      const next = prev.includes(slug)
+        ? prev.filter((item) => item !== slug)
+        : [...prev, slug];
+      
+      setSelectedMicroCategories((prevMicros) => {
+        const nextActiveMicros = [];
+        const nextSeen = new Set();
+        next.forEach((mainSlug) => {
+          const mainCat = categoryDirectory.find((item) => item.slug === mainSlug);
+          if (mainCat && mainCat.microCategories) {
+            mainCat.microCategories.forEach((micro) => {
+              nextSeen.add(micro.slug);
+            });
+          }
+        });
+        return prevMicros.filter((microSlug) => nextSeen.has(microSlug));
+      });
+
+      return next;
+    });
+  };
+
+  useClickOutside(mainDropdownRef, () => setIsMainDropdownOpen(false), isMainDropdownOpen);
   useClickOutside(microDropdownRef, () => setIsMicroDropdownOpen(false), isMicroDropdownOpen);
 
   const syncAuthData = (authData) => {
@@ -134,14 +190,11 @@ const InquiryPage = () => {
           phone: brandForm.phone.trim(),
           campaignName: brandForm.campaignName.trim(),
           requirements: brandForm.campaignDescription.trim(),
-          category: activeMicroCategories
-            .filter((item) => selectedMicroCategories.includes(item.slug))
-            .map((item) => item.name)
-            .join(', '),
-          hiringFor: activeMainCategory?.name || '',
+          category: selectedMicroCategoryNames.join(', '),
+          hiringFor: selectedMainCategoryNames.join(', '),
           location: brandForm.location.trim(),
           budget: Number(brandForm.budget) || 0,
-          mainCategories: [selectedMainCategory],
+          mainCategories: selectedMainCategories,
           microCategories: selectedMicroCategories,
           createdAt: new Date().toISOString(),
           status: 'sent'
@@ -248,25 +301,31 @@ const InquiryPage = () => {
     event.preventDefault();
     setError('');
     setSuccess('');
+    setValidationErrors([]);
 
-    if (!brandForm.name.trim()) return setError('Please enter your brand name.');
-    if (!brandForm.phone.trim()) return setError('Please enter your phone number.');
-    if (!brandForm.email.trim()) return setError('Please enter your email address.');
-    if (!isBrandSession && !brandForm.password.trim()) return setError('Please create a password.');
-    if (!selectedMainCategory) return setError('Please select a hiring type.');
-    if (!selectedMicroCategories.length) return setError('Please select at least one micro category.');
-    if (!brandForm.location.trim()) return setError('Please enter your location.');
-    if (!brandForm.budget.trim()) return setError('Please enter your budget.');
-    if (!brandForm.campaignName.trim()) return setError('Please enter your campaign name.');
-    if (!brandForm.campaignDescription.trim()) return setError('Please enter your campaign description.');
+    const errors = [];
+    if (!brandForm.name.trim()) errors.push('Brand Name is required');
+    if (!brandForm.phone.trim()) errors.push('Phone Number is required');
+    if (!brandForm.email.trim()) errors.push('Email Address is required');
+    if (!isBrandSession && !brandForm.password.trim()) errors.push('Password is required');
+    if (!selectedMainCategories.length) errors.push('Hiring Type is required');
+    if (!selectedMicroCategories.length) errors.push('Select at least one micro category');
+    if (!brandForm.location.trim()) errors.push('Location is required');
+    if (!brandForm.budget.trim()) errors.push('Budget is required');
+    if (!brandForm.campaignName.trim()) errors.push('Campaign Name is required');
+    if (!brandForm.campaignDescription.trim()) errors.push('Campaign Description is required');
+
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      setModalType('error');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const token = await createAccountIfNeeded();
-      const categoryPayload = getCategorySelectionPayload(categoryDirectory, [selectedMainCategory], selectedMicroCategories);
-      const selectedMicroCategoryNames = activeMicroCategories
-        .filter((item) => selectedMicroCategories.includes(item.slug))
-        .map((item) => item.name);
+      const categoryPayload = getCategorySelectionPayload(categoryDirectory, selectedMainCategories, selectedMicroCategories);
+      const firstMainCat = categoryDirectory.find((c) => c.slug === selectedMainCategories[0]);
 
       const response = await fetch(`${API_BASE_URL}/api/inquiries`, {
         method: 'POST',
@@ -279,9 +338,9 @@ const InquiryPage = () => {
           email: brandForm.email.trim(),
           phone: brandForm.phone.trim(),
           campaignName: brandForm.campaignName.trim(),
-          hiringFor: activeMainCategory?.legacyHiringValue || 'influencer',
+          hiringFor: firstMainCat?.legacyHiringValue || 'influencer',
           category: selectedMicroCategoryNames.join(', '),
-          mainCategories: [selectedMainCategory],
+          mainCategories: selectedMainCategories,
           microCategories: selectedMicroCategories,
           location: brandForm.location.trim(),
           budget: Number(brandForm.budget),
@@ -292,29 +351,38 @@ const InquiryPage = () => {
 
       const data = await response.json();
       if (!response.ok || !data.success) {
-        setError(data.message || 'Unable to submit the inquiry.');
+        setValidationErrors([data.message || 'Unable to submit the inquiry.']);
+        setModalType('error');
         return;
       }
 
       persistCampaignPreview();
-      setSuccess('Inquiry submitted successfully. Taking you to the brand dashboard...');
-      setTimeout(() => navigate('user-dashboard'), 900);
+      setSuccess('Inquiry submitted successfully! Taking you to the brand dashboard...');
+      setModalType('success');
+      setTimeout(() => {
+        setModalType(null);
+        navigate('user-dashboard');
+      }, 2000);
     } catch (submitError) {
       const isLocalPreview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
       const isNetworkBlocked = submitError?.message?.toLowerCase?.().includes('failed to fetch');
 
       if (isLocalPreview && isNetworkBlocked) {
         persistCampaignPreview();
-        setSuccess('Preview saved locally. Taking you to the brand dashboard...');
-        setTimeout(() => navigate('brand-dashboard-active-preview'), 700);
+        setSuccess('Preview saved locally! Taking you to the brand dashboard...');
+        setModalType('success');
+        setTimeout(() => {
+          setModalType(null);
+          navigate('brand-dashboard-active-preview');
+        }, 2000);
         return;
       }
 
-      setError(
-        isNetworkBlocked
-          ? 'Backend is not reachable right now. Please try again after deployment is live.'
-          : submitError.message || 'Network error while submitting your inquiry.'
-      );
+      const errMsg = isNetworkBlocked
+        ? 'Backend is not reachable right now. Please try again after deployment is live.'
+        : submitError.message || 'Network error while submitting your inquiry.';
+      setValidationErrors([errMsg]);
+      setModalType('error');
     } finally {
       setSubmitting(false);
     }
@@ -394,24 +462,65 @@ const InquiryPage = () => {
                   ) : null}
                   <div>
                     <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Hiring Of</label>
-                    <div className="relative">
-                      <select
-                        value={selectedMainCategory}
-                        onChange={(event) => {
-                          setSelectedMainCategory(event.target.value);
-                          setSelectedMicroCategories([]);
+                    <div className="relative" ref={mainDropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMainDropdownOpen((open) => !open);
                           setIsMicroDropdownOpen(false);
                         }}
-                        className={`${inputClassName} appearance-none pr-10`}
+                        className={`${inputClassName} flex h-auto min-h-12 items-center justify-between gap-3 py-3 text-left`}
                       >
-                        <option value="">Select hiring type</option>
-                        {categoryDirectory.map((item) => (
-                          <option key={item.slug} value={item.slug}>
-                            {item.name}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#3E2A55]/65" strokeWidth={2} />
+                        <span className="line-clamp-2">
+                          {selectedMainCategoryNames.length
+                            ? selectedMainCategoryNames.join(', ')
+                            : 'Select one or more hiring types'}
+                        </span>
+                        <ChevronDown
+                          className={`h-4 w-4 shrink-0 text-[#3E2A55]/65 transition ${isMainDropdownOpen ? 'rotate-180' : ''}`}
+                          strokeWidth={2}
+                        />
+                      </button>
+
+                      {isMainDropdownOpen ? (
+                        <div className="absolute left-0 right-0 top-[calc(100%+8px)] bottom-auto z-30 rounded-2xl border border-[#A98BC8]/60 bg-[#FFFFFF] p-3 shadow-[0_22px_44px_rgba(6,6,6,0.34)]">
+                          <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                            {categoryDirectory.map((item) => {
+                              const active = selectedMainCategories.includes(item.slug);
+                              return (
+                                <button
+                                  key={item.slug}
+                                  type="button"
+                                  onClick={() => toggleMainCategory(item.slug)}
+                                  className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                                    active
+                                      ? 'bg-[#DF7AFE] text-[#FFFFFF]'
+                                      : 'text-[#000000] hover:bg-[#A98BC8]/14 hover:text-[#8B4DD8]'
+                                  }`}
+                                >
+                                  <span>{item.name}</span>
+                                  {active ? <Check className="h-4 w-4" strokeWidth={2.5} /> : null}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="mt-3 flex items-center justify-between border-t border-[#A98BC8]/35 pt-3">
+                            <span className="text-xs font-semibold text-[#3E2A55]/70">
+                              {selectedMainCategories.length} selected
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedMainCategories([]);
+                                setSelectedMicroCategories([]);
+                              }}
+                              className="text-xs font-semibold text-[#8B4DD8]"
+                            >
+                              Clear selection
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                   <div>
@@ -419,7 +528,10 @@ const InquiryPage = () => {
                     <div className="relative" ref={microDropdownRef}>
                       <button
                         type="button"
-                        onClick={() => setIsMicroDropdownOpen((open) => !open)}
+                        onClick={() => {
+                          setIsMicroDropdownOpen((open) => !open);
+                          setIsMainDropdownOpen(false);
+                        }}
                         className={`${inputClassName} flex h-auto min-h-12 items-center justify-between gap-3 py-3 text-left`}
                       >
                         <span className="line-clamp-2">
@@ -434,7 +546,7 @@ const InquiryPage = () => {
                       </button>
 
                       {isMicroDropdownOpen ? (
-                        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 rounded-2xl border border-[#A98BC8]/60 bg-[#FFFFFF] p-3 shadow-[0_22px_44px_rgba(6,6,6,0.34)]">
+                        <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] top-auto z-30 rounded-2xl border border-[#A98BC8]/60 bg-[#FFFFFF] p-3 shadow-[0_22px_44px_rgba(6,6,6,0.34)]">
                           <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
                             {activeMicroCategories.map((item) => {
                               const active = selectedMicroCategories.includes(item.slug);
@@ -662,6 +774,96 @@ const InquiryPage = () => {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {modalType && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                if (modalType === 'error') setModalType(null);
+              }}
+              className="absolute inset-0 bg-[#000000]/70 backdrop-blur-md"
+            />
+
+            {/* Modal Content container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', duration: 0.4 }}
+              className="relative z-10 w-full max-w-md overflow-hidden rounded-[24px] border border-[#3E2A55] bg-[#0D0D0D]/95 p-6 shadow-[0_24px_70px_rgba(223,122,254,0.15)] backdrop-blur-xl md:p-8"
+            >
+              {modalType === 'error' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="absolute right-4 top-4 text-[#FFFFFF]/50 hover:text-[#FFFFFF] transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+
+                  <div className="flex flex-col items-center text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                      <AlertCircle className="h-7 w-7" />
+                    </div>
+                    
+                    <h3 className="mt-4 text-xl font-bold text-[#FFFFFF]">
+                      Please check the following
+                    </h3>
+                    
+                    <p className="mt-2 text-sm text-[#FFFFFF]/70">
+                      The following required fields must be completed:
+                    </p>
+                  </div>
+
+                  <div className="mt-5 max-h-60 overflow-y-auto rounded-xl border border-[#3E2A55] bg-[#000000]/50 p-4">
+                    <ul className="space-y-2.5 text-left text-sm text-[#FFFFFF]/80">
+                      {validationErrors.map((err, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5">
+                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-500" />
+                          <span>{err}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalType(null)}
+                    className="mt-6 w-full rounded-xl bg-gradient-to-r from-[#DF7AFE] to-[#8B4DD8] py-3 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(223,122,254,0.2)] transition-all hover:brightness-110 active:scale-[0.98]"
+                  >
+                    Close and Fix
+                  </button>
+                </>
+              ) : (
+                <div className="flex flex-col items-center text-center py-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400 shadow-[0_0_30px_rgba(52,211,153,0.25)] animate-pulse">
+                    <CheckCircle2 className="h-10 w-10" />
+                  </div>
+                  
+                  <h3 className="mt-5 text-2xl font-bold text-[#FFFFFF]">
+                    Success!
+                  </h3>
+                  
+                  <p className="mt-3 text-sm text-[#FFFFFF]/80 max-w-xs">
+                    {success || 'Inquiry submitted successfully.'}
+                  </p>
+
+                  <div className="mt-6 flex items-center justify-center gap-2 text-xs text-[#FFFFFF]/50">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    Redirecting to your dashboard...
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

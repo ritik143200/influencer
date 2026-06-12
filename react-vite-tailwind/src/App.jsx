@@ -99,7 +99,6 @@ const AppContent = ({ config }) => {
     currentPath === 'profile' ||
     currentPath === 'profile-preview';
   const hideFooter =
-    currentPath === 'home' ||
     currentPath === 'inquiry' ||
     currentPath === 'user-dashboard' ||
     currentPath === 'brand-dashboard-preview' ||

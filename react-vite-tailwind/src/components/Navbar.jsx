@@ -2,12 +2,20 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
 import { useAuth } from '../contexts/AuthContext';
+import BrandTopNav from './BrandTopNav';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { currentPath, navigate } = useRouter();
   const { user, isAuthenticated, logout } = useAuth();
+
+  const isBrand = isAuthenticated && ['brand', 'user', 'client', 'customer'].includes(String(user?.role || user?.profileType || '').trim().toLowerCase());
+
+  if (isBrand) {
+    return <BrandTopNav brand={user} navigate={navigate} currentPath={currentPath} />;
+  }
+
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 12);
@@ -24,13 +32,20 @@ const Navbar = () => {
         : 'user-dashboard';
 
   const homeNavItems = useMemo(
-    () => [
-      { label: 'Home', action: () => navigate('home') },
-      { label: 'Service', action: () => navigate('services') },
-      { label: 'Hire Influencer', action: () => navigate('inquiry'), pill: true },
-      { label: 'Login', action: () => navigate('inquiry') }
-    ],
-    [navigate]
+    () => {
+      const items = [
+        { label: 'Home', action: () => navigate('home') },
+        { label: 'Service', action: () => navigate('services') },
+        { label: 'Hire Influencer', action: () => navigate('inquiry'), pill: true }
+      ];
+      if (isAuthenticated) {
+        items.push({ label: 'Dashboard', action: () => navigate(dashboardRoute) });
+      } else {
+        items.push({ label: 'Login', action: () => navigate('inquiry') });
+      }
+      return items;
+    },
+    [navigate, isAuthenticated, dashboardRoute]
   );
 
   const prototypeNavItems = useMemo(

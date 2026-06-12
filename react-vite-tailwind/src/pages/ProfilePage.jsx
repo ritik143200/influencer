@@ -612,11 +612,23 @@ const ProfilePage = ({ previewMode = false }) => {
                 </Field>
                 <div className="grid gap-3">
                   <Field label="Gender">
-                    <select value={formData.gender} onChange={(event) => setField('gender', event.target.value)} className={inputClassName}>
-                      <option value="">Select</option>
-                      <option value="female">Female</option>
-                      <option value="male">Male</option>
-                      <option value="other">Other</option>
+                    <select
+                      value={formData.gender}
+                      onChange={(event) => setField('gender', event.target.value)}
+                      className={inputClassName}
+                    >
+                      <option value="" disabled hidden className="bg-[#0D0D0D] text-[#A98BC8]">
+                        Select
+                      </option>
+                      <option value="male" className="bg-[#0D0D0D] text-[#FFFFFF]">
+                        Male
+                      </option>
+                      <option value="female" className="bg-[#0D0D0D] text-[#FFFFFF]">
+                        Female
+                      </option>
+                      <option value="other" className="bg-[#0D0D0D] text-[#FFFFFF]">
+                        Other
+                      </option>
                     </select>
                   </Field>
                 </div>
@@ -661,7 +673,7 @@ const ProfilePage = ({ previewMode = false }) => {
                     </button>
 
                     {isMicroDropdownOpen ? (
-                      <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] top-auto sm:top-[calc(100%+8px)] sm:bottom-auto z-40 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
+                      <div className="absolute left-0 right-0 bottom-[calc(100%+8px)] top-auto z-40 rounded-xl border border-[#3E2A55] bg-[#0D0D0D] p-3 shadow-[0_24px_55px_rgba(6,6,6,0.45)]">
                         {categoriesLoading ? (
                           <div className="p-2 text-xs text-[#A98BC8]">Loading</div>
                         ) : (

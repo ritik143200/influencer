@@ -2472,11 +2472,11 @@ const AdminDashboard = ({ config }) => {
 
                     <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
 
                     </svg>
 
-                    User Information
+                    Company Information
 
                   </h3>
 
@@ -2484,11 +2484,11 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-white/60">Name</p>
+                      <p className="text-sm text-white/60">Company Name</p>
 
                       <p className="font-medium text-white">
 
-                        {selectedInquiry.userId?.name || selectedInquiry.name || 'Not provided'}
+                        Viralmantrix
 
                       </p>
 
@@ -2500,7 +2500,7 @@ const AdminDashboard = ({ config }) => {
 
                       <p className="font-medium text-white">
 
-                        {selectedInquiry.userId?.email || selectedInquiry.email || 'Not provided'}
+                        <a href="mailto:viralmantrix@gmail.com" className="hover:underline hover:text-[#DF7AFE]">viralmantrix@gmail.com</a>
 
                       </p>
 
@@ -2508,11 +2508,11 @@ const AdminDashboard = ({ config }) => {
 
                     <div>
 
-                      <p className="text-sm text-white/60">Phone</p>
+                      <p className="text-sm text-white/60">Contact Number</p>
 
                       <p className="font-medium text-white">
 
-                        {selectedInquiry.phone || 'Not provided'}
+                        7489701324
 
                       </p>
 
@@ -2562,19 +2562,6 @@ const AdminDashboard = ({ config }) => {
                       <p className="font-medium text-white capitalize">
 
                         {selectedInquiry.hiringFor || 'Not specified'}
-
-                      </p>
-
-                    </div>
-
-
-                    <div>
-
-                      <p className="text-sm text-white/60">inquiry date</p>
-
-                      <p className="font-medium text-white">
-
-                        {selectedInquiry.eventDate ? new Date(selectedInquiry.eventDate).toLocaleDateString('en-IN') : 'Not specified'}
 
                       </p>
 

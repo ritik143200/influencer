@@ -98,28 +98,41 @@ const toDraft = (campaign, brand) => ({
   campaignDescription: campaign?.requirements || campaign?.campaignDescription || ''
 });
 
-const findMainCategorySlug = (campaign, directory) => {
-  const fromCampaign = Array.isArray(campaign?.mainCategories) ? campaign.mainCategories[0] : campaign?.mainCategory;
-  if (fromCampaign) return fromCampaign;
-
+const findMainCategorySlugs = (campaign, directory) => {
+  if (Array.isArray(campaign?.mainCategories) && campaign.mainCategories.length > 0) {
+    return campaign.mainCategories.filter(Boolean);
+  }
+  if (campaign?.mainCategory) {
+    return [campaign.mainCategory];
+  }
   const legacy = campaign?.hiringFor;
-  const byLegacy = directory.find((item) => item.legacyHiringValue === legacy || item.name === legacy);
-  return byLegacy?.slug || directory[0]?.slug || '';
+  if (legacy) {
+    const byLegacy = directory.find((item) => item.legacyHiringValue === legacy || item.name === legacy);
+    return byLegacy ? [byLegacy.slug] : [];
+  }
+  return directory[0]?.slug ? [directory[0].slug] : [];
 };
 
-const findMicroCategorySlugs = (campaign, directory, mainSlug) => {
+const findMicroCategorySlugs = (campaign, directory, mainSlugs) => {
   const fromCampaign = Array.isArray(campaign?.microCategories) ? campaign.microCategories : campaign?.microCategory ? [campaign.microCategory] : [];
   if (fromCampaign.length) return fromCampaign;
 
-  const main = directory.find((item) => item.slug === mainSlug);
   const categoryLabels = String(campaign?.category || '')
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
 
-  const byName = categoryLabels
-    .map((label) => main?.microCategories?.find((item) => item.name === label)?.slug)
-    .filter(Boolean);
+  const byName = [];
+  categoryLabels.forEach((label) => {
+    for (const mainSlug of mainSlugs) {
+      const main = directory.find((item) => item.slug === mainSlug);
+      const match = main?.microCategories?.find((item) => item.name === label);
+      if (match) {
+        byName.push(match.slug);
+        break;
+      }
+    }
+  });
 
   return byName;
 };
@@ -142,24 +155,59 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
   const brand = isBrandAccount(user) ? user : isBrandAccount(storedBrand) ? storedBrand : null;
   const isBrandSession = isAuthenticated && isBrandAccount(user);
   const [campaignId, setCampaignId] = useState(params?.campaignId || '');
+  const loadedIdRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      if (params?.campaignId === 'preview-campaign' && campaignId !== 'preview-campaign') {
+        console.log('No token, syncing campaignId to preview-campaign');
+        setCampaignId('preview-campaign');
+      }
+      return;
+    }
+
+    if (params?.campaignId && params.campaignId !== campaignId) {
+      console.log('Syncing campaignId from params:', params.campaignId);
+      setCampaignId(params.campaignId);
+    }
+  }, [params?.campaignId, campaignId]);
+
   const [brandForm, setBrandForm] = useState(() => ({
     ...emptyDraft,
     name: brand?.name || '',
     phone: brand?.phone || '',
     email: brand?.email || ''
   }));
-  const [selectedMainCategory, setSelectedMainCategory] = useState(categoryDirectory[0]?.slug || '');
+  const [selectedMainCategories, setSelectedMainCategories] = useState([categoryDirectory[0]?.slug].filter(Boolean));
   const [selectedMicroCategories, setSelectedMicroCategories] = useState([]);
+  const [isMainDropdownOpen, setIsMainDropdownOpen] = useState(false);
   const [isMicroDropdownOpen, setIsMicroDropdownOpen] = useState(false);
+  const mainDropdownRef = useRef(null);
   const microDropdownRef = useRef(null);
   const [loading, setLoading] = useState(isDetails);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const activeMainCategory =
-    categoryDirectory.find((item) => item.slug === selectedMainCategory) || categoryDirectory[0] || null;
-  const activeMicroCategories = activeMainCategory?.microCategories || [];
+  const activeMicroCategories = useMemo(() => {
+    if (!selectedMainCategories.length) return [];
+    const allMicros = [];
+    const seenSlugs = new Set();
+    selectedMainCategories.forEach((mainSlug) => {
+      const mainCat = categoryDirectory.find((item) => item.slug === mainSlug);
+      if (mainCat && mainCat.microCategories) {
+        mainCat.microCategories.forEach((micro) => {
+          if (!seenSlugs.has(micro.slug)) {
+            seenSlugs.add(micro.slug);
+            allMicros.push(micro);
+          }
+        });
+      }
+    });
+    return allMicros;
+  }, [selectedMainCategories, categoryDirectory]);
+
   const selectedMicroCategoryNames = useMemo(
     () =>
       activeMicroCategories
@@ -168,10 +216,48 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
     [activeMicroCategories, selectedMicroCategories]
   );
 
+  const selectedMainCategoryNames = useMemo(
+    () =>
+      categoryDirectory
+        .filter((item) => selectedMainCategories.includes(item.slug))
+        .map((item) => item.name),
+    [categoryDirectory, selectedMainCategories]
+  );
+
+  const toggleMainCategory = (slug) => {
+    setSelectedMainCategories((prev) => {
+      const next = prev.includes(slug)
+        ? prev.filter((item) => item !== slug)
+        : [...prev, slug];
+      
+      setSelectedMicroCategories((prevMicros) => {
+        const nextSeen = new Set();
+        next.forEach((mainSlug) => {
+          const mainCat = categoryDirectory.find((item) => item.slug === mainSlug);
+          if (mainCat && mainCat.microCategories) {
+            mainCat.microCategories.forEach((micro) => {
+              nextSeen.add(micro.slug);
+            });
+          }
+        });
+        return prevMicros.filter((microSlug) => nextSeen.has(microSlug));
+      });
+
+      return next;
+    });
+  };
+
+  useClickOutside(mainDropdownRef, () => setIsMainDropdownOpen(false), isMainDropdownOpen);
   useClickOutside(microDropdownRef, () => setIsMicroDropdownOpen(false), isMicroDropdownOpen);
 
   useEffect(() => {
     if (!isDetails) return;
+    if (campaignId === loadedIdRef.current) {
+      console.log('loadCampaign skipped - already loaded campaignId:', campaignId);
+      return;
+    }
+    loadedIdRef.current = campaignId;
+    console.log('loadCampaign useEffect triggered. campaignId:', campaignId, 'brand:', brand?._id || brand?.id);
 
     const loadCampaign = async () => {
       setLoading(true);
@@ -182,9 +268,9 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
       if (!token || campaignId === 'preview-campaign') {
         const draft = toDraft(previewCampaign, brand);
         setBrandForm(draft);
-        const mainSlug = findMainCategorySlug(previewCampaign, categoryDirectory);
-        setSelectedMainCategory(mainSlug);
-        setSelectedMicroCategories(findMicroCategorySlugs(previewCampaign, categoryDirectory, mainSlug));
+        const mainSlugs = findMainCategorySlugs(previewCampaign, categoryDirectory);
+        setSelectedMainCategories(mainSlugs);
+        setSelectedMicroCategories(findMicroCategorySlugs(previewCampaign, categoryDirectory, mainSlugs));
         setCampaignId(previewCampaign?._id || 'preview-campaign');
         setLoading(false);
         return;
@@ -199,15 +285,15 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
         const found = campaigns.find((item) => (item._id || item.id) === campaignId) || campaigns[0] || previewCampaign;
         const draft = toDraft(found, brand);
         setBrandForm(draft);
-        const mainSlug = findMainCategorySlug(found, categoryDirectory);
-        setSelectedMainCategory(mainSlug);
-        setSelectedMicroCategories(findMicroCategorySlugs(found, categoryDirectory, mainSlug));
+        const mainSlugs = findMainCategorySlugs(found, categoryDirectory);
+        setSelectedMainCategories(mainSlugs);
+        setSelectedMicroCategories(findMicroCategorySlugs(found, categoryDirectory, mainSlugs));
       } catch {
         const draft = toDraft(previewCampaign, brand);
         setBrandForm(draft);
-        const mainSlug = findMainCategorySlug(previewCampaign, categoryDirectory);
-        setSelectedMainCategory(mainSlug);
-        setSelectedMicroCategories(findMicroCategorySlugs(previewCampaign, categoryDirectory, mainSlug));
+        const mainSlugs = findMainCategorySlugs(previewCampaign, categoryDirectory);
+        setSelectedMainCategories(mainSlugs);
+        setSelectedMicroCategories(findMicroCategorySlugs(previewCampaign, categoryDirectory, mainSlugs));
       } finally {
         setLoading(false);
       }
@@ -217,10 +303,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
   }, [API_BASE_URL, brand, campaignId, categoryDirectory, isDetails]);
 
   const persistPreviewCampaign = () => {
-    const categoryPayload = getCategorySelectionPayload(categoryDirectory, [selectedMainCategory], selectedMicroCategories);
-    const microCategoryNames = activeMicroCategories
-      .filter((item) => selectedMicroCategories.includes(item.slug))
-      .map((item) => item.name);
+    const categoryPayload = getCategorySelectionPayload(categoryDirectory, selectedMainCategories, selectedMicroCategories);
 
     const payload = {
       _id: campaignId || 'preview-campaign',
@@ -229,11 +312,11 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
       phone: brandForm.phone.trim(),
       campaignName: brandForm.campaignName.trim(),
       requirements: brandForm.campaignDescription.trim(),
-      category: microCategoryNames.join(', '),
-      hiringFor: activeMainCategory?.name || '',
+      category: selectedMicroCategoryNames.join(', '),
+      hiringFor: selectedMainCategoryNames.join(', '),
       location: brandForm.location.trim(),
       budget: Number(brandForm.budget) || 0,
-      mainCategories: [selectedMainCategory],
+      mainCategories: selectedMainCategories,
       microCategories: selectedMicroCategories,
       createdAt: readPreviewCampaign()?.createdAt || new Date().toISOString(),
       status: readPreviewCampaign()?.status || 'sent',
@@ -278,7 +361,7 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
     if (!brandForm.phone.trim()) return 'Please enter your phone number.';
     if (!brandForm.email.trim()) return 'Please enter your email address.';
     if (!isDetails && !isBrandSession && !brandForm.password.trim()) return 'Please create a password.';
-    if (!selectedMainCategory) return 'Please select a hiring type.';
+    if (!selectedMainCategories.length) return 'Please select a hiring type.';
     if (!selectedMicroCategories.length) return 'Please select at least one micro category.';
     if (!brandForm.location.trim()) return 'Please enter your location.';
     if (!brandForm.budget.trim()) return 'Please enter your budget.';
@@ -301,18 +384,16 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
     setSaving(true);
     try {
       const token = await createAccountIfNeeded();
-      const categoryPayload = getCategorySelectionPayload(categoryDirectory, [selectedMainCategory], selectedMicroCategories);
-      const microCategoryNames = activeMicroCategories
-        .filter((item) => selectedMicroCategories.includes(item.slug))
-        .map((item) => item.name);
+      const categoryPayload = getCategorySelectionPayload(categoryDirectory, selectedMainCategories, selectedMicroCategories);
+      const firstMainCat = categoryDirectory.find((c) => c.slug === selectedMainCategories[0]);
       const body = {
         name: brandForm.name.trim(),
         email: brandForm.email.trim(),
         phone: brandForm.phone.trim(),
         campaignName: brandForm.campaignName.trim(),
-        hiringFor: activeMainCategory?.legacyHiringValue || 'influencer',
-        category: microCategoryNames.join(', '),
-        mainCategories: [selectedMainCategory],
+        hiringFor: firstMainCat?.legacyHiringValue || 'influencer',
+        category: selectedMicroCategoryNames.join(', '),
+        mainCategories: selectedMainCategories,
         microCategories: selectedMicroCategories,
         location: brandForm.location.trim(),
         budget: Number(brandForm.budget),
@@ -471,24 +552,65 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
               ) : null}
               <div>
                 <label className="mb-2 block text-xs font-medium text-[#FFFFFF]">Hiring Of</label>
-                <div className="relative">
-                  <select
-                    value={selectedMainCategory}
-                    onChange={(event) => {
-                      setSelectedMainCategory(event.target.value);
-                      setSelectedMicroCategories([]);
+                <div className="relative" ref={mainDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMainDropdownOpen((open) => !open);
                       setIsMicroDropdownOpen(false);
                     }}
-                    className={`${inputClassName} appearance-none pr-10`}
+                    className={`${inputClassName} flex h-auto min-h-12 items-center justify-between gap-3 py-3 text-left`}
                   >
-                    <option value="">Select hiring type</option>
-                    {categoryDirectory.map((item) => (
-                      <option key={item.slug} value={item.slug}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#3E2A55]/65" strokeWidth={2} />
+                    <span className="line-clamp-2">
+                      {selectedMainCategoryNames.length
+                        ? selectedMainCategoryNames.join(', ')
+                        : 'Select one or more hiring types'}
+                    </span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-[#3E2A55]/65 transition ${isMainDropdownOpen ? 'rotate-180' : ''}`}
+                      strokeWidth={2}
+                    />
+                  </button>
+
+                  {isMainDropdownOpen ? (
+                    <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-30 rounded-2xl border border-[#A98BC8]/60 bg-[#FFFFFF] p-3 shadow-[0_22px_44px_rgba(6,6,6,0.34)]">
+                      <div className="max-h-64 space-y-1 overflow-y-auto pr-1">
+                        {categoryDirectory.map((item) => {
+                          const active = selectedMainCategories.includes(item.slug);
+                          return (
+                            <button
+                              key={item.slug}
+                              type="button"
+                              onClick={() => toggleMainCategory(item.slug)}
+                              className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition ${
+                                active
+                                  ? 'bg-[#DF7AFE] text-[#FFFFFF]'
+                                  : 'text-[#000000] hover:bg-[#A98BC8]/14 hover:text-[#8B4DD8]'
+                              }`}
+                            >
+                              <span>{item.name}</span>
+                              {active ? <Check className="h-4 w-4" strokeWidth={2.5} /> : null}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="mt-3 flex items-center justify-between border-t border-[#A98BC8]/35 pt-3">
+                        <span className="text-xs font-semibold text-[#3E2A55]/70">
+                          {selectedMainCategories.length} selected
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedMainCategories([]);
+                            setSelectedMicroCategories([]);
+                          }}
+                          className="text-xs font-semibold text-[#8B4DD8]"
+                        >
+                          Clear selection
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
               <div>
@@ -496,7 +618,10 @@ const BrandCampaignPage = ({ mode = 'create' }) => {
                 <div className="relative" ref={microDropdownRef}>
                   <button
                     type="button"
-                    onClick={() => setIsMicroDropdownOpen((open) => !open)}
+                    onClick={() => {
+                      setIsMicroDropdownOpen((open) => !open);
+                      setIsMainDropdownOpen(false);
+                    }}
                     className={`${inputClassName} flex h-auto min-h-12 items-center justify-between gap-3 py-3 text-left`}
                   >
                     <span className="line-clamp-2">

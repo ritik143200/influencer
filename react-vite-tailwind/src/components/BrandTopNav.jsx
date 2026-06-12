@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 export const getBrandInitial = (brand) => {
   const label = brand?.brandName || brand?.name || brand?.fullName || brand?.email || 'Brand';
@@ -7,12 +8,19 @@ export const getBrandInitial = (brand) => {
 };
 
 const BrandTopNav = ({ brand, navigate, currentPath }) => {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('home');
+  };
+
   return (
     <header className="sticky top-0 z-30 border-t-[3px] border-[#DF7AFE] border-b border-[#171321] bg-[#000000]/94 backdrop-blur-xl">
       <div className="mx-auto flex h-[70px] max-w-[1280px] items-center justify-between px-5 lg:px-8">
         <button
           type="button"
-          onClick={() => navigate('home')}
+          onClick={() => navigate('user-dashboard')}
           className="text-left text-[1.85rem] font-semibold leading-none tracking-[-0.06em] text-[#FFFFFF]"
         >
           <span>Viral</span>
@@ -22,8 +30,8 @@ const BrandTopNav = ({ brand, navigate, currentPath }) => {
         <nav className="hidden items-center gap-10 text-sm font-semibold text-[#FFFFFF]/70 md:flex">
           <button
             type="button"
-            onClick={() => navigate('home')}
-            className={`transition hover:text-[#DF7AFE] ${currentPath === 'home' ? 'text-[#DF7AFE]' : ''}`}
+            onClick={() => navigate('user-dashboard')}
+            className={`transition hover:text-[#DF7AFE] ${(currentPath === 'user-dashboard' || currentPath === 'home') ? 'text-[#DF7AFE]' : ''}`}
           >
             Home
           </button>
@@ -50,17 +58,26 @@ const BrandTopNav = ({ brand, navigate, currentPath }) => {
           </button>
         </nav>
 
-        <button
-          type="button"
-          onClick={() => navigate('user-dashboard')}
-          className="inline-flex h-12 items-center gap-3 rounded-[22px] border border-[#171321] bg-[#0D0D0D] px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_14px_34px_rgba(223,122,254,0.10)]"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171321] text-xs font-bold text-[#DF7AFE]">
-            {getBrandInitial(brand)}
-          </span>
-          <span className="hidden sm:inline">Brand Account</span>
-          <ChevronDown className="h-4 w-4 text-[#FFFFFF]/70" strokeWidth={2} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('user-dashboard')}
+            className="inline-flex h-12 items-center gap-3 rounded-[22px] border border-[#171321] bg-[#0D0D0D] px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_14px_34px_rgba(223,122,254,0.10)]"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#171321] text-xs font-bold text-[#DF7AFE]">
+              {getBrandInitial(brand)}
+            </span>
+            <span className="hidden sm:inline">Brand Account</span>
+            <ChevronDown className="h-4 w-4 text-[#FFFFFF]/70" strokeWidth={2} />
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex h-12 items-center justify-center rounded-[22px] border border-rose-500/20 bg-[#0D0D0D] px-4 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 shadow-sm transition-all"
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </header>
   );

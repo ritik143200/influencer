@@ -12,13 +12,15 @@ import {
   Settings,
   UserRound,
   Wallet,
-  XCircle
+  XCircle,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
 import { calculateProfileCompletion } from '../utils/profileCompletion';
 import InquiryStatusTracker from '../components/InquiryStatusTracker';
+import InquiryDetailsModal from '../components/InquiryDetailsModal';
 
 const previewUser = {
   fullName: '',
@@ -182,6 +184,8 @@ const InfluencerDashboard = ({ previewMode = false }) => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(!previewMode);
   const [respondingId, setRespondingId] = useState('');
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   useEffect(() => {
     if (previewMode) return;
@@ -372,6 +376,17 @@ const InfluencerDashboard = ({ previewMode = false }) => {
                     <div className="mt-4 flex flex-wrap gap-3">
                       <button
                         type="button"
+                        onClick={() => {
+                          setSelectedInquiry(inquiry);
+                          setIsDetailsOpen(true);
+                        }}
+                        className="inline-flex h-11 items-center gap-2 rounded-2xl border border-[#3E2A55] bg-[#0A0A12] px-5 text-sm font-semibold text-white hover:bg-[#171321] transition"
+                      >
+                        <Eye className="h-4 w-4" strokeWidth={2.2} />
+                        View Details
+                      </button>
+                      <button
+                        type="button"
                         disabled={respondingId === inquiry._id}
                         onClick={() => handleInquiryResponse(inquiry._id, 'accept')}
                         className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#DF7AFE] px-5 text-sm font-semibold text-white disabled:opacity-60"
@@ -396,6 +411,11 @@ const InfluencerDashboard = ({ previewMode = false }) => {
           )}
         </section>
       </div>
+      <InquiryDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        inquiry={selectedInquiry}
+      />
     </main>
   );
 };

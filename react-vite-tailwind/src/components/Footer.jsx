@@ -33,14 +33,14 @@ const socialLinks = [
 
 const FooterLinkColumn = ({ title, links, navigate }) => (
   <div>
-    <div className="text-2xl font-semibold text-[#FFFFFF]">{title}</div>
-    <div className="mt-8 space-y-5">
+    <div className="text-xs font-bold uppercase tracking-wider text-[#FFFFFF]">{title}</div>
+    <div className="mt-4 space-y-2.5">
       {links.map(link => (
         <button
           key={link.label}
           type="button"
           onClick={() => navigate(link.path)}
-          className="block text-left text-[1.35rem] font-medium text-[#FFFFFF]/62 transition hover:text-[#FFFFFF]"
+          className="block text-left text-sm text-[#A98BC8] hover:text-[#FFFFFF] transition-colors"
         >
           {link.label}
         </button>
@@ -53,16 +53,16 @@ const Footer = () => {
   const { navigate } = useRouter();
 
   return (
-    <footer className="bg-[#000000] text-[#FFFFFF]">
-      <div className="section-shell py-20">
-        <div className="grid gap-14 lg:grid-cols-[1.1fr_0.9fr_0.9fr_1fr]">
+    <footer className="border-t border-[#171321] bg-[#000000] text-[#FFFFFF]">
+      <div className="section-shell py-12">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr]">
           <div className="max-w-md">
             <button type="button" onClick={() => navigate('home')} className="text-left">
-              <div className="text-[3rem] font-semibold leading-none tracking-tight text-[#FFFFFF]">
+              <div className="text-2xl font-bold leading-none tracking-tight text-[#FFFFFF]">
                 Viral<span className="text-[#DF7AFE]">Mantrix</span>
               </div>
             </button>
-            <p className="mt-10 text-[1.45rem] leading-[1.65] text-[#FFFFFF]/62">
+            <p className="mt-4 text-sm leading-relaxed text-[#A98BC8]">
               Connecting creators and brands with trusted collaboration tools worldwide.
             </p>
           </div>
@@ -72,17 +72,17 @@ const Footer = () => {
           <FooterLinkColumn title="Company" links={companyLinks} navigate={navigate} />
         </div>
 
-        <div className="mt-16 border-t border-white/10 pt-8">
-          <div className="flex flex-col gap-5 text-[1.2rem] text-[#FFFFFF]/62 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mt-12 border-t border-[#171321] pt-6">
+          <div className="flex flex-col gap-4 text-xs text-[#A98BC8] lg:flex-row lg:items-center lg:justify-between">
             <div>© 2024 ViralMantrix. All rights reserved.</div>
-            <div className="flex flex-wrap gap-8">
+            <div className="flex flex-wrap gap-6">
               {socialLinks.map(link => (
                 <a
                   key={link.label}
                   href={link.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="transition hover:text-[#FFFFFF]"
+                  className="hover:text-[#FFFFFF] transition-colors"
                 >
                   {link.label}
                 </a>

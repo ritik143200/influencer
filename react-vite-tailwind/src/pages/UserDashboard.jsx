@@ -206,36 +206,46 @@ const UserDashboard = ({ previewMode = null }) => {
     (previewMode === 'active' ? 5 : 0);
 
   const openCampaignDetails = () => {
-    const campaignSnapshot = latestInquiry
-      ? {
-          ...latestInquiry,
-          name: latestInquiry.name || brand?.brandName || brand?.name || '',
-          email: latestInquiry.email || brand?.email || '',
-          phone: latestInquiry.phone || brand?.phone || ''
-        }
-      : null;
+    try {
+      console.log('openCampaignDetails triggered. latestInquiry:', latestInquiry);
+      const campaignSnapshot = latestInquiry
+        ? {
+            ...latestInquiry,
+            name: latestInquiry.name || brand?.brandName || brand?.name || '',
+            email: latestInquiry.email || brand?.email || '',
+            phone: latestInquiry.phone || brand?.phone || ''
+          }
+        : null;
 
-    if (latestInquiry) {
-      localStorage.setItem('lastSubmittedInquiryPreview', JSON.stringify(campaignSnapshot));
+      console.log('campaignSnapshot built:', campaignSnapshot);
+
+      if (latestInquiry) {
+        localStorage.setItem('lastSubmittedInquiryPreview', JSON.stringify(campaignSnapshot));
+      }
+
+      const navigationParams = {
+        campaignId: campaignSnapshot?._id || latestInquiry?._id || latestInquiry?.id || 'preview-campaign',
+        previewBrand: campaignSnapshot?.name || '',
+        previewEmail: campaignSnapshot?.email || '',
+        previewPhone: campaignSnapshot?.phone || '',
+        previewCampaign: campaignSnapshot?.campaignName || '',
+        previewRequirements: campaignSnapshot?.requirements || '',
+        previewLocation: campaignSnapshot?.location || '',
+        previewBudget: campaignSnapshot?.budget || '',
+        previewCategory: campaignSnapshot?.category || '',
+        previewHiringFor: campaignSnapshot?.hiringFor || '',
+        previewMainCategory: campaignSnapshot?.mainCategories?.[0] || '',
+        previewMicroCategory: campaignSnapshot?.microCategories?.[0] || '',
+        previewMicroCategories: Array.isArray(campaignSnapshot?.microCategories)
+          ? campaignSnapshot.microCategories.join(',')
+          : ''
+      };
+
+      console.log('Navigating to brand-campaign-details with params:', navigationParams);
+      navigate('brand-campaign-details', navigationParams);
+    } catch (err) {
+      console.error('Error in openCampaignDetails:', err);
     }
-
-    navigate('brand-campaign-details', {
-      campaignId: campaignSnapshot?._id || latestInquiry?._id || latestInquiry?.id || 'preview-campaign',
-      previewBrand: campaignSnapshot?.name || '',
-      previewEmail: campaignSnapshot?.email || '',
-      previewPhone: campaignSnapshot?.phone || '',
-      previewCampaign: campaignSnapshot?.campaignName || '',
-      previewRequirements: campaignSnapshot?.requirements || '',
-      previewLocation: campaignSnapshot?.location || '',
-      previewBudget: campaignSnapshot?.budget || '',
-      previewCategory: campaignSnapshot?.category || '',
-      previewHiringFor: campaignSnapshot?.hiringFor || '',
-      previewMainCategory: campaignSnapshot?.mainCategories?.[0] || '',
-      previewMicroCategory: campaignSnapshot?.microCategories?.[0] || '',
-      previewMicroCategories: Array.isArray(campaignSnapshot?.microCategories)
-        ? campaignSnapshot.microCategories.join(',')
-        : ''
-    });
   };
 
   const quickActions = useMemo(

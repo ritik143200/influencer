@@ -16,7 +16,10 @@ import {
   Users
 } from 'lucide-react';
 import { useRouter } from '../contexts/RouterContext';
+import { useAuth } from '../contexts/AuthContext';
 import { API_BASE_URL } from '../data/config';
+import BrandTopNav from '../components/BrandTopNav';
+
 
 const categories = [
   {
@@ -311,63 +314,87 @@ const ViralMascot = ({ compact = false }) => {
   );
 };
 
-const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profilesLoading, openInstagram }) => (
+const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profilesLoading, openInstagram, isAuthenticated, user }) => (
   <main className="min-h-screen overflow-hidden bg-[#000] text-white md:hidden">
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_8%,rgba(223,122,254,0.24),transparent_34%),radial-gradient(circle_at_12%_16%,rgba(0,153,255,0.16),transparent_32%),linear-gradient(180deg,#000_0%,#070707_50%,#000_100%)]" />
       <div className="absolute left-[-22%] top-[18%] h-64 w-64 rounded-full bg-[#814AC8]/24 blur-3xl" />
       <div className="absolute right-[-22%] top-[4%] h-72 w-72 rounded-full bg-[#DF7AFE]/18 blur-3xl" />
 
-      <nav className="relative z-30 border-b border-white/10 bg-black/72 px-5 py-4 backdrop-blur-2xl">
-        <div className="flex items-center justify-between gap-3">
-          <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-3">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-xs font-black tracking-[-0.16em] text-black shadow-[0_18px_44px_rgba(223,122,254,0.18)]">
-              VM
-            </span>
-            <span className="text-lg font-black uppercase tracking-[-0.08em]">ViralMantrix</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((value) => !value)}
-            className="inline-grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)]"
-            aria-label="Open menu"
-          >
-            <Menu className="h-7 w-7" strokeWidth={2.15} />
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="mt-4 grid gap-2 rounded-[1.4rem] border border-white/10 bg-[#0D0D0D]/95 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
+      {isAuthenticated && ['brand', 'user', 'client', 'customer'].includes(String(user?.role || user?.profileType || '').trim().toLowerCase()) ? (
+        <BrandTopNav brand={user} navigate={navigate} currentPath="home" />
+      ) : (
+        <nav className="relative z-30 border-b border-white/10 bg-black/72 px-5 py-4 backdrop-blur-2xl">
+          <div className="flex items-center justify-between gap-3">
+            <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-3">
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-white text-xs font-black tracking-[-0.16em] text-black shadow-[0_18px_44px_rgba(223,122,254,0.18)]">
+                VM
+              </span>
+              <span className="text-lg font-black uppercase tracking-[-0.08em]">ViralMantrix</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((value) => !value)}
+              className="inline-grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-white shadow-[0_18px_44px_rgba(0,0,0,0.24)]"
+              aria-label="Open menu"
             >
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-black"
+              <Menu className="h-7 w-7" strokeWidth={2.15} />
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="mt-4 grid gap-2 rounded-[1.4rem] border border-white/10 bg-[#0D0D0D]/95 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
               >
-                Home
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  navigate('auth');
-                }}
-                className="rounded-2xl bg-white/[0.06] px-4 py-3 text-left text-sm font-black text-white"
-              >
-                Login
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="rounded-2xl bg-white px-4 py-3 text-left text-sm font-black text-black"
+                >
+                  Home
+                </button>
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      const userRole = user?.role || user?.profileType || '';
+                      const dashboardRoute =
+                        userRole === 'admin'
+                          ? 'admin-dashboard'
+                          : userRole === 'artist' || userRole === 'influencer'
+                            ? 'influencer-dashboard'
+                            : 'user-dashboard';
+                      navigate(dashboardRoute);
+                    }}
+                    className="rounded-2xl bg-white/[0.06] px-4 py-3 text-left text-sm font-black text-white"
+                  >
+                    Dashboard
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate('auth');
+                    }}
+                    className="rounded-2xl bg-white/[0.06] px-4 py-3 text-left text-sm font-black text-white"
+                  >
+                    Login
+                  </button>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      )}
 
       <section className="relative z-10 px-5 pb-12 pt-10">
         <motion.div initial={{ opacity: 0, y: 26 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55 }}>
@@ -495,6 +522,7 @@ const MobileXtractLanding = ({ navigate, menuOpen, setMenuOpen, profiles, profil
 
 const LandingPage = () => {
   const { navigate } = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profiles, setProfiles] = useState(fallbackProfiles);
   const [profilesLoading, setProfilesLoading] = useState(true);
@@ -571,129 +599,176 @@ const LandingPage = () => {
       profiles={profiles}
       profilesLoading={profilesLoading}
       openInstagram={openInstagram}
+      isAuthenticated={isAuthenticated}
+      user={user}
     />
     <main className="hidden min-h-screen overflow-hidden bg-[#000] text-[#FFFFFF] md:block">
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#0D0D0D] bg-[#000000]/78 shadow-[0_18px_50px_rgba(20,16,32,0.34)] backdrop-blur-2xl">
-        <div className="mx-auto flex h-[58px] max-w-[1760px] items-center justify-between gap-3 px-4 lg:h-[76px] lg:px-14">
-          <button type="button" onClick={() => scrollToSection('hero')} className="shrink-0 text-base font-semibold text-[#FFFFFF] lg:text-lg">
-            ViralMantrix
-          </button>
-
-          <div className="hidden items-center gap-2 rounded-full border border-[#FFFFFFBF]/30 bg-[#0D0D0D]/70 p-1.5 shadow-[0_16px_42px_rgba(223,122,254,0.10)] md:flex xl:gap-3">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={item.action}
-                className={`h-11 rounded-full px-4 text-sm font-semibold transition xl:px-5 ${
-                  item.featured
-                    ? 'bg-[#DF7AFE] text-white shadow-[0_12px_24px_rgba(223,122,254,0.24)] hover:bg-[#814AC8]'
-                    : 'text-[#FFFFFF] hover:bg-[#0D0D0D]'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative hidden md:block">
-            <button
-              type="button"
-              onClick={() => setMenuOpen((value) => !value)}
-              className="inline-flex h-12 items-center gap-2 rounded-full border border-[#FFFFFFBF]/35 bg-[#0D0D0D]/72 px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_16px_42px_rgba(223,122,254,0.10)] transition hover:bg-[#0D0D0D] xl:px-5"
-            >
-              Sign Up / Login as Influencer
-              <ChevronDown className={`h-4 w-4 transition ${menuOpen ? 'rotate-180' : ''}`} strokeWidth={2.2} />
+      {isAuthenticated && ['brand', 'user', 'client', 'customer'].includes(String(user?.role || user?.profileType || '').trim().toLowerCase()) ? (
+        <BrandTopNav brand={user} navigate={navigate} currentPath="home" />
+      ) : (
+        <nav className="fixed left-0 right-0 top-0 z-50 border-b border-[#0D0D0D] bg-[#000000]/78 shadow-[0_18px_50px_rgba(20,16,32,0.34)] backdrop-blur-2xl">
+          <div className="mx-auto flex h-[58px] max-w-[1760px] items-center justify-between gap-3 px-4 lg:h-[76px] lg:px-14">
+            <button type="button" onClick={() => scrollToSection('hero')} className="shrink-0 text-base font-semibold text-[#FFFFFF] lg:text-lg">
+              ViralMantrix
             </button>
 
-            <AnimatePresence>
-              {menuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.96 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.96 }}
-                  transition={{ duration: 0.18, ease: 'easeOut' }}
-                  className="absolute right-0 mt-3 w-64 rounded-[22px] border border-[#222222] bg-[#0D0D0D] p-2 shadow-[0_24px_70px_rgba(20,16,32,0.44)]"
+            <div className="hidden items-center gap-2 rounded-full border border-[#FFFFFFBF]/30 bg-[#0D0D0D]/70 p-1.5 shadow-[0_16px_42px_rgba(223,122,254,0.10)] md:flex xl:gap-3">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={item.action}
+                  className={`h-11 rounded-full px-4 text-sm font-semibold transition xl:px-5 ${
+                    item.featured
+                      ? 'bg-[#DF7AFE] text-white shadow-[0_12px_24px_rgba(223,122,254,0.24)] hover:bg-[#814AC8]'
+                      : 'text-[#FFFFFF] hover:bg-[#0D0D0D]'
+                  }`}
                 >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="relative hidden md:block">
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const userRole = user?.role || user?.profileType || '';
+                    const dashboardRoute =
+                      userRole === 'admin'
+                        ? 'admin-dashboard'
+                        : userRole === 'artist' || userRole === 'influencer'
+                          ? 'influencer-dashboard'
+                          : 'user-dashboard';
+                    navigate(dashboardRoute);
+                  }}
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-[#FFFFFFBF]/35 bg-[#0D0D0D]/72 px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_16px_42px_rgba(223,122,254,0.10)] transition hover:bg-[#0D0D0D] xl:px-5"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#171321] text-[11px] font-semibold text-[#DF7AFE]">
+                    {(user?.name || user?.email || 'User')[0]?.toUpperCase()}
+                  </span>
+                  Dashboard
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((value) => !value)}
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-[#FFFFFFBF]/35 bg-[#0D0D0D]/72 px-4 text-sm font-semibold text-[#FFFFFF] shadow-[0_16px_42px_rgba(223,122,254,0.10)] transition hover:bg-[#0D0D0D] xl:px-5"
+                >
+                  Sign Up / Login as Influencer
+                  <ChevronDown className={`h-4 w-4 transition ${menuOpen ? 'rotate-180' : ''}`} strokeWidth={2.2} />
+                </button>
+              )}
+
+              <AnimatePresence>
+                {menuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                    transition={{ duration: 0.18, ease: 'easeOut' }}
+                    className="absolute right-0 mt-3 w-64 rounded-[22px] border border-[#222222] bg-[#0D0D0D] p-2 shadow-[0_24px_70px_rgba(20,16,32,0.44)]"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate('influencer-registration');
+                      }}
+                      className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] transition hover:bg-[#0D0D0D]"
+                    >
+                      Sign Up
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate('auth');
+                      }}
+                      className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] transition hover:bg-[#0D0D0D]"
+                    >
+                      Login
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  const userRole = user?.role || user?.profileType || '';
+                  const dashboardRoute =
+                    userRole === 'admin'
+                      ? 'admin-dashboard'
+                      : userRole === 'artist' || userRole === 'influencer'
+                        ? 'influencer-dashboard'
+                        : 'user-dashboard';
+                  navigate(dashboardRoute);
+                }}
+                className="absolute right-4 top-2.5 inline-flex h-9 px-3 shrink-0 items-center justify-center gap-1 rounded-full bg-[#DF7AFE] text-[0.68rem] font-semibold text-white md:hidden"
+              >
+                Dashboard
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setMenuOpen((value) => !value)}
+                className="absolute right-4 top-2.5 inline-flex h-9 w-[88px] shrink-0 items-center justify-center gap-1 rounded-full bg-[#DF7AFE] text-[0.68rem] font-semibold text-white md:hidden"
+              >
+                <span className="sm:hidden">Login</span>
+                <span className="hidden sm:inline">Sign Up / Login</span>
+                <ChevronDown className={`h-4 w-4 transition ${menuOpen ? 'rotate-180' : ''}`} strokeWidth={2.2} />
+              </button>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 border-t border-white/35 px-4 py-2 md:hidden">
+            <button type="button" onClick={() => scrollToSection('hero')} className="rounded-full bg-[#0D0D0D] px-3 py-2 text-[0.68rem] font-semibold text-[#FFFFFF]">
+              Home
+            </button>
+            <button type="button" onClick={() => navigate('inquiry')} className="rounded-full bg-[#DF7AFE] px-3 py-2 text-[0.68rem] font-semibold text-white">
+              Hire Influencer
+            </button>
+          </div>
+
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="border-t border-[#0D0D0D] bg-[#0D0D0D] px-5 py-4 md:hidden"
+              >
+                <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setMenuOpen(false);
                       navigate('influencer-registration');
+                      setMenuOpen(false);
                     }}
-                    className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] transition hover:bg-[#0D0D0D]"
+                    className="rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] hover:bg-[#0D0D0D]"
                   >
                     Sign Up
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setMenuOpen(false);
                       navigate('auth');
+                      setMenuOpen(false);
                     }}
-                    className="block w-full rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] transition hover:bg-[#0D0D0D]"
+                    className="rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] hover:bg-[#0D0D0D]"
                   >
                     Login
                   </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setMenuOpen((value) => !value)}
-            className="absolute right-4 top-2.5 inline-flex h-9 w-[88px] shrink-0 items-center justify-center gap-1 rounded-full bg-[#DF7AFE] text-[0.68rem] font-semibold text-white md:hidden"
-          >
-            <span className="sm:hidden">Login</span>
-            <span className="hidden sm:inline">Sign Up / Login</span>
-            <ChevronDown className={`h-4 w-4 transition ${menuOpen ? 'rotate-180' : ''}`} strokeWidth={2.2} />
-          </button>
-        </div>
-
-          <div className="grid grid-cols-2 gap-2 border-t border-white/35 px-4 py-2 md:hidden">
-          <button type="button" onClick={() => scrollToSection('hero')} className="rounded-full bg-[#0D0D0D] px-3 py-2 text-[0.68rem] font-semibold text-[#FFFFFF]">
-            Home
-          </button>
-          <button type="button" onClick={() => navigate('inquiry')} className="rounded-full bg-[#DF7AFE] px-3 py-2 text-[0.68rem] font-semibold text-white">
-            Hire Influencer
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {menuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="border-t border-[#0D0D0D] bg-[#0D0D0D] px-5 py-4 md:hidden"
-            >
-              <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('influencer-registration');
-                    setMenuOpen(false);
-                  }}
-                  className="rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] hover:bg-[#0D0D0D]"
-                >
-                  Sign Up
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('auth');
-                    setMenuOpen(false);
-                  }}
-                  className="rounded-2xl px-4 py-3 text-left text-sm font-semibold text-[#FFFFFF] hover:bg-[#0D0D0D]"
-                >
-                  Login
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </nav>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </nav>
+      )}
 
       <section id="hero" className="relative overflow-hidden pt-[98px] md:pt-[66px] lg:min-h-[calc(100vh-76px)] lg:pt-[76px]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_16%,rgba(223,122,254,0.32),transparent_28%),radial-gradient(circle_at_72%_58%,rgba(139,77,216,0.34),transparent_38%),radial-gradient(circle_at_52%_48%,rgba(0,153,255,0.14),transparent_34%),linear-gradient(128deg,#000000_0%,#0D0D0D_38%,#171321_68%,#000000_100%)]" />
@@ -918,35 +993,6 @@ const LandingPage = () => {
           )}
         </div>
       </section>
-
-      <footer className="border-t border-[#0D0D0D] bg-[#000000] px-5 py-10 text-white lg:px-8">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="text-lg font-semibold">ViralMantrix</div>
-            <div className="mt-2 text-sm text-white/62">Connecting Brands & Influencers.</div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button type="button" onClick={() => scrollToSection('hero')} className="text-sm font-medium text-white/72 hover:text-white">
-              Home
-            </button>
-            <button type="button" onClick={() => navigate('services')} className="text-sm font-medium text-white/72 hover:text-white">
-              Services
-            </button>
-            <button type="button" onClick={() => navigate('contact')} className="text-sm font-medium text-white/72 hover:text-white">
-              Contact
-            </button>
-            <button type="button" onClick={() => navigate('terms-and-condition')} className="text-sm font-medium text-white/72 hover:text-white">
-              Terms & Conditions
-            </button>
-            <button type="button" onClick={() => navigate('inquiry')} className="text-sm font-medium text-white/72 hover:text-white">
-              Hire Influencer
-            </button>
-            <button type="button" onClick={() => navigate('influencer-registration')} className="text-sm font-medium text-white/72 hover:text-white">
-              Influencer Sign Up
-            </button>
-          </div>
-        </div>
-      </footer>
     </main>
     </>
   );

@@ -23,12 +23,14 @@ import {
   XCircle,
   Clock,
   X,
-  Tag
+  Tag,
+  Eye
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from '../contexts/RouterContext';
 import { API_BASE_URL } from '../data/config';
 import InquiryStatusTracker from '../components/InquiryStatusTracker';
+import InquiryDetailsModal from '../components/InquiryDetailsModal';
 
 /* ─── Constants ──────────────────────────────────────────── */
 const PAGE_SIZE = 8;
@@ -136,7 +138,7 @@ const StatusBadge = ({ status }) => {
 };
 
 /* ─── Campaign Card ──────────────────────────────────────── */
-const CampaignCard = ({ inquiry, onRespond, respondingId }) => {
+const CampaignCard = ({ inquiry, onRespond, respondingId, onViewDetails }) => {
   const isPending = inquiry.status === 'forwarded';
   const isResponding = respondingId === inquiry._id;
 
@@ -194,29 +196,40 @@ const CampaignCard = ({ inquiry, onRespond, respondingId }) => {
         <InquiryStatusTracker status={inquiry.status} variant="full" />
       </div>
 
-      {/* Action Buttons (only for pending) */}
-      {isPending && (
-        <div className="mt-3 flex flex-wrap gap-2.5">
-          <button
-            type="button"
-            disabled={isResponding}
-            onClick={() => onRespond(inquiry._id, 'accept')}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#DF7AFE] px-4 text-xs font-semibold text-white transition hover:bg-[#c958e8] disabled:opacity-60"
-          >
-            <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.2} />
-            {isResponding ? 'Processing…' : 'Accept'}
-          </button>
-          <button
-            type="button"
-            disabled={isResponding}
-            onClick={() => onRespond(inquiry._id, 'reject')}
-            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#3E2A55] bg-[#000000] px-4 text-xs font-semibold text-[#A98BC8] transition hover:bg-[#171321] disabled:opacity-60"
-          >
-            <XCircle className="h-3.5 w-3.5" strokeWidth={2.2} />
-            Decline
-          </button>
-        </div>
-      )}
+      {/* Action Buttons */}
+      <div className="mt-3 flex flex-wrap gap-2.5">
+        <button
+          type="button"
+          onClick={() => onViewDetails(inquiry)}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#3E2A55] bg-[#0A0A12] px-4 text-xs font-semibold text-white transition hover:bg-[#171321]"
+        >
+          <Eye className="h-3.5 w-3.5" strokeWidth={2.2} />
+          View Details
+        </button>
+
+        {isPending && (
+          <>
+            <button
+              type="button"
+              disabled={isResponding}
+              onClick={() => onRespond(inquiry._id, 'accept')}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-[#DF7AFE] px-4 text-xs font-semibold text-white transition hover:bg-[#c958e8] disabled:opacity-60"
+            >
+              <CheckCircle2 className="h-3.5 w-3.5" strokeWidth={2.2} />
+              {isResponding ? 'Processing…' : 'Accept'}
+            </button>
+            <button
+              type="button"
+              disabled={isResponding}
+              onClick={() => onRespond(inquiry._id, 'reject')}
+              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-[#3E2A55] bg-[#000000] px-4 text-xs font-semibold text-[#A98BC8] transition hover:bg-[#171321] disabled:opacity-60"
+            >
+              <XCircle className="h-3.5 w-3.5" strokeWidth={2.2} />
+              Decline
+            </button>
+          </>
+        )}
+      </div>
     </article>
   );
 };
@@ -270,6 +283,8 @@ const MyCampaignsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [respondingId, setRespondingId] = useState('');
+  const [selectedInquiry, setSelectedInquiry] = useState(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -281,6 +296,11 @@ const MyCampaignsPage = () => {
   const [page, setPage] = useState(1);
 
   const handleLogout = () => { logout(); navigate('home'); };
+
+  const handleViewDetails = useCallback((inquiry) => {
+    setSelectedInquiry(inquiry);
+    setIsDetailsOpen(true);
+  }, []);
 
   /* ── Fetch inquiries ─────────────────────────────────────── */
   const fetchInquiries = useCallback(async () => {
@@ -643,6 +663,7 @@ const MyCampaignsPage = () => {
                     inquiry={inquiry}
                     onRespond={handleRespond}
                     respondingId={respondingId}
+                    onViewDetails={handleViewDetails}
                   />
                 ))}
               </div>
@@ -652,6 +673,11 @@ const MyCampaignsPage = () => {
 
         </section>
       </div>
+      <InquiryDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        inquiry={selectedInquiry}
+      />
     </main>
   );
 };
